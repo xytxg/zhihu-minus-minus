@@ -1,11 +1,11 @@
-import { getCollection, getCollectionDetail } from '@/api/zhihu';
-import { CreationCard } from '@/components/CreationCard';
-import { Text, View } from '@/components/Themed';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
+import { getCollection, getCollectionDetail } from '@/api/zhihu';
+import { CreationCard } from '@/components/CreationCard';
+import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 

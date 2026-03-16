@@ -13,12 +13,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   followTopic,
+  getBestAnswerers,
   getTopic,
   getTopicChildren,
   getTopicFeed,
   getTopicParents,
   unfollowTopic,
-  getBestAnswerers,
 } from '@/api/zhihu/topic';
 import { FeedCard } from '@/components/FeedCard';
 import { Text, View } from '@/components/Themed';
@@ -36,7 +36,9 @@ export default function TopicDetail() {
   const textColor = Colors[colorScheme].text;
   const backgroundColor = Colors[colorScheme].background;
 
-  const [activeTab, setActiveTab] = useState<'hot' | 'top-answers' | 'unanswered' | 'structure'>('top-answers');
+  const [activeTab, setActiveTab] = useState<
+    'hot' | 'top-answers' | 'unanswered' | 'structure'
+  >('top-answers');
 
   const { data: topic, isLoading: topicLoading } = useQuery({
     queryKey: ['topic', id],
@@ -87,21 +89,26 @@ export default function TopicDetail() {
     enabled: activeTab === 'structure',
   });
 
-  const { data: bestAnswerersData, isLoading: bestAnswerersLoading } = useQuery({
-    queryKey: ['topic-best-answerers', id],
-    queryFn: () => getBestAnswerers(id),
-    enabled: activeTab === 'structure',
-  });
+  const { data: bestAnswerersData, isLoading: bestAnswerersLoading } = useQuery(
+    {
+      queryKey: ['topic-best-answerers', id],
+      queryFn: () => getBestAnswerers(id),
+      enabled: activeTab === 'structure',
+    },
+  );
 
   const items = useMemo(() => {
     if (activeTab === 'structure') return [];
-    return feedData?.pages.flatMap((page: any) =>
-      page.data.map((item: any) => parseTopicFeedItem(item)).filter(Boolean)
-    ) || [];
+    return (
+      feedData?.pages.flatMap((page: any) =>
+        page.data.map((item: any) => parseTopicFeedItem(item)).filter(Boolean),
+      ) || []
+    );
   }, [feedData, activeTab]);
 
   const renderHeader = useMemo(() => {
-    if (!topic && topicLoading) return <ActivityIndicator style={{ marginTop: 100 }} />;
+    if (!topic && topicLoading)
+      return <ActivityIndicator style={{ marginTop: 100 }} />;
     if (!topic) return null;
 
     return (
@@ -122,12 +129,21 @@ export default function TopicDetail() {
             onPress={() => followMutation.mutate()}
             className="px-4 py-1.5 rounded-full"
             style={[
-              { backgroundColor: topic.is_following ? 'transparent' : tintColor },
-              topic.is_following && { borderWidth: 1, borderColor: Colors[colorScheme].border }
+              {
+                backgroundColor: topic.is_following ? 'transparent' : tintColor,
+              },
+              topic.is_following && {
+                borderWidth: 1,
+                borderColor: Colors[colorScheme].border,
+              },
             ]}
           >
             <Text
-              style={{ color: topic.is_following ? Colors[colorScheme].textSecondary : '#fff' }}
+              style={{
+                color: topic.is_following
+                  ? Colors[colorScheme].textSecondary
+                  : '#fff',
+              }}
               className="font-bold text-sm"
             >
               {topic.is_following ? '已关注' : '关注'}
@@ -137,13 +153,20 @@ export default function TopicDetail() {
 
         {topic.introduction ? (
           <View className="px-5 mb-4 bg-transparent">
-            <Text type="secondary" className="text-sm leading-5" numberOfLines={3}>
+            <Text
+              type="secondary"
+              className="text-sm leading-5"
+              numberOfLines={3}
+            >
               {topic.introduction.replace(/<[^>]+>/g, '')}
             </Text>
           </View>
         ) : null}
 
-        <View className="flex-row border-b bg-transparent" style={{ borderColor: Colors[colorScheme].border }}>
+        <View
+          className="flex-row border-b bg-transparent"
+          style={{ borderColor: Colors[colorScheme].border }}
+        >
           {[
             // { id: 'hot', name: '讨论' }, // api 404
             { id: 'top-answers', name: '精华' },
@@ -157,7 +180,9 @@ export default function TopicDetail() {
             >
               <Text
                 style={[
-                  activeTab === tab.id ? { color: tintColor, fontWeight: 'bold' } : { color: Colors[colorScheme].textSecondary }
+                  activeTab === tab.id
+                    ? { color: tintColor, fontWeight: 'bold' }
+                    : { color: Colors[colorScheme].textSecondary },
                 ]}
                 className="text-[15px]"
               >
@@ -174,7 +199,14 @@ export default function TopicDetail() {
         </View>
       </View>
     );
-  }, [topic, topicLoading, activeTab, tintColor, colorScheme, followMutation.isPending]);
+  }, [
+    topic,
+    topicLoading,
+    activeTab,
+    tintColor,
+    colorScheme,
+    followMutation.isPending,
+  ]);
 
   return (
     <View type="default" className="flex-1">
@@ -203,27 +235,47 @@ export default function TopicDetail() {
                 parents={parentsData?.data || []}
                 children={childrenData?.data || []}
                 bestAnswerers={bestAnswerersData?.data || []}
-                isLoading={parentsLoading || childrenLoading || bestAnswerersLoading}
+                isLoading={
+                  parentsLoading || childrenLoading || bestAnswerersLoading
+                }
               />
             )}
           </>
         )}
-        onEndReached={() => activeTab !== 'structure' && hasNextPage && !isFetchingNextPage && fetchNextPage()}
+        onEndReached={() =>
+          activeTab !== 'structure' &&
+          hasNextPage &&
+          !isFetchingNextPage &&
+          fetchNextPage()
+        }
         onEndReachedThreshold={0.5}
         onRefresh={refetch}
         refreshing={isRefetching}
         ListFooterComponent={() =>
           isFetchingNextPage ? (
-            <ActivityIndicator style={{ marginVertical: 20 }} color={tintColor} />
+            <ActivityIndicator
+              style={{ marginVertical: 20 }}
+              color={tintColor}
+            />
           ) : items.length > 0 && !hasNextPage ? (
-            <Text type="secondary" className="text-center my-5">— 没有更多内容了 —</Text>
+            <Text type="secondary" className="text-center my-5">
+              — 没有更多内容了 —
+            </Text>
           ) : null
         }
         ListEmptyComponent={() =>
-          !feedLoading && items.length === 0 && activeTab !== 'structure' && (
+          !feedLoading &&
+          items.length === 0 &&
+          activeTab !== 'structure' && (
             <View className="items-center justify-center mt-20 bg-transparent">
-              <Ionicons name="document-text-outline" size={48} color={Colors[colorScheme].textSecondary} />
-              <Text type="secondary" className="mt-4">暂无内容</Text>
+              <Ionicons
+                name="document-text-outline"
+                size={48}
+                color={Colors[colorScheme].textSecondary}
+              />
+              <Text type="secondary" className="mt-4">
+                暂无内容
+              </Text>
             </View>
           )
         }
@@ -274,16 +326,26 @@ function TopicStructureView({
                 />
                 <View className="flex-1">
                   <View className="flex-row items-center">
-                    <Text className="font-bold text-[15px] mr-1">{item.member.name}</Text>
+                    <Text className="font-bold text-[15px] mr-1">
+                      {item.member.name}
+                    </Text>
                     {item.member.badge && item.member.badge.length > 0 && (
-                      <Ionicons name="checkmark-circle" size={14} color="#0066FF" />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color="#0066FF"
+                      />
                     )}
                   </View>
                   <Text type="secondary" className="text-xs" numberOfLines={1}>
                     {item.member.headline}
                   </Text>
                   <Text type="secondary" className="text-xs mt-1">
-                    {item.answer_count} 回答 · {item.answer_votes >= 1000 ? `${(item.answer_votes / 1000).toFixed(1)}k` : item.answer_votes} 赞同
+                    {item.answer_count} 回答 ·{' '}
+                    {item.answer_votes >= 1000
+                      ? `${(item.answer_votes / 1000).toFixed(1)}k`
+                      : item.answer_votes}{' '}
+                    赞同
                   </Text>
                 </View>
               </Pressable>
@@ -314,11 +376,13 @@ function TopicStructureView({
         </View>
       )}
 
-      {parents.length === 0 && children.length === 0 && bestAnswerers.length === 0 && (
-        <View className="p-10 items-center bg-transparent">
-          <Text type="secondary">暂无话题层级数据</Text>
-        </View>
-      )}
+      {parents.length === 0 &&
+        children.length === 0 &&
+        bestAnswerers.length === 0 && (
+          <View className="p-10 items-center bg-transparent">
+            <Text type="secondary">暂无话题层级数据</Text>
+          </View>
+        )}
     </View>
   );
 }
@@ -331,14 +395,19 @@ function TopicItem({ topic }: { topic: any }) {
     <Pressable
       onPress={() => router.push(`/topic/${topic.id}` as any)}
       className="flex-row items-center p-3 mb-3 mr-3 rounded-xl border w-[46%]"
-      style={{ borderColor: Colors[colorScheme].border, backgroundColor: Colors[colorScheme].surface }}
+      style={{
+        borderColor: Colors[colorScheme].border,
+        backgroundColor: Colors[colorScheme].surface,
+      }}
     >
       <Image
         source={{ uri: topic.avatar_url }}
         className="w-8 h-8 rounded-lg"
       />
       <View className="ml-2.5 flex-1 bg-transparent">
-        <Text className="text-sm font-bold" numberOfLines={1}>{topic.name}</Text>
+        <Text className="text-sm font-bold" numberOfLines={1}>
+          {topic.name}
+        </Text>
       </View>
     </Pressable>
   );
@@ -358,15 +427,21 @@ function parseTopicFeedItem(item: any) {
   let excerpt = target.excerpt || '';
   if (type === 'pin' && Array.isArray(target.content)) {
     const textContent = target.content.find((c: any) => c.type === 'text');
-    excerpt = textContent ? textContent.content : (target.content[0]?.content || '');
+    excerpt = textContent
+      ? textContent.content
+      : target.content[0]?.content || '';
   }
 
   // Extract images
   const image =
     target.thumbnail ||
-    (target.topic_thumbnails && target.topic_thumbnails.length > 0 ? target.topic_thumbnails[0] : null) ||
+    (target.topic_thumbnails && target.topic_thumbnails.length > 0
+      ? target.topic_thumbnails[0]
+      : null) ||
     (target.content_img?.length > 0 ? target.content_img[0] : null) ||
-    (type === 'pin' && Array.isArray(target.content) ? target.content.find((c: any) => c.type === 'image')?.url : null);
+    (type === 'pin' && Array.isArray(target.content)
+      ? target.content.find((c: any) => c.type === 'image')?.url
+      : null);
 
   return {
     id: target.id?.toString() || Math.random().toString(),
@@ -385,9 +460,13 @@ function parseTopicFeedItem(item: any) {
     },
     excerpt: excerpt.replace(/<[^>]+>/g, ''),
     image: image,
-    voteCount: target.voteup_count || target.like_count || target.reaction_count || 0,
+    voteCount:
+      target.voteup_count || target.like_count || target.reaction_count || 0,
     commentCount: target.comment_count || 0,
-    voted: target.relationship?.voting || (target.relationship?.is_liked ? 1 : 0) || 0,
+    voted:
+      target.relationship?.voting ||
+      (target.relationship?.is_liked ? 1 : 0) ||
+      0,
     type: appType,
   };
 }

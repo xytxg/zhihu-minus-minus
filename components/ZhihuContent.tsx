@@ -241,7 +241,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = ({
             backgroundColor: Colors[colorScheme].primaryTransparent,
           },
           !isActive &&
-          isLiked && { backgroundColor: 'rgba(0, 132, 255, 0.05)' },
+            isLiked && { backgroundColor: 'rgba(0, 132, 255, 0.05)' },
         ]}
       >
         <TDefaultRenderer {...props} />
@@ -328,7 +328,10 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = ({
         ]}
       >
         <View className="flex-1 mr-2.5 bg-transparent">
-          <Text className="text-[15px] font-bold leading-5 mb-1.5" numberOfLines={2}>
+          <Text
+            className="text-[15px] font-bold leading-5 mb-1.5"
+            numberOfLines={2}
+          >
             {title || url}
           </Text>
           <View className="flex-row items-center bg-transparent">
@@ -484,7 +487,10 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = ({
       }
       if (item.type === 'image') {
         return (
-          <View key={index} className="my-2.5 items-center w-full bg-transparent">
+          <View
+            key={index}
+            className="my-2.5 items-center w-full bg-transparent"
+          >
             <Pressable
               onPress={() => {
                 setViewerImage(item.url);

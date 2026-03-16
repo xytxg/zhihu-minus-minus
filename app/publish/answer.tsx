@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { searchCreatorQuestions, getInvitedQuestions } from '@/api/zhihu';
+import { getInvitedQuestions, searchCreatorQuestions } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -50,7 +50,12 @@ export default function PublishAnswerScreen() {
   const renderQuestionItem = ({ item }: { item: any }) => {
     // Check if it's an invitation item
     if (item.content && item.content.text) {
-      const { title: inviter, sub_title: inviteMsg, text: qTitle, target_link } = item.content;
+      const {
+        title: inviter,
+        sub_title: inviteMsg,
+        text: qTitle,
+        target_link,
+      } = item.content;
       const questionId = target_link?.split('/').pop();
 
       return (
@@ -67,7 +72,10 @@ export default function PublishAnswerScreen() {
               {inviteMsg}
             </Text>
           </View>
-          <Text className="text-base font-bold mb-2 leading-6" style={{ color: textColor }}>
+          <Text
+            className="text-base font-bold mb-2 leading-6"
+            style={{ color: textColor }}
+          >
             {qTitle}
           </Text>
         </Pressable>
@@ -78,7 +86,7 @@ export default function PublishAnswerScreen() {
     if (!question) return null;
 
     const reaction = item.reaction || {};
-    const subText = reaction.pv 
+    const subText = reaction.pv
       ? `${reaction.pv} 浏览 · ${reaction.follow_num} 关注 · ${reaction.answer_num} 回答`
       : item.target_source?.sub_text || `${question.follow_num || 0} 关注`;
 
@@ -88,7 +96,10 @@ export default function PublishAnswerScreen() {
         className="px-5 py-4 border-b"
         style={{ borderBottomColor: borderCol }}
       >
-        <Text className="text-base font-bold mb-2 leading-6" style={{ color: textColor }}>
+        <Text
+          className="text-base font-bold mb-2 leading-6"
+          style={{ color: textColor }}
+        >
           {question.title}
         </Text>
         <Text className="text-xs" style={{ color: secondaryColor }}>
@@ -113,22 +124,43 @@ export default function PublishAnswerScreen() {
       </View>
 
       {/* Tabs */}
-      <View className="flex-row px-5 border-b" style={{ borderBottomColor: borderCol }}>
+      <View
+        className="flex-row px-5 border-b"
+        style={{ borderBottomColor: borderCol }}
+      >
         <Pressable
           onPress={() => setActiveTab('search')}
           className="py-3 mr-6"
-          style={{ borderBottomWidth: 2, borderBottomColor: activeTab === 'search' ? tintColor : 'transparent' }}
+          style={{
+            borderBottomWidth: 2,
+            borderBottomColor:
+              activeTab === 'search' ? tintColor : 'transparent',
+          }}
         >
-          <Text style={{ color: activeTab === 'search' ? tintColor : secondaryColor, fontWeight: activeTab === 'search' ? 'bold' : 'normal' }}>
+          <Text
+            style={{
+              color: activeTab === 'search' ? tintColor : secondaryColor,
+              fontWeight: activeTab === 'search' ? 'bold' : 'normal',
+            }}
+          >
             搜索问题
           </Text>
         </Pressable>
         <Pressable
           onPress={() => setActiveTab('invite')}
           className="py-3"
-          style={{ borderBottomWidth: 2, borderBottomColor: activeTab === 'invite' ? tintColor : 'transparent' }}
+          style={{
+            borderBottomWidth: 2,
+            borderBottomColor:
+              activeTab === 'invite' ? tintColor : 'transparent',
+          }}
         >
-          <Text style={{ color: activeTab === 'invite' ? tintColor : secondaryColor, fontWeight: activeTab === 'invite' ? 'bold' : 'normal' }}>
+          <Text
+            style={{
+              color: activeTab === 'invite' ? tintColor : secondaryColor,
+              fontWeight: activeTab === 'invite' ? 'bold' : 'normal',
+            }}
+          >
             邀请回答
           </Text>
         </Pressable>
@@ -151,7 +183,13 @@ export default function PublishAnswerScreen() {
                 onChangeText={setQuery}
                 autoFocus
               />
-              {isSearching && <ActivityIndicator size="small" color={tintColor} className="ml-2" />}
+              {isSearching && (
+                <ActivityIndicator
+                  size="small"
+                  color={tintColor}
+                  className="ml-2"
+                />
+              )}
             </View>
           </View>
           <FlatList
@@ -161,8 +199,13 @@ export default function PublishAnswerScreen() {
             ListEmptyComponent={() => (
               <View className="flex-1 justify-center items-center mt-20 px-10">
                 <Ionicons name="search-outline" size={64} color={borderCol} />
-                <Text className="text-center mt-4" style={{ color: secondaryColor }}>
-                  {query.trim() ? "没有找到相关问题喵" : "试着搜索一些你感兴趣的话题吧"}
+                <Text
+                  className="text-center mt-4"
+                  style={{ color: secondaryColor }}
+                >
+                  {query.trim()
+                    ? '没有找到相关问题喵'
+                    : '试着搜索一些你感兴趣的话题吧'}
                 </Text>
               </View>
             )}
@@ -182,7 +225,10 @@ export default function PublishAnswerScreen() {
               ListEmptyComponent={() => (
                 <View className="flex-1 justify-center items-center mt-20 px-10">
                   <Ionicons name="mail-outline" size={64} color={borderCol} />
-                  <Text className="text-center mt-4" style={{ color: secondaryColor }}>
+                  <Text
+                    className="text-center mt-4"
+                    style={{ color: secondaryColor }}
+                  >
                     暂时没有收到回答邀请喵
                   </Text>
                 </View>

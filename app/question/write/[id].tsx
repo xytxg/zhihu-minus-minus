@@ -1,5 +1,3 @@
-import { createAnswer, getQuestion } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,6 +12,8 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createAnswer, getQuestion } from '@/api/zhihu';
+import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 

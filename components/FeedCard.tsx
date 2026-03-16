@@ -46,7 +46,7 @@ export const FeedCard = ({ item }: { item: any }) => {
           {item.author.name}
         </Text>
       </Pressable>
-        
+
       {/* 话题标签 */}
       {item.topics && item.topics.length > 0 && (
         <View className="flex-row flex-wrap mb-2 bg-transparent">

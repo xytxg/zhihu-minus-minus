@@ -14,9 +14,9 @@ export const getTopicFeed = async (
   offset: number = 0,
 ) => {
   const typeMapping: Record<string, string> = {
-    'hot': 'hot',
+    hot: 'hot',
     'top-answers': 'essence',
-    'unanswered': 'top_question',
+    unanswered: 'top_question',
   };
   const feedType = typeMapping[type] || type;
   const include =
@@ -47,7 +47,12 @@ export const getTopicChildren = async (id: string | number) => {
   return res.data;
 };
 
-export const getBestAnswerers = async (id: string | number, limit: number = 3) => {
-  const res = await apiClient.get(`/topics/${id}/best_answerers?limit=${limit}`);
+export const getBestAnswerers = async (
+  id: string | number,
+  limit: number = 3,
+) => {
+  const res = await apiClient.get(
+    `/topics/${id}/best_answerers?limit=${limit}`,
+  );
   return res.data;
 };

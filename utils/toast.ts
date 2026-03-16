@@ -1,5 +1,5 @@
-import Toast from 'react-native-root-toast';
 import { Platform, ToastAndroid } from 'react-native';
+import Toast from 'react-native-root-toast';
 
 export const showToast = (message: string) => {
   if (Platform.OS === 'android') {

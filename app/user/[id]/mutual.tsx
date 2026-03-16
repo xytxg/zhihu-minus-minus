@@ -1,11 +1,11 @@
-import { getMemberMutual } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
-import { UserCard } from '@/components/UserCard';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
+import { getMemberMutual } from '@/api/zhihu';
+import { Text, View } from '@/components/Themed';
+import { UserCard } from '@/components/UserCard';
 
 export default function MutualFollowersScreen() {
   const { id } = useLocalSearchParams();

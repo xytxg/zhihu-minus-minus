@@ -111,7 +111,7 @@ export default function ReplyDetailScreen() {
                   onPress={() =>
                     goToProfile(
                       item.reply_to_author.member.url_token ||
-                      item.reply_to_author.member.id,
+                        item.reply_to_author.member.id,
                     )
                   }
                 >

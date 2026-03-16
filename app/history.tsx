@@ -1,10 +1,10 @@
-import { getReadHistory } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
+import { getReadHistory } from '@/api/zhihu';
+import { Text, View } from '@/components/Themed';
 
 export default function HistoryScreen() {
   const router = useRouter();

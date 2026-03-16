@@ -89,10 +89,7 @@ export default function PublishQuestionScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView
-          className="flex-1 px-5"
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView className="flex-1 px-5" keyboardShouldPersistTaps="handled">
           <TextInput
             className="text-xl font-bold py-4 border-b"
             style={{ color: textColor, borderBottomColor: borderCol }}
