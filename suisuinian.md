@@ -63,3 +63,8 @@ todo v2:
 ...  
 感觉好厉害
 
+
+**v0.0.6 (2026-03-16)**
+- topics, content publish page implementation a bit
+- sentry and github release notification
+- 优化了部分 UI 细节

@@ -13,16 +13,24 @@ import {
   useSyncThemeWithNativeWind,
   useThemeStore,
 } from '@/store/useThemeStore';
-import 'react-native-reanimated';
+import * as Sentry from '@sentry/react-native';
 import { RootSiblingParent } from 'react-native-root-siblings';
+import { UpdateChecker } from '@/components/UpdateChecker';
 import '../global.css';
 
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
 
+// 初始化 Sentry
+Sentry.init({
+  dsn: 'https://93a6099dd49b040d9c516485eb3c72f6@o4511051860672512.ingest.de.sentry.io/4511051866112080', // 请替换为您的真实 DSN
+  debug: __DEV__,
+  enableAutoSessionTracking: true,
+});
+
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const isDark = useThemeStore((state) => state.isDark);
   const theme = isDark ? DarkTheme : DefaultTheme;
@@ -39,6 +47,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <RootSiblingParent>
         <ThemeProvider value={theme}>
+          <UpdateChecker />
           <Stack
             screenOptions={{
               headerStyle: {
@@ -132,3 +141,4 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+export default Sentry.wrap(RootLayout);
