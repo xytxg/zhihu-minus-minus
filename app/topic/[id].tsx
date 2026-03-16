@@ -18,6 +18,7 @@ import {
   getTopicFeed,
   getTopicParents,
   unfollowTopic,
+  getBestAnswerers,
 } from '@/api/zhihu/topic';
 import { FeedCard } from '@/components/FeedCard';
 import { Text, View } from '@/components/Themed';
@@ -83,6 +84,12 @@ export default function TopicDetail() {
   const { data: childrenData, isLoading: childrenLoading } = useQuery({
     queryKey: ['topic-children', id],
     queryFn: () => getTopicChildren(id),
+    enabled: activeTab === 'structure',
+  });
+
+  const { data: bestAnswerersData, isLoading: bestAnswerersLoading } = useQuery({
+    queryKey: ['topic-best-answerers', id],
+    queryFn: () => getBestAnswerers(id),
     enabled: activeTab === 'structure',
   });
 
@@ -195,7 +202,8 @@ export default function TopicDetail() {
               <TopicStructureView
                 parents={parentsData?.data || []}
                 children={childrenData?.data || []}
-                isLoading={parentsLoading || childrenLoading}
+                bestAnswerers={bestAnswerersData?.data || []}
+                isLoading={parentsLoading || childrenLoading || bestAnswerersLoading}
               />
             )}
           </>
@@ -224,7 +232,17 @@ export default function TopicDetail() {
   );
 }
 
-function TopicStructureView({ parents, children, isLoading }: { parents: any[]; children: any[]; isLoading: boolean }) {
+function TopicStructureView({
+  parents,
+  children,
+  bestAnswerers,
+  isLoading,
+}: {
+  parents: any[];
+  children: any[];
+  bestAnswerers: any[];
+  isLoading: boolean;
+}) {
   const router = useRouter();
   const colorScheme = useColorScheme();
 
@@ -237,9 +255,45 @@ function TopicStructureView({ parents, children, isLoading }: { parents: any[]; 
   }
 
   return (
-    <View className="bg-transparent">
+    <View className="bg-transparent pb-10">
+      {bestAnswerers.length > 0 && (
+        <View className="px-5 py-4 bg-transparent border-b border-gray-100 dark:border-gray-800">
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-base font-bold">最佳回答者</Text>
+          </View>
+          <View className="bg-transparent">
+            {bestAnswerers.map((item: any) => (
+              <Pressable
+                key={item.member.id}
+                className="flex-row items-center mb-4 active:opacity-70"
+                onPress={() => router.push(`/user/${item.member.url_token}`)}
+              >
+                <Image
+                  source={{ uri: item.member.avatar_url }}
+                  className="w-12 h-12 rounded-full mr-3"
+                />
+                <View className="flex-1">
+                  <View className="flex-row items-center">
+                    <Text className="font-bold text-[15px] mr-1">{item.member.name}</Text>
+                    {item.member.badge && item.member.badge.length > 0 && (
+                      <Ionicons name="checkmark-circle" size={14} color="#0066FF" />
+                    )}
+                  </View>
+                  <Text type="secondary" className="text-xs" numberOfLines={1}>
+                    {item.member.headline}
+                  </Text>
+                  <Text type="secondary" className="text-xs mt-1">
+                    {item.answer_count} 回答 · {item.answer_votes >= 1000 ? `${(item.answer_votes / 1000).toFixed(1)}k` : item.answer_votes} 赞同
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
+
       {parents.length > 0 && (
-        <View className="px-5 py-4 bg-transparent">
+        <View className="px-5 py-4 bg-transparent border-b border-gray-100 dark:border-gray-800">
           <Text className="text-base font-bold mb-3">父话题</Text>
           <View className="flex-row flex-wrap bg-transparent">
             {parents.map((topic: any) => (
@@ -250,7 +304,7 @@ function TopicStructureView({ parents, children, isLoading }: { parents: any[]; 
       )}
 
       {children.length > 0 && (
-        <View className="px-5 py-4 bg-transparent border-t" style={{ borderColor: Colors[colorScheme].border }}>
+        <View className="px-5 py-4 bg-transparent">
           <Text className="text-base font-bold mb-3">子话题</Text>
           <View className="flex-row flex-wrap bg-transparent">
             {children.map((topic: any) => (
@@ -260,7 +314,7 @@ function TopicStructureView({ parents, children, isLoading }: { parents: any[]; 
         </View>
       )}
 
-      {parents.length === 0 && children.length === 0 && (
+      {parents.length === 0 && children.length === 0 && bestAnswerers.length === 0 && (
         <View className="p-10 items-center bg-transparent">
           <Text type="secondary">暂无话题层级数据</Text>
         </View>

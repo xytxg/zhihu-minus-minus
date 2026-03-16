@@ -46,3 +46,8 @@ export const getTopicChildren = async (id: string | number) => {
   const res = await apiClient.get(`/topics/${id}/children`);
   return res.data;
 };
+
+export const getBestAnswerers = async (id: string | number, limit: number = 3) => {
+  const res = await apiClient.get(`/topics/${id}/best_answerers?limit=${limit}`);
+  return res.data;
+};
