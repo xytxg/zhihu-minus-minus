@@ -13,6 +13,7 @@ const secureStorage = {
 export interface Account {
   cookies: string;
   me: any;
+  last_updated?: number; // 添加更新时间戳
 }
 
 interface AuthState {
@@ -66,14 +67,17 @@ export const useAuthStore = create<AuthState>()(
 
       addAccount: (cookies, me) => {
         const { accounts } = get();
-        const id = me?.url_token || me?.id;
+        // 优先使用不可变的 id，后退到 url_token 或 name
+        const id = me?.id || me?.url_token || me?.name;
         const existingIndex = accounts.findIndex(
-          (a) => (a.me?.url_token || a.me?.id) === id,
+          (a) => (a.me?.id || a.me?.url_token || a.me?.name) === id,
         );
+
+        const last_updated = Date.now();
 
         if (existingIndex >= 0) {
           const newAccounts = [...accounts];
-          newAccounts[existingIndex] = { cookies, me };
+          newAccounts[existingIndex] = { cookies, me, last_updated };
           set({
             accounts: newAccounts,
             activeAccountIndex: existingIndex,
@@ -81,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
             me,
           });
         } else {
-          const newAccounts = [...accounts, { cookies, me }];
+          const newAccounts = [...accounts, { cookies, me, last_updated }];
           set({
             accounts: newAccounts,
             activeAccountIndex: newAccounts.length - 1,
@@ -151,7 +155,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => secureStorage),
-      version: 1,
+      version: 2, // 升级版本以支持 last_updated 结构（虽然是可选的）
       migrate: (persistedState: any, version: number) => {
         if (version === 0) {
           const state = persistedState as any;
@@ -167,6 +171,10 @@ export const useAuthStore = create<AuthState>()(
             accounts: [],
             activeAccountIndex: -1,
           };
+        }
+        if (version === 1) {
+          // v1 -> v2: 主要是增加了 last_updated，现有数据继续使用即可
+          return persistedState;
         }
         return persistedState;
       },

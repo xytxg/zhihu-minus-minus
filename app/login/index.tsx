@@ -7,7 +7,9 @@ import { WebView } from 'react-native-webview';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { getMe } from '@/api/zhihu';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useVerificationStore } from '@/store/useVerificationStore';
 
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
@@ -64,6 +66,18 @@ export default function LoginScreen() {
 
         await SecureStore.setItemAsync('user_cookies', cookieString);
         useAuthStore.getState().setCookies(cookieString);
+
+        // 🟢 预抓取用户信息，确保账号列表立即完整
+        try {
+          const me = await getMe();
+          if (me) {
+            useAuthStore.getState().addAccount(cookieString, me);
+          }
+        } catch (e) {
+          console.error('⚠️ 预抓取用户信息失败 (不影响登录):', e);
+        }
+
+        useVerificationStore.getState().hide(); // 登录成功后强制关闭验证弹窗
         console.log('✅ 登录 Cookie 已保存至 SecureStore 和 AuthStore');
 
         // 成功后跳转，确保存储生效

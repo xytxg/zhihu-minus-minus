@@ -20,6 +20,7 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useVerificationStore } from '@/store/useVerificationStore';
 import { useThemeStore } from '@/store/useThemeStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useThemeColor } from '@/components/Themed';
@@ -90,6 +91,35 @@ export default function ProfileScreen() {
     }, [cookies, refetch]),
   );
 
+  // 封装：同步原生层的 Session 状态（SecureStore 和 CookieManager）
+  const syncNativeSession = async (cookieString: string | null) => {
+    if (cookieString) {
+      await SecureStore.setItemAsync('user_cookies', cookieString);
+      await CookieManager.clearAll();
+      const cookiePairs = cookieString.split(';');
+      for (const pair of cookiePairs) {
+        const trimmedPair = pair.trim();
+        if (!trimmedPair) continue;
+        const equalIndex = trimmedPair.indexOf('=');
+        if (equalIndex > 0) {
+          const name = trimmedPair.substring(0, equalIndex);
+          const value = trimmedPair.substring(equalIndex + 1);
+          if (name && value) {
+            await CookieManager.set('https://www.zhihu.com', {
+              name,
+              value,
+              domain: '.zhihu.com',
+              path: '/',
+            });
+          }
+        }
+      }
+    } else {
+      await SecureStore.deleteItemAsync('user_cookies');
+      await CookieManager.clearAll();
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert('退出登录', '确定要退出当前账号吗喵？', [
       { text: '取消', style: 'cancel' },
@@ -97,14 +127,23 @@ export default function ProfileScreen() {
         text: '确定退出',
         style: 'destructive',
         onPress: async () => {
-          // If it's the last account, we might want to clear all
-          if (accounts.length <= 1) {
-            await SecureStore.deleteItemAsync('user_cookies');
-            await CookieManager.clearAll();
+          useVerificationStore.getState().hide();
+
+          const remainingAccounts = accounts.filter(
+            (_, i) => i !== activeAccountIndex,
+          );
+
+          // 核心：注销时如果要切换到下一个账号，必须同步原生状态
+          if (remainingAccounts.length > 0) {
+            await syncNativeSession(remainingAccounts[0].cookies);
+          } else {
+            await syncNativeSession(null);
           }
+
           logout();
-          queryClient.setQueryData(['me'], null);
-          if (accounts.length <= 1) {
+          queryClient.clear();
+
+          if (remainingAccounts.length === 0) {
             router.replace('/login');
           }
         },
@@ -118,24 +157,31 @@ export default function ProfileScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const targetAccount = accounts[index];
 
-    // Update CookieManager with target account's cookies
-    await CookieManager.clearAll();
-    const cookiePairs = targetAccount.cookies.split(';');
-    for (const pair of cookiePairs) {
-      const [name, value] = pair.trim().split('=');
-      if (name && value) {
-        await CookieManager.set('https://www.zhihu.com', {
-          name,
-          value,
-          domain: '.zhihu.com',
-          path: '/',
-        });
-      }
-    }
+    useVerificationStore.getState().hide();
+    await syncNativeSession(targetAccount.cookies);
 
     switchAccount(index);
-    queryClient.clear(); // 核心：彻底清空缓存，防止使用旧账号 ID 和新 Cookie 组合导致的 403
+    queryClient.clear();
     setAccountModalVisible(false);
+  };
+
+  const handleRemoveAccount = (index: number) => {
+    const targetAccount = accounts[index];
+    Alert.alert('移除账号', `确定要移除账号「${targetAccount.me?.name}」吗？`, [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '确定移除',
+        style: 'destructive',
+        onPress: async () => {
+          if (index === activeAccountIndex) {
+            // 如果移除的是当前账号，走注销流程
+            handleLogout();
+          } else {
+            removeAccount(index);
+          }
+        },
+      },
+    ]);
   };
 
   const handleAddAccount = async () => {
@@ -366,31 +412,54 @@ export default function ProfileScreen() {
 
             <ScrollView className="bg-transparent">
               {accounts.map((account, index) => (
-                <Pressable
+                <View
                   key={account.me?.id || index}
-                  onPress={() => handleSwitchAccount(index)}
-                  className="flex-row items-center py-4 border-b border-gray-100 dark:border-gray-800 bg-transparent"
+                  className="flex-row items-center bg-transparent"
                 >
-                  <Image
-                    source={{ uri: account.me?.avatar_url }}
-                    className="w-12 h-12 rounded-full bg-[#eee]"
-                  />
-                  <View className="flex-1 ml-4 bg-transparent">
-                    <Text className="text-base font-bold">
-                      {account.me?.name}
-                    </Text>
-                    <Text
-                      type="secondary"
-                      className="text-xs mt-1"
-                      numberOfLines={1}
-                    >
-                      {account.me?.headline || '知乎用户'}
-                    </Text>
-                  </View>
-                  {index === activeAccountIndex && (
-                    <Ionicons name="checkmark-circle" size={24} color="#0084ff" />
-                  )}
-                </Pressable>
+                  <Pressable
+                    onPress={() => handleSwitchAccount(index)}
+                    className="flex-row items-center py-4 flex-1 border-b border-gray-100 dark:border-gray-800 bg-transparent"
+                  >
+                    <Image
+                      source={{ uri: account.me?.avatar_url }}
+                      className="w-12 h-12 rounded-full bg-[#eee]"
+                    />
+                    <View className="flex-1 ml-4 bg-transparent">
+                      <View className="flex-row items-center bg-transparent">
+                        <Text className="text-base font-bold">
+                          {account.me?.name}
+                        </Text>
+                        {index === activeAccountIndex && (
+                          <View className="ml-2 bg-[#0084ff20] px-1.5 py-0.5 rounded">
+                            <Text className="text-[#0084ff] text-[10px] font-bold">
+                              当前
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text
+                        type="secondary"
+                        className="text-xs mt-1"
+                        numberOfLines={1}
+                      >
+                        {account.me?.headline || '知乎用户'}
+                      </Text>
+                    </View>
+                    {index === activeAccountIndex && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={22}
+                        color="#0084ff"
+                      />
+                    )}
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleRemoveAccount(index)}
+                    className="pl-4 py-4"
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#ff4d4f" />
+                  </Pressable>
+                </View>
               ))}
 
               <Pressable

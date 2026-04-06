@@ -30,7 +30,22 @@ Sentry.init({
   enableAutoSessionTracking: true,
 });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: any) => {
+        // 如果是人机验证错误（40352），停止自动重试，等待弹窗加载
+        if (error?.response?.data?.error?.code === 40352) {
+          return false;
+        }
+        // 其他错误默认重试 2 次 (共三次尝试)
+        return failureCount < 2;
+      },
+      // 这里的配置确保不会因为网络瞬间闪烁在验证期间反复弹窗
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+  },
+});
 
 function RootLayout() {
   const colorScheme = useColorScheme();

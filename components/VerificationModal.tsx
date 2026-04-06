@@ -3,9 +3,11 @@ import { Modal, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native'
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from './Themed';
+import { useQueryClient } from '@tanstack/react-query';
 import { useVerificationStore } from '@/store/useVerificationStore';
 
 export const VerificationModal = () => {
+  const queryClient = useQueryClient();
   const { isVisible, verificationUrl, hide } = useVerificationStore();
 
   const handleNavigationStateChange = (navState: any) => {
@@ -20,6 +22,8 @@ export const VerificationModal = () => {
       // 延迟关闭以确保用户看到成功的反馈（如果页面有的话）
       setTimeout(() => {
         hide();
+        // 恢复所有活跃的查询。这会让之前因为 40352 停掉或者已过期的查询重新加载。
+        queryClient.refetchQueries({ type: 'active' });
       }, 1000);
     }
   };
