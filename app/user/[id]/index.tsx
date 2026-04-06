@@ -221,10 +221,10 @@ export default function UserDetailScreen() {
               style={[
                 user?.is_following
                   ? {
-                      backgroundColor: 'transparent',
-                      borderColor: borderColor,
-                      borderWidth: 1,
-                    }
+                    backgroundColor: 'transparent',
+                    borderColor: borderColor,
+                    borderWidth: 1,
+                  }
                   : { backgroundColor: Colors[colorScheme].primary },
               ]}
               onPress={handleFollow}
@@ -340,8 +340,8 @@ export default function UserDetailScreen() {
             className="ml-2.5"
           />
           <TextInput
-            className="flex-1 text-sm px-2.5 h-full"
-            style={{ color: Colors[colorScheme].text }}
+            className="flex-1 text-sm px-2.5 h-full py-0"
+            style={{ color: Colors[colorScheme].text, textAlignVertical: 'center' }}
             placeholder={`搜索 ${user?.name || '用户'} 的创作...`}
             placeholderTextColor={Colors[colorScheme].textTertiary}
             value={searchQuery}
@@ -390,17 +390,17 @@ export default function UserDetailScreen() {
               className="px-5 py-[15px] items-center"
               style={[
                 !isSearching &&
-                  activeTab === tab.key && {
-                    borderBottomWidth: 2,
-                    borderBottomColor: primaryColor,
-                  },
+                activeTab === tab.key && {
+                  borderBottomWidth: 2,
+                  borderBottomColor: primaryColor,
+                },
               ]}
             >
               <Text
                 className="font-bold"
                 style={[
                   !isSearching &&
-                    activeTab === tab.key && { color: primaryColor },
+                  activeTab === tab.key && { color: primaryColor },
                 ]}
               >
                 {tab.label}{' '}

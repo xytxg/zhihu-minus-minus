@@ -74,9 +74,9 @@ export function Text(
 
   const finalStyle: TextStyle = {
     ...flattenedStyle,
-    color,
+    color: flattenedStyle.color || color,
     fontSize: currentFontSize * fontSizeScale,
-    lineHeight: currentLineHeight * lineHeightScale / 1.5, // 修正比例
+    lineHeight: (currentLineHeight * lineHeightScale) / 1.5, // 修正比例
   };
 
   return <DefaultText style={finalStyle} {...otherProps} />;
