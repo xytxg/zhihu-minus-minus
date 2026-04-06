@@ -10,28 +10,166 @@ const secureStorage = {
   removeItem: (name: string) => SecureStore.deleteItemAsync(name),
 };
 
+export interface Account {
+  cookies: string;
+  me: any;
+}
+
 interface AuthState {
+  accounts: Account[];
+  activeAccountIndex: number;
   cookies: string | null;
   me: any | null; // 存储个人详细信息
   setCookies: (cookies: string) => void;
   setMe: (me: any) => void;
+  addAccount: (cookies: string, me: any) => void;
+  switchAccount: (index: number) => void;
+  removeAccount: (index: number) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
+      accounts: [],
+      activeAccountIndex: -1,
       cookies: null,
       me: null,
-      setCookies: (cookies) => set({ cookies }),
-      setMe: (me) => set({ me }),
+
+      setCookies: (cookies) => {
+        const { accounts, activeAccountIndex } = get();
+        if (activeAccountIndex >= 0) {
+          const newAccounts = [...accounts];
+          newAccounts[activeAccountIndex] = {
+            ...newAccounts[activeAccountIndex],
+            cookies,
+          };
+          set({ accounts: newAccounts, cookies });
+        } else {
+          set({ cookies });
+        }
+      },
+
+      setMe: (me) => {
+        const { accounts, activeAccountIndex } = get();
+        if (activeAccountIndex >= 0) {
+          const newAccounts = [...accounts];
+          newAccounts[activeAccountIndex] = {
+            ...newAccounts[activeAccountIndex],
+            me,
+          };
+          set({ accounts: newAccounts, me });
+        } else {
+          set({ me });
+        }
+      },
+
+      addAccount: (cookies, me) => {
+        const { accounts } = get();
+        const id = me?.url_token || me?.id;
+        const existingIndex = accounts.findIndex(
+          (a) => (a.me?.url_token || a.me?.id) === id,
+        );
+
+        if (existingIndex >= 0) {
+          const newAccounts = [...accounts];
+          newAccounts[existingIndex] = { cookies, me };
+          set({
+            accounts: newAccounts,
+            activeAccountIndex: existingIndex,
+            cookies,
+            me,
+          });
+        } else {
+          const newAccounts = [...accounts, { cookies, me }];
+          set({
+            accounts: newAccounts,
+            activeAccountIndex: newAccounts.length - 1,
+            cookies,
+            me,
+          });
+        }
+      },
+
+      switchAccount: (index) => {
+        const { accounts } = get();
+        if (index >= 0 && index < accounts.length) {
+          const account = accounts[index];
+          set({
+            activeAccountIndex: index,
+            cookies: account.cookies,
+            me: account.me,
+          });
+        }
+      },
+
+      removeAccount: (index) => {
+        const { accounts, activeAccountIndex } = get();
+        if (index >= 0 && index < accounts.length) {
+          const newAccounts = accounts.filter((_, i) => i !== index);
+          let newIndex = activeAccountIndex;
+          if (activeAccountIndex === index) {
+            newIndex = newAccounts.length > 0 ? 0 : -1;
+          } else if (activeAccountIndex > index) {
+            newIndex -= 1;
+          }
+
+          const activeAccount = newIndex >= 0 ? newAccounts[newIndex] : null;
+          set({
+            accounts: newAccounts,
+            activeAccountIndex: newIndex,
+            cookies: activeAccount?.cookies || null,
+            me: activeAccount?.me || null,
+          });
+        }
+      },
+
       logout: () => {
-        set({ cookies: null, me: null });
+        const { accounts, activeAccountIndex } = get();
+        if (activeAccountIndex >= 0) {
+          const newAccounts = accounts.filter(
+            (_, i) => i !== activeAccountIndex,
+          );
+          const newIndex = newAccounts.length > 0 ? 0 : -1;
+          const activeAccount = newIndex >= 0 ? newAccounts[newIndex] : null;
+          set({
+            accounts: newAccounts,
+            activeAccountIndex: newIndex,
+            cookies: activeAccount?.cookies || null,
+            me: activeAccount?.me || null,
+          });
+        } else {
+          set({
+            accounts: [],
+            activeAccountIndex: -1,
+            cookies: null,
+            me: null,
+          });
+        }
       },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => secureStorage),
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        if (version === 0) {
+          const state = persistedState as any;
+          if (state.cookies && state.me) {
+            return {
+              ...state,
+              accounts: [{ cookies: state.cookies, me: state.me }],
+              activeAccountIndex: 0,
+            };
+          }
+          return {
+            ...state,
+            accounts: [],
+            activeAccountIndex: -1,
+          };
+        }
+        return persistedState;
+      },
     },
   ),
 );

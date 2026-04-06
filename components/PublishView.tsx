@@ -55,7 +55,7 @@ export function PublishView() {
         style={{ paddingTop: insets.top + 60 }}
       >
         <Text className="text-[28px] font-extrabold mb-2 text-foreground dark:text-foreground-dark">
-          发布内容(WIP)
+          发布内容
         </Text>
         <Text type="secondary" className="text-base opacity-70">
           让世界看到你的思考

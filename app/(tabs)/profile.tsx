@@ -8,6 +8,7 @@ import React, { useCallback } from 'react';
 import {
   Alert,
   Image,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -27,7 +28,20 @@ export default function ProfileScreen() {
   const queryClient = useQueryClient();
   const { isDark, toggleTheme } = useThemeStore();
   const accentColor = Colors[colorScheme].tint;
-  const { cookies, setMe } = useAuthStore();
+  const surfaceColor = Colors[colorScheme].surface;
+  const textColor = Colors[colorScheme].text;
+  const {
+    cookies,
+    setMe,
+    accounts,
+    activeAccountIndex,
+    switchAccount,
+    addAccount,
+    removeAccount,
+    logout,
+  } = useAuthStore();
+
+  const [accountModalVisible, setAccountModalVisible] = React.useState(false);
 
   const {
     data: me,
@@ -52,8 +66,10 @@ export default function ProfileScreen() {
   const profile = member || me;
 
   React.useEffect(() => {
-    if (profile) setMe(profile);
-  }, [profile, setMe]);
+    if (profile && cookies) {
+      addAccount(cookies, profile);
+    }
+  }, [profile, cookies, addAccount]);
 
   const isLoading = isMeLoading || isMemberLoading;
   const refetch = () => {
@@ -79,14 +95,52 @@ export default function ProfileScreen() {
         text: '确定退出',
         style: 'destructive',
         onPress: async () => {
-          await SecureStore.deleteItemAsync('user_cookies');
-          await CookieManager.clearAll();
-          useAuthStore.getState().logout();
+          // If it's the last account, we might want to clear all
+          if (accounts.length <= 1) {
+            await SecureStore.deleteItemAsync('user_cookies');
+            await CookieManager.clearAll();
+          }
+          logout();
           queryClient.setQueryData(['me'], null);
-          router.replace('/login');
+          if (accounts.length <= 1) {
+            router.replace('/login');
+          }
         },
       },
     ]);
+  };
+
+  const handleSwitchAccount = async (index: number) => {
+    if (index === activeAccountIndex) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const targetAccount = accounts[index];
+
+    // Update CookieManager with target account's cookies
+    await CookieManager.clearAll();
+    const cookiePairs = targetAccount.cookies.split(';');
+    for (const pair of cookiePairs) {
+      const [name, value] = pair.trim().split('=');
+      if (name && value) {
+        await CookieManager.set('https://www.zhihu.com', {
+          name,
+          value,
+          domain: '.zhihu.com',
+          path: '/',
+        });
+      }
+    }
+
+    switchAccount(index);
+    queryClient.invalidateQueries();
+    setAccountModalVisible(false);
+  };
+
+  const handleAddAccount = () => {
+    setAccountModalVisible(false);
+    // When adding account, we don't clear current store yet,
+    // just navigate to login. Login will overwrite cookies.
+    router.push('/login');
   };
 
   const onToggleTheme = () => {
@@ -246,6 +300,19 @@ export default function ProfileScreen() {
           }
         />
         <MenuItem
+          icon="people-outline"
+          title="切换账号"
+          onPress={() => setAccountModalVisible(true)}
+          right={
+            <View className="flex-row items-center bg-transparent">
+              <Text type="secondary" className="mr-1 text-[13px]">
+                {accounts.length} 个账号
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color="#ccc" />
+            </View>
+          }
+        />
+        <MenuItem
           icon="help-circle-outline"
           title="反馈与建议"
           onPress={() => router.push('/feedback')}
@@ -265,6 +332,77 @@ export default function ProfileScreen() {
       )}
 
       <View className="h-[100px] bg-transparent" />
+
+      {/* 账号切换 Modal */}
+      <Modal
+        visible={accountModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAccountModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end bg-black/50"
+          onPress={() => setAccountModalVisible(false)}
+        >
+          <View
+            type="surface"
+            className="rounded-t-[24px] px-5 pt-3 pb-8"
+            style={{ maxHeight: '70%' }}
+          >
+            <View className="items-center mb-5 bg-transparent">
+              <View className="w-10 h-1.5 rounded-full bg-gray-300" />
+              <Text className="text-lg font-bold mt-4">切换账号</Text>
+            </View>
+
+            <ScrollView className="bg-transparent">
+              {accounts.map((account, index) => (
+                <Pressable
+                  key={account.me?.id || index}
+                  onPress={() => handleSwitchAccount(index)}
+                  className="flex-row items-center py-4 border-b border-gray-100 dark:border-gray-800 bg-transparent"
+                >
+                  <Image
+                    source={{ uri: account.me?.avatar_url }}
+                    className="w-12 h-12 rounded-full bg-[#eee]"
+                  />
+                  <View className="flex-1 ml-4 bg-transparent">
+                    <Text className="text-base font-bold">
+                      {account.me?.name}
+                    </Text>
+                    <Text
+                      type="secondary"
+                      className="text-xs mt-1"
+                      numberOfLines={1}
+                    >
+                      {account.me?.headline || '知乎用户'}
+                    </Text>
+                  </View>
+                  {index === activeAccountIndex && (
+                    <Ionicons name="checkmark-circle" size={24} color="#0084ff" />
+                  )}
+                </Pressable>
+              ))}
+
+              <Pressable
+                onPress={handleAddAccount}
+                className="flex-row items-center py-5 bg-transparent"
+              >
+                <View className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 justify-center items-center">
+                  <Ionicons name="add" size={28} color="#666" />
+                </View>
+                <Text className="text-base ml-4 font-medium">添加账号</Text>
+              </Pressable>
+            </ScrollView>
+
+            <Pressable
+              onPress={() => setAccountModalVisible(false)}
+              className="mt-4 py-4 items-center bg-gray-100 dark:bg-gray-800 rounded-xl"
+            >
+              <Text className="text-base font-bold">取消</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

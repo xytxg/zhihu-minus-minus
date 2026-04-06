@@ -47,6 +47,7 @@ import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { useViewableItems } from '@/hooks/useViewableItems';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
+import { useProgressStore } from '@/store/useProgressStore';
 import { showToast } from '@/utils/toast';
 
 const AnswerItem = forwardRef(
@@ -303,6 +304,8 @@ export default function QuestionDetail() {
   const textColor = Colors[colorScheme].text;
   const queryClient = useQueryClient();
   const { height: screenHeight } = useWindowDimensions();
+  const { saveProgress, getProgress } = useProgressStore();
+  const [isRestored, setIsRestored] = useState(false);
 
   const [sortBy, setSortBy] = useState<'default' | 'created'>('default');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -313,6 +316,7 @@ export default function QuestionDetail() {
   const footerAnim = useRef(new Animated.Value(0)).current;
 
   const isFloatingShown = useRef(false);
+  const flashListRef = useRef<any>(null);
   const { headerVisible, handleScroll: baseHandleScroll } =
     useScrollHeaderAnim(400);
 
@@ -384,6 +388,11 @@ export default function QuestionDetail() {
 
   const handleScroll = (event: any) => {
     const { currentY } = baseHandleScroll(event);
+
+    if (!qLoading && isRestored && currentY > 0) {
+      saveProgress(id as string, currentY);
+    }
+
     const now = Date.now();
 
     if (now - lastCheckTime.current > 100) {
@@ -481,6 +490,24 @@ export default function QuestionDetail() {
     () => answersData?.pages.flatMap((p: any) => p.data) || [],
     [answersData],
   );
+
+  // 恢复进度逻辑
+  React.useEffect(() => {
+    if (!qLoading && question && answers.length > 0 && !isRestored) {
+      const savedProgress = getProgress(id as string);
+      if (savedProgress > 0) {
+        setTimeout(() => {
+          flashListRef.current?.scrollToOffset({
+            offset: savedProgress,
+            animated: false,
+          });
+          setIsRestored(true);
+        }, 300); // Question page is heavier, give it more time
+      } else {
+        setIsRestored(true);
+      }
+    }
+  }, [id, qLoading, question, answers.length, isRestored, getProgress]);
 
   const renderHeader = useMemo(
     () => (
@@ -692,6 +719,7 @@ export default function QuestionDetail() {
       </Pressable>
 
       <FlashList
+        ref={flashListRef}
         onScroll={handleScroll}
         data={qLoading ? [] : answers}
         ListHeaderComponent={renderHeader}

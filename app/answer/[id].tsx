@@ -37,6 +37,7 @@ import Colors from '@/constants/Colors';
 
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
+import { useProgressStore } from '@/store/useProgressStore';
 import { showToast } from '@/utils/toast';
 
 const slowTransition = SharedTransition.duration(600);
@@ -56,8 +57,11 @@ export default function AnswerDetailScreen() {
   const backgroundColor = Colors[colorScheme].background;
 
   const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef<ScrollView>(null);
   const { headerVisible, handleScroll: baseHandleScroll } =
     useScrollHeaderAnim(300);
+  const { saveProgress, getProgress } = useProgressStore();
+  const [isRestored, setIsRestored] = React.useState(false);
 
   const [isLiked, setIsLiked] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
@@ -67,6 +71,10 @@ export default function AnswerDetailScreen() {
   const handleScroll = (event: any) => {
     baseHandleScroll(event, (currentY) => {
       scrollY.setValue(currentY);
+      // 只有在数据加载完成且已恢复过进度后才保存，防止初始化时的 0 覆盖了旧进度
+      if (!queryLoading && isRestored && currentY > 0) {
+        saveProgress(id as string, currentY);
+      }
     });
   };
 
@@ -78,6 +86,22 @@ export default function AnswerDetailScreen() {
     queryKey: ['answer-detail', id],
     queryFn: () => getAnswer(id as string),
   });
+
+  // 恢复进度逻辑
+  React.useEffect(() => {
+    if (!queryLoading && answer && !isRestored) {
+      const savedProgress = getProgress(id as string);
+      if (savedProgress > 0) {
+        // 稍微延迟一点确保内容渲染完成
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({ y: savedProgress, animated: false });
+          setIsRestored(true);
+        }, 100);
+      } else {
+        setIsRestored(true);
+      }
+    }
+  }, [id, queryLoading, answer, isRestored, getProgress]);
 
   const followMutation = useOptimisticToggle({
     mutationFn: async () => {
@@ -256,6 +280,7 @@ export default function AnswerDetailScreen() {
 
 
       <ScrollView
+        ref={scrollViewRef}
         className="flex-1"
         style={{
           backgroundColor:
