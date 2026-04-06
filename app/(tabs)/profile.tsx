@@ -21,13 +21,15 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { useThemeColor } from '@/components/Themed';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isDark, toggleTheme } = useThemeStore();
-  const accentColor = Colors[colorScheme].tint;
+  const accentColor = useThemeColor({}, 'primary');
   const surfaceColor = Colors[colorScheme].surface;
   const textColor = Colors[colorScheme].text;
   const {
@@ -283,6 +285,13 @@ export default function ProfileScreen() {
             thumbColor="#fff"
           />
         </View>
+
+        <MenuItem
+          icon="color-palette-outline"
+          title="外观与定制"
+          color={accentColor}
+          onPress={() => router.push('/settings/appearance' as any)}
+        />
 
         <MenuItem
           icon="notifications-outline"

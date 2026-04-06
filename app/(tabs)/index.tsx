@@ -29,6 +29,7 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useSettingsStore, TabKey } from '@/store/useSettingsStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -48,11 +49,24 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const { visibleTabs, defaultTab } = useSettingsStore();
+
+  // 动态过滤 Tabs
+  const currentTabs = useMemo(() => {
+    return (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[])
+      .filter(tab => visibleTabs.includes(tab));
+  }, [visibleTabs]);
+
+  // 计算初始页码
+  const initialPageIndex = useMemo(() => {
+    const idx = currentTabs.indexOf(defaultTab);
+    return idx >= 0 ? idx : 0;
+  }, [currentTabs, defaultTab]);
 
   // 核心状态：共享滚动位置
-  const scrollX = useSharedValue(3); // 初始停在日报 (index 3)
+  const scrollX = useSharedValue(initialPageIndex);
   const pagerRef = useRef<PagerView>(null);
-  const [currentPage, setCurrentPage] = useState(3);
+  const [currentPage, setCurrentPage] = useState(initialPageIndex);
 
   const tintColor = Colors[colorScheme].tint;
   const textColor = Colors[colorScheme].text;
@@ -94,17 +108,27 @@ export default function HomeScreen() {
 
   // 底部导航栏指示器动画
   const bottomIndicatorStyle = useAnimatedStyle(() => {
-    // 底部 3 个 Icon 位置映射
-    // index 0-3 -> Home (pos 0)
-    // index 4 -> Publish (pos 1)
-    // index 5 -> Profile (pos 2)
-    const iconWidth = (SCREEN_WIDTH - 40) / 3;
-    const translateX = interpolate(
-      scrollX.value,
-      [0, 3, 4, 5],
-      [0, 0, iconWidth, iconWidth * 2],
-      Extrapolate.CLAMP,
-    );
+    // 动态计算底部导航
+    // 家 (Home) 包含除了 publish 和 profile 以外的所有
+    const homeTabsCount = currentTabs.filter(t => !['publish', 'profile'].includes(t)).length;
+    const hasPublish = currentTabs.includes('publish');
+    const hasProfile = currentTabs.includes('profile');
+    
+    const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
+    const iconWidth = (SCREEN_WIDTH - 40) / (totalBottomIcons || 1);
+
+    // 映射逻辑
+    let translateX = 0;
+    const homeEndIndex = homeTabsCount - 1;
+    
+    if (scrollX.value <= homeEndIndex) {
+      translateX = 0;
+    } else if (hasPublish && scrollX.value <= homeEndIndex + 1) {
+      translateX = iconWidth;
+    } else if (hasProfile) {
+      translateX = iconWidth * (totalBottomIcons - 1);
+    }
+    
     return {
       transform: [{ translateX }],
     };
@@ -150,26 +174,36 @@ export default function HomeScreen() {
                   topIndicatorStyle,
                 ]}
               />
-              {['关注', '推荐', '热榜', '日报'].map((label, index) => (
-                <Pressable
-                  key={label}
-                  onPress={() => handleTabPress(index)}
-                  style={styles.navItem}
-                >
-                  <Text
-                    style={[
-                      styles.navText,
-                      currentPage === index && {
-                        fontWeight: 'bold',
-                        color: tintColor,
-                      },
-                    ]}
-                    type={currentPage === index ? 'default' : 'secondary'}
-                  >
-                    {label}
-                  </Text>
-                </Pressable>
-              ))}
+              {currentTabs
+                .filter(t => !['publish', 'profile'].includes(t))
+                .map((tab, index) => {
+                  const labels: Record<string, string> = {
+                    following: '关注',
+                    recommend: '推荐',
+                    hot: '热榜',
+                    daily: '日报',
+                  };
+                  return (
+                    <Pressable
+                      key={tab}
+                      onPress={() => handleTabPress(index)}
+                      style={styles.navItem}
+                    >
+                      <Text
+                        style={[
+                          styles.navText,
+                          currentPage === index && {
+                            fontWeight: 'bold',
+                            color: tintColor,
+                          },
+                        ]}
+                        type={currentPage === index ? 'default' : 'secondary'}
+                      >
+                        {labels[tab]}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
             </View>
             <Pressable
               onPress={() => router.push('/search')}
@@ -181,11 +215,11 @@ export default function HomeScreen() {
         </BlurView>
       </Animated.View>
 
-      {/* 2. 统一 PagerView */}
       <PagerView
+        key={`pager-${currentTabs.join('-')}`} // 强制重新渲染
         ref={pagerRef}
         style={styles.pager}
-        initialPage={3}
+        initialPage={initialPageIndex}
         onPageScroll={(e) => {
           scrollX.value = e.nativeEvent.position + e.nativeEvent.offset;
         }}
@@ -193,31 +227,34 @@ export default function HomeScreen() {
           setCurrentPage(e.nativeEvent.position);
         }}
       >
-        {TABS.map((tab, index) => (
-          <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
-            {index === 3 ? (
-              <DailyList insets={insets} />
-            ) : index === 4 ? (
-              <PublishView />
-            ) : index === 5 ? (
-              <ProfileView />
-            ) : !cookies ? (
-              <View style={styles.loginPrompt}>
-                <Text style={styles.loginText} type="secondary">
-                  登录后才能看此栏目哦
-                </Text>
-                <Pressable
-                  style={[styles.loginBtn, { backgroundColor: tintColor }]}
-                  onPress={() => router.push('/login' as any)}
-                >
-                  <Text style={styles.loginBtnText}>去登录</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <FeedList tab={tab as any} insets={insets} />
-            )}
-          </View>
-        ))}
+        {currentTabs.map((tab) => {
+          const index = (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[]).indexOf(tab);
+          return (
+            <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
+              {index === 3 ? (
+                <DailyList insets={insets} />
+              ) : index === 4 ? (
+                <PublishView />
+              ) : index === 5 ? (
+                <ProfileView />
+              ) : !cookies ? (
+                <View style={styles.loginPrompt}>
+                  <Text style={styles.loginText} type="secondary">
+                    登录后才能看此栏目哦
+                  </Text>
+                  <Pressable
+                    style={[styles.loginBtn, { backgroundColor: tintColor }]}
+                    onPress={() => router.push('/login' as any)}
+                  >
+                    <Text style={styles.loginBtnText}>去登录</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <FeedList tab={tab as any} insets={insets} />
+              )}
+            </View>
+          );
+        })}
       </PagerView>
 
       {/* 3. 底部悬浮导航栏 (Custom TabBar) */}
@@ -240,40 +277,51 @@ export default function HomeScreen() {
             <Animated.View
               style={[
                 styles.bottomIndicator,
-                { backgroundColor: tintColor + '15' },
+                { 
+                  backgroundColor: tintColor + '15',
+                  width: (SCREEN_WIDTH - 40) / ((currentTabs.filter(t => !['publish', 'profile'].includes(t)).length > 0 ? 1 : 0) + (currentTabs.includes('publish') ? 1 : 0) + (currentTabs.includes('profile') ? 1 : 0)) - 20
+                },
                 bottomIndicatorStyle,
               ]}
             />
 
-            <BottomTabIcon
-              icon={currentPage <= 3 ? 'home' : 'home-outline'}
-              active={currentPage <= 3}
-              onPress={() => handleTabPress(1)} // 默认跳到推荐
-              color={
-                currentPage <= 3 ? tintColor : Colors[colorScheme].textSecondary
-              }
-            />
-            <BottomTabIcon
-              icon={currentPage === 4 ? 'add-circle' : 'add'}
-              active={currentPage === 4}
-              onPress={() => handleTabPress(4)}
-              color={
-                currentPage === 4
-                  ? tintColor
-                  : Colors[colorScheme].textSecondary
-              }
-              size={currentPage === 4 ? 28 : 24}
-            />
-            <BottomTabIcon
-              icon={currentPage === 5 ? 'person' : 'person-outline'}
-              active={currentPage === 5}
-              onPress={() => handleTabPress(5)}
-              color={
-                currentPage === 5
-                  ? tintColor
-                  : Colors[colorScheme].textSecondary
-              }
-            />
+            {currentTabs.some(t => !['publish', 'profile'].includes(t)) && (
+              <BottomTabIcon
+                icon={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? 'home' : 'home-outline'}
+                active={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length}
+                onPress={() => handleTabPress(0)} // 跳到第一个
+                color={
+                  currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? tintColor : Colors[colorScheme].textSecondary
+                }
+              />
+            )}
+            
+            {currentTabs.includes('publish') && (
+              <BottomTabIcon
+                icon={currentTabs[currentPage] === 'publish' ? 'add-circle' : 'add'}
+                active={currentTabs[currentPage] === 'publish'}
+                onPress={() => handleTabPress(currentTabs.indexOf('publish'))}
+                color={
+                  currentTabs[currentPage] === 'publish'
+                    ? tintColor
+                    : Colors[colorScheme].textSecondary
+                }
+                size={currentTabs[currentPage] === 'publish' ? 28 : 24}
+              />
+            )}
+
+            {currentTabs.includes('profile') && (
+              <BottomTabIcon
+                icon={currentTabs[currentPage] === 'profile' ? 'person' : 'person-outline'}
+                active={currentTabs[currentPage] === 'profile'}
+                onPress={() => handleTabPress(currentTabs.indexOf('profile'))}
+                color={
+                  currentTabs[currentPage] === 'profile'
+                    ? tintColor
+                    : Colors[colorScheme].textSecondary
+                }
+              />
+            )}
           </View>
         </BlurView>
       </View>

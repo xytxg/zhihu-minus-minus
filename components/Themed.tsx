@@ -7,9 +7,10 @@
  *
  * New components can use plain RN <Text>/<View> with className directly.
  */
-import { Text as DefaultText, View as DefaultView } from 'react-native';
+import { Text as DefaultText, View as DefaultView, TextStyle, StyleSheet } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from './useColorScheme';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 type ThemeProps = {
   lightColor?: string;
@@ -24,13 +25,19 @@ export function useThemeColor(
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark,
 ) {
   const theme = useColorScheme();
+  const { primaryColor } = useSettingsStore();
   const colorFromProps = props[theme];
 
   if (colorFromProps) {
     return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
   }
+
+  // If it's the primary color and user has a custom one, return it
+  if (colorName === 'primary' && primaryColor) {
+    return primaryColor;
+  }
+
+  return Colors[theme][colorName];
 }
 
 export function Text(
@@ -57,7 +64,22 @@ export function Text(
     colorName,
   );
 
-  return <DefaultText style={[{ color }, style]} {...otherProps} />;
+  const { fontSizeScale, lineHeightScale } = useSettingsStore();
+
+  // 基础字号逻辑
+  const baseStyle: TextStyle = { color };
+  const flattenedStyle = StyleSheet.flatten(style) || {};
+  const currentFontSize = flattenedStyle.fontSize || 15; // 默认 15
+  const currentLineHeight = flattenedStyle.lineHeight || currentFontSize * 1.5;
+
+  const finalStyle: TextStyle = {
+    ...flattenedStyle,
+    color,
+    fontSize: currentFontSize * fontSizeScale,
+    lineHeight: currentLineHeight * lineHeightScale / 1.5, // 修正比例
+  };
+
+  return <DefaultText style={finalStyle} {...otherProps} />;
 }
 
 export function View(
