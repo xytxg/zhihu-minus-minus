@@ -1,7 +1,7 @@
 # 🐱 知乎 -- (Zhihu Minus Minus)
 
 > [!IMPORTANT]
-> **🚧 项目声明**：本项目目前仍处于**极早期开发阶段**，部分功能可能不完整且存在不稳定的 API。
+> **🚧 项目声明**：本项目目前仍处于**早期开发阶段**，部分功能可能不完整且存在不稳定的 API。
 
 快去看看 <https://github.com/zhihulite/Hydrogen> 和 <https://github.com/zly2006/zhihu-plus-plus>
 
@@ -21,7 +21,8 @@
   - **搜索**: 深度集成知乎搜索，支持联想词、综合搜索、用户搜索及关键词高亮。
   - **日报**: 完整集成知乎日报。
   - **详情**: 优雅的问题展示、回答/文章详情、评论交互（支持二级回复）。
-- **深度链接 (Deep Linking)**: 全面支持 `zhihu.com` 网页链接唤起。
+- **Zhihu Deep Linking**: 完整支持 zhihu.com 外部链接唤起，智能归一化路径。
+- **自动更新**: 支持从 GitHub Releases 自动检测并下载安装新版本，自 v0.0.9 起适配现代 Expo API 并新增下载进度 UI。
 - **个人**: 我的主页、个人点赞/收藏、浏览历史记录、粉丝/关注列表。
 - **现代化架构**: 全面拥抱 Expo Router、TanStack Query V5、Tailwind CSS (NativeWind)(todo，这个还没有拥抱) 和 Zustand。
 
@@ -131,4 +132,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.0.8 | **Last Updated**: 2026-04-20
+**Version**: v0.0.9 | **Last Updated**: 2026-04-20
