@@ -15,6 +15,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.huamu013.ZhihuMinusMinus",
+      "associatedDomains": [
+        "applinks:www.zhihu.com",
+        "applinks:zhuanlan.zhihu.com",
+        "applinks:zhihu.com"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -27,7 +32,53 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.huamu013.ZhihuMinusMinus"
+      "package": "com.huamu013.ZhihuMinusMinus",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "www.zhihu.com",
+              "pathPrefix": "/question"
+            },
+            {
+              "scheme": "https",
+              "host": "zhihu.com",
+              "pathPrefix": "/question"
+            },
+            {
+              "scheme": "https",
+              "host": "www.zhihu.com",
+              "pathPrefix": "/pin"
+            },
+            {
+              "scheme": "https",
+              "host": "zhihu.com",
+              "pathPrefix": "/pin"
+            },
+            {
+              "scheme": "https",
+              "host": "www.zhihu.com",
+              "pathPrefix": "/people"
+            },
+            {
+              "scheme": "https",
+              "host": "zhihu.com",
+              "pathPrefix": "/people"
+            },
+            {
+              "scheme": "https",
+              "host": "zhuanlan.zhihu.com",
+              "pathPrefix": "/p"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
