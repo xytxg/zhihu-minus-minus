@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ShareMenu } from '@/components/ShareMenu';
+import { StatusBar } from 'expo-status-bar';
 import React, {
   forwardRef,
   useCallback,
@@ -798,42 +799,30 @@ export default function QuestionDetail() {
                 />
                 <Text
                   type="primary"
-                  className="ml-1.5 font-semibold text-sm"
-                  style={{ color: '#0084ff' }}
+                  className="ml-1.5 text-sm font-bold"
+                  style={{ color: Colors[colorScheme].primary }}
                 >
                   {activeItem?.comment_count || 0}
                 </Text>
               </Pressable>
             </View>
-            <View
-              className="w-px h-5 mx-2.5"
-              style={{
-                backgroundColor: Colors[colorScheme].primaryTransparent,
-              }}
-            />
             <Pressable
               className="flex-row items-center bg-transparent"
-              onPress={() =>
-                activeItem && toggleExpand(activeItem.id.toString(), false)
-              }
+              onPress={() => {
+                setSelectedAnswer(activeItem);
+                setIsSharing(true);
+              }}
             >
-              <Text
-                type="primary"
-                className="text-sm font-bold mr-1"
-                style={{ color: '#0084ff' }}
-              >
-                收起回答
-              </Text>
               <Ionicons
-                name="chevron-up"
-                size={16}
+                name="share-outline"
+                size={22}
                 color={Colors[colorScheme].primary}
               />
             </Pressable>
           </View>
         </BlurView>
       </Animated.View>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </View>
   );
 }
-

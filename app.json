@@ -37,46 +37,32 @@
         {
           "action": "VIEW",
           "data": [
-            {
-              "scheme": "https",
-              "host": "www.zhihu.com",
-              "pathPrefix": "/question"
-            },
-            {
-              "scheme": "https",
-              "host": "zhihu.com",
-              "pathPrefix": "/question"
-            },
-            {
-              "scheme": "https",
-              "host": "www.zhihu.com",
-              "pathPrefix": "/pin"
-            },
-            {
-              "scheme": "https",
-              "host": "zhihu.com",
-              "pathPrefix": "/pin"
-            },
-            {
-              "scheme": "https",
-              "host": "www.zhihu.com",
-              "pathPrefix": "/people"
-            },
-            {
-              "scheme": "https",
-              "host": "zhihu.com",
-              "pathPrefix": "/people"
-            },
-            {
-              "scheme": "https",
-              "host": "zhuanlan.zhihu.com",
-              "pathPrefix": "/p"
-            }
+            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/question" },
+            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/question" },
+            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/pin" },
+            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/pin" },
+            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/people" },
+            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/people" },
+            { "scheme": "https", "host": "zhuanlan.zhihu.com", "pathPrefix": "/p" },
+            { "scheme": "https", "host": "zhuanlan.zhihu.com", "pathPrefix": "/" },
+            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/" },
+            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/" },
+            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/question" },
+            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/question" },
+            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/pin" },
+            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/pin" },
+            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/people" },
+            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/people" },
+            { "scheme": "http", "host": "zhuanlan.zhihu.com", "pathPrefix": "/p" },
+            { "scheme": "http", "host": "zhuanlan.zhihu.com", "pathPrefix": "/" },
+            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/answer" },
+            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/answer" },
+            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/answer" },
+            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/answer" },
+            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/" },
+            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/" }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": [ "BROWSABLE", "DEFAULT" ]
         }
       ]
     },

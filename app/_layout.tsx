@@ -5,9 +5,10 @@ import {
 } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, Redirect } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 import Constants from 'expo-constants';
 import { useEffect } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
@@ -23,12 +24,13 @@ import '../global.css';
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
 
-// 初始化 Sentry
-Sentry.init({
-  dsn: Constants.expoConfig?.extra?.sentryDsn,
-  debug: __DEV__,
-  enableAutoSessionTracking: true,
-});
+if (!__DEV__) {
+  Sentry.init({
+    dsn: Constants.expoConfig?.extra?.sentryDsn,
+    debug: false,
+    enableAutoSessionTracking: true,
+  });
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +56,73 @@ function RootLayout() {
 
   // Sync NativeWind dark mode with zustand store
   useSyncThemeWithNativeWind();
+
+  const router = useRouter();
+
+  // Handle deep links manually
+  useEffect(() => {
+    const handleUrl = (url: string | null) => {
+      if (!url) return;
+      try {
+        let path = '';
+        if (url.includes('://')) {
+          const parts = url.split('://');
+          const rest = parts[1] || parts[0];
+          if (url.startsWith('http')) {
+            const match = rest.match(/^[^\/]+(\/.*)$/);
+            path = match ? match[1] : '/';
+          } else {
+            path = rest.includes('/') ? (rest.startsWith('/') ? rest : '/' + rest) : '/' + rest;
+          }
+        } else {
+          path = url.startsWith('/') ? url : '/' + url;
+        }
+
+        // 1. Normalize path: remove oia, pluralize singular
+        path = path.replace(/^\/oia\//, '/');
+        path = path.replace(/^\/questions\//, '/question/');
+        path = path.replace(/^\/answers\//, '/answer/');
+        
+        // 2. Clean URL: remove ALL query parameters
+        const cleanPath = path.split('?')[0];
+
+        if (!cleanPath || cleanPath === '/' || cleanPath === '/oia') {
+          router.push('/(tabs)');
+          return;
+        }
+
+        let finalPath = cleanPath;
+        // 3. Naked long ID heuristic (15+ digits)
+        if (/^\/\d{15,25}$/.test(cleanPath)) {
+          const id = cleanPath.substring(1);
+          finalPath = id.startsWith('19') ? `/question/${id}` : `/answer/${id}`;
+        } 
+        // 4. Naked short ID heuristic (8-14 digits)
+        else if (/^\/\d{8,14}$/.test(cleanPath)) {
+          finalPath = `/question/${cleanPath.substring(1)}`;
+        }
+
+        console.log('[Deep Link] Go ->', finalPath);
+        setTimeout(() => {
+          router.push(finalPath as any);
+        }, 500);
+      } catch (err) {
+        // Silently ignore errors in production
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', (event) => {
+      handleUrl(event.url);
+    });
+
+    Linking.getInitialURL().then((url) => {
+      handleUrl(url);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // 这里简单处理：如果以后需要加载字体，可以写在这里
   useEffect(() => {
@@ -128,7 +197,7 @@ function RootLayout() {
 
             {/* 问题详情页 */}
             <Stack.Screen
-              name="question/[id]"
+              name="question/[id]/index"
               options={{
                 headerShown: false,
                 animation: 'fade',
@@ -153,7 +222,7 @@ function RootLayout() {
 
           {/* 全局状态栏控制 */}
           <StatusBar style={isDark ? 'light' : 'dark'} />
-          
+
           {/* 人机验证弹窗 */}
           <VerificationModal />
         </ThemeProvider>
@@ -161,4 +230,4 @@ function RootLayout() {
     </QueryClientProvider>
   );
 }
-export default Sentry.wrap(RootLayout);
+export default __DEV__ ? RootLayout : Sentry.wrap(RootLayout);
