@@ -449,6 +449,7 @@ const FeedList = React.forwardRef<
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isRefetching,
     refetch,
   } = useInfiniteQuery({
     queryKey: ['zhihu-feed', tab],
@@ -491,7 +492,7 @@ const FeedList = React.forwardRef<
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
       onRefresh={refetch}
-      refreshing={isLoading}
+      refreshing={isRefetching}
       onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
       scrollEventThrottle={100}
       contentContainerStyle={{

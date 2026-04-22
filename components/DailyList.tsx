@@ -100,6 +100,7 @@ export const DailyList = React.forwardRef<
     hasNextPage,
     isFetchingNextPage,
     isLoading,
+    isRefetching,
     refetch,
   } = useInfiniteQuery({
     queryKey: ['zhihu-daily'],
@@ -149,7 +150,7 @@ export const DailyList = React.forwardRef<
         }
         onEndReachedThreshold={0.5}
         onRefresh={refetch}
-        refreshing={isLoading}
+        refreshing={isRefetching}
         onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
         scrollEventThrottle={16}
         contentContainerStyle={{
