@@ -88,7 +88,10 @@ const SkeletonCard = () => {
   );
 };
 
-export function DailyList({ insets }: { insets: any }) {
+export const DailyList = React.forwardRef<
+  any,
+  { insets: any; onScroll?: (offset: number) => void }
+>(({ insets, onScroll }, ref) => {
   const router = useRouter();
 
   const {
@@ -135,6 +138,7 @@ export function DailyList({ insets }: { insets: any }) {
   return (
     <View className="flex-1">
       <FlashList
+        ref={ref}
         data={flattenedData}
         keyExtractor={(item: any, index: number) =>
           item.type === 'date' ? item.date : item.data.id.toString() + index
@@ -146,6 +150,8 @@ export function DailyList({ insets }: { insets: any }) {
         onEndReachedThreshold={0.5}
         onRefresh={refetch}
         refreshing={isLoading}
+        onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingTop: insets.top + 70,
           paddingBottom: 110,
@@ -204,4 +210,4 @@ export function DailyList({ insets }: { insets: any }) {
       />
     </View>
   );
-}
+});

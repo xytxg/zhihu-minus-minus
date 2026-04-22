@@ -3,7 +3,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -16,6 +16,8 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // 使用 @ 别名导入组件
@@ -30,8 +32,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSettingsStore, TabKey } from '@/store/useSettingsStore';
-
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const tintColor = Colors.light.tint; // Fallback or use colorScheme logic inside component
 
 // 统一的所有可滑动的页面索引
 // 0: 关注, 1: 推荐, 2: 热榜, 3: 日报, 4: 发布, 5: 我的
@@ -66,11 +68,45 @@ export default function HomeScreen() {
   // 核心状态：共享滚动位置
   const scrollX = useSharedValue(initialPageIndex);
   const pagerRef = useRef<PagerView>(null);
-  const [currentPage, setCurrentPage] = useState(initialPageIndex);
+  const { cookies } = useAuthStore();
 
   const tintColor = Colors[colorScheme].tint;
   const textColor = Colors[colorScheme].text;
-  const { cookies } = useAuthStore();
+  const [currentPage, setCurrentPage] = useState(initialPageIndex);
+  const [scrolledTabs, setScrolledTabs] = useState<Record<number, boolean>>({});
+  const listRefs = useRef<any[]>([]);
+
+  const SCROLL_THRESHOLD_SHOW = 300;
+  const SCROLL_THRESHOLD_HIDE = 200;
+
+  const handleScrollUpdate = useCallback((pageIndex: number, offset: number) => {
+    setScrolledTabs((prev) => {
+      const currentlyScrolled = prev[pageIndex] || false;
+      let nextScrolled = currentlyScrolled;
+
+      if (!currentlyScrolled && offset > SCROLL_THRESHOLD_SHOW) {
+        nextScrolled = true;
+      } else if (currentlyScrolled && offset < SCROLL_THRESHOLD_HIDE) {
+        nextScrolled = false;
+      }
+
+      if (currentlyScrolled === nextScrolled) return prev;
+      return { ...prev, [pageIndex]: nextScrolled };
+    });
+  }, []);
+
+  const handleHomeTabPress = () => {
+    const homeTabs = currentTabs.filter(t => !['publish', 'profile'].includes(t));
+    const isAtHome = currentPage < homeTabs.length;
+
+    if (isAtHome && scrolledTabs[currentPage]) {
+      // 如果已经在首页 Tab 且已滚动，则置顶
+      listRefs.current[currentPage]?.scrollToOffset({ offset: 0, animated: true });
+    } else {
+      // 否则切换到第一页
+      pagerRef.current?.setPage(0);
+    }
+  };
 
   const handleTabPress = (index: number) => {
     pagerRef.current?.setPage(index);
@@ -108,26 +144,52 @@ export default function HomeScreen() {
 
   // 底部导航栏指示器动画
   const bottomIndicatorStyle = useAnimatedStyle(() => {
-    // 动态计算底部导航
     // 家 (Home) 包含除了 publish 和 profile 以外的所有
     const homeTabsCount = currentTabs.filter(t => !['publish', 'profile'].includes(t)).length;
     const hasPublish = currentTabs.includes('publish');
     const hasProfile = currentTabs.includes('profile');
     
+    // 底部导航栏总图标数 (首页算一个)
     const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
     const iconWidth = (SCREEN_WIDTH - 40) / (totalBottomIcons || 1);
 
-    // 映射逻辑
-    let translateX = 0;
-    const homeEndIndex = homeTabsCount - 1;
+    // 计算平滑位移
+    // 映射逻辑：将 scrollX (0~N) 映射到 底部图标索引 (0~M)
+    const homeEndIndex = homeTabsCount > 0 ? homeTabsCount - 1 : -1;
     
-    if (scrollX.value <= homeEndIndex) {
-      translateX = 0;
-    } else if (hasPublish && scrollX.value <= homeEndIndex + 1) {
-      translateX = iconWidth;
-    } else if (hasProfile) {
-      translateX = iconWidth * (totalBottomIcons - 1);
+    // 构建插值映射表
+    const inputRange: number[] = [];
+    const outputRange: number[] = [];
+    
+    // 1. 首页区域：无论在首页内怎么滑，底部指示器都在索引 0 (如果是存在的)
+    if (homeTabsCount > 0) {
+      inputRange.push(0, homeEndIndex);
+      outputRange.push(0, 0);
     }
+    
+    // 2. 发布区域
+    if (hasPublish) {
+      const publishIdx = currentTabs.indexOf('publish');
+      const bottomIdx = homeTabsCount > 0 ? 1 : 0;
+      inputRange.push(publishIdx);
+      outputRange.push(bottomIdx * iconWidth);
+    }
+    
+    // 3. 个人区域
+    if (hasProfile) {
+      const profileIdx = currentTabs.indexOf('profile');
+      const bottomIdx = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0);
+      inputRange.push(profileIdx);
+      outputRange.push(bottomIdx * iconWidth);
+    }
+
+    // 确保 inputRange 是递增且唯一的（防止计算错误）
+    const translateX = interpolate(
+      scrollX.value,
+      inputRange.length > 1 ? inputRange : [0, 1],
+      outputRange.length > 1 ? outputRange : [0, 0],
+      Extrapolate.CLAMP
+    );
     
     return {
       transform: [{ translateX }],
@@ -227,15 +289,21 @@ export default function HomeScreen() {
           setCurrentPage(e.nativeEvent.position);
         }}
       >
-        {currentTabs.map((tab) => {
-          const index = (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[]).indexOf(tab);
+        {currentTabs.map((tab, idx) => {
+          const globalIndex = (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[]).indexOf(tab);
+          const isHomeTab = !['publish', 'profile'].includes(tab);
+          
           return (
             <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
-              {index === 3 ? (
-                <DailyList insets={insets} />
-              ) : index === 4 ? (
+              {globalIndex === 3 ? (
+                <DailyList 
+                  ref={el => listRefs.current[idx] = el}
+                  insets={insets} 
+                  onScroll={(offset) => handleScrollUpdate(idx, offset)}
+                />
+              ) : globalIndex === 4 ? (
                 <PublishScreen />
-              ) : index === 5 ? (
+              ) : globalIndex === 5 ? (
                 <ProfileScreen />
               ) : !cookies ? (
                 <View style={styles.loginPrompt}>
@@ -250,7 +318,12 @@ export default function HomeScreen() {
                   </Pressable>
                 </View>
               ) : (
-                <FeedList tab={tab as any} insets={insets} />
+                <FeedList 
+                  ref={el => listRefs.current[idx] = el}
+                  tab={tab as any} 
+                  insets={insets} 
+                  onScroll={(offset) => handleScrollUpdate(idx, offset)}
+                />
               )}
             </View>
           );
@@ -287,9 +360,11 @@ export default function HomeScreen() {
 
             {currentTabs.some(t => !['publish', 'profile'].includes(t)) && (
               <BottomTabIcon
+                // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
+                isScrollTop={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length && scrolledTabs[currentPage]}
                 icon={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? 'home' : 'home-outline'}
                 active={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length}
-                onPress={() => handleTabPress(0)} // 跳到第一个
+                onPress={handleHomeTabPress}
                 color={
                   currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? tintColor : Colors[colorScheme].textSecondary
                 }
@@ -329,16 +404,44 @@ export default function HomeScreen() {
   );
 }
 
-function BottomTabIcon({ icon, active, onPress, color, size = 24 }: any) {
+const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
+
+function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }: any) {
+  // 动画状态
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
+
+  // 当置顶状态切换时播放动画
+  React.useEffect(() => {
+    scale.value = withSequence(
+      withTiming(0.6, { duration: 150 }), 
+      withTiming(1, { duration: 150 })
+    );
+  }, [isScrollTop]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
   return (
     <Pressable onPress={onPress} style={styles.bottomTabItem}>
-      <Ionicons name={icon} size={size} color={color} />
+      <Animated.View style={animatedStyle}>
+        <Ionicons 
+          name={isScrollTop ? 'arrow-up-circle' : icon} 
+          size={isScrollTop ? size + 4 : size} 
+          color={isScrollTop ? color : color} 
+        />
+      </Animated.View>
     </Pressable>
   );
 }
 
-// FeedList 组件保持不变
-function FeedList({ tab, insets }: { tab: TabType; insets: any }) {
+// FeedList 组件
+const FeedList = React.forwardRef<
+  any, 
+  { tab: TabType; insets: any; onScroll?: (offset: number) => void }
+>(({ tab, insets, onScroll }, ref) => {
   const { cookies } = useAuthStore();
   const {
     data,
@@ -383,11 +486,14 @@ function FeedList({ tab, insets }: { tab: TabType; insets: any }) {
 
   return (
     <FlashList
+      ref={ref}
       data={flattenedData}
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
       onRefresh={refetch}
       refreshing={isLoading}
+      onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
+      scrollEventThrottle={100}
       contentContainerStyle={{
         paddingTop: insets.top + 70,
         paddingBottom: 120,
@@ -399,8 +505,8 @@ function FeedList({ tab, insets }: { tab: TabType; insets: any }) {
         isFetchingNextPage ? <ActivityIndicator style={{ margin: 20 }} /> : null
       }
     />
-  );
-}
+);
+});
 
 // 数据解析函数保持不变 (省略以节省空间，实际代码中应保留)
 function parseFollowingData(item: any) {
