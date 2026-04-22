@@ -106,57 +106,70 @@ export function ShareMenu({ visible, onClose, type, data }: ShareMenuProps) {
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <Pressable
-        className="flex-1 justify-end bg-black/40"
-        onPress={onClose}
-      >
-        <View
-          className="rounded-t-[24px] px-5 pt-2.5"
-          style={{
-            backgroundColor: surfaceColor,
-            paddingBottom: insets.bottom + 20,
-          }}
+    <>
+      {visible && (
+        <Modal
+          visible={visible}
+          transparent
+          animationType="fade"
+          onRequestClose={onClose}
         >
-          <View className="items-center py-2.5 bg-transparent">
-            <View className="w-10 h-1.5 rounded-[3px] bg-[#ddd]" />
-          </View>
-
-          <View className="py-2.5 bg-transparent">
-            <View className="flex-row items-center mb-4 px-2.5 bg-transparent">
-              <Text className="text-xl font-bold">分享{type === 'answer' ? '回答' : type === 'question' ? '问题' : type === 'pin' ? '想法' : '文章'}</Text>
-            </View>
-
-            <MenuOption
-              icon="share-outline"
-              label="系统分享"
-              onPress={onNativeShare}
-            />
-            <MenuOption
-              icon="link-outline"
-              label="仅复制链接"
-              onPress={onCopyLink}
-            />
-            <MenuOption
-              icon="logo-markdown"
-              label="复制链接与信息"
-              onPress={onCopyMarkdown}
-            />
-          </View>
-
           <Pressable
-            className="py-[18px] mt-2.5 items-center"
+            className="flex-1 justify-end bg-black/40"
             onPress={onClose}
           >
-            <Text className="text-base font-bold">取消</Text>
+            <View
+              className="rounded-t-[24px] px-5 pt-2.5"
+              style={{
+                backgroundColor: surfaceColor,
+                paddingBottom: insets.bottom + 20,
+              }}
+            >
+              <View className="items-center py-2.5 bg-transparent">
+                <View className="w-10 h-1.5 rounded-[3px] bg-[#ddd]" />
+              </View>
+
+              <View className="py-2.5 bg-transparent">
+                <View className="flex-row items-center mb-4 px-2.5 bg-transparent">
+                  <Text className="text-xl font-bold">
+                    分享
+                    {type === 'answer'
+                      ? '回答'
+                      : type === 'question'
+                        ? '问题'
+                        : type === 'pin'
+                          ? '想法'
+                          : '文章'}
+                  </Text>
+                </View>
+
+                <MenuOption
+                  icon="share-outline"
+                  label="系统分享"
+                  onPress={onNativeShare}
+                />
+                <MenuOption
+                  icon="link-outline"
+                  label="仅复制链接"
+                  onPress={onCopyLink}
+                />
+                <MenuOption
+                  icon="logo-markdown"
+                  label="复制链接与信息"
+                  onPress={onCopyMarkdown}
+                />
+              </View>
+
+              <Pressable
+                className="py-[18px] mt-2.5 items-center"
+                onPress={onClose}
+              >
+                <Text className="text-base font-bold">取消</Text>
+              </Pressable>
+            </View>
           </Pressable>
-        </View>
-      </Pressable>
-    </Modal>
+        </Modal>
+      )}
+    </>
   );
 }

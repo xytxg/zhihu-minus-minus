@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, Redirect } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import * as Linking from 'expo-linking';
+import { parseZhihuUrl } from '@/utils/url';
 import Constants from 'expo-constants';
 import { useEffect } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
@@ -20,6 +20,7 @@ import {
   useThemeStore,
 } from '@/store/useThemeStore';
 import '../global.css';
+import { Linking } from 'react-native';
 
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
@@ -69,46 +70,14 @@ function RootLayout() {
       }
       try {
         let path = '';
-        if (url.includes('://')) {
-          const parts = url.split('://');
-          const rest = parts[1] !== undefined ? parts[1] : '';
-          
-          if (url.startsWith('http')) {
-            const match = rest.match(/^[^\/]+(\/.*)$/);
-            path = match ? match[1] : '/';
-          } else {
-            path = rest.startsWith('/') ? rest : '/' + rest;
-          }
-        } else {
-          path = url.startsWith('/') ? url : '/' + url;
-        }
+        const finalPath = parseZhihuUrl(url);
 
-        // 1. Normalize path: remove oia, pluralize singular
-        path = path.replace(/^\/oia\//, '/');
-        path = path.replace(/^\/questions\//, '/question/');
-        path = path.replace(/^\/answers\//, '/answer/');
-        path = path.replace(/^\/people\//, '/user/');
-        path = path.replace(/^\/p\//, '/article/');
-        
-        // 2. Clean URL: remove ALL query parameters
-        const cleanPath = path.split('?')[0];
-        console.log('[Deep Link Builder] Clean Path:', cleanPath);
+        if (!finalPath) return;
 
-        if (!cleanPath || cleanPath === '/' || cleanPath === '/oia' || cleanPath === '/feed' || cleanPath === '/home') {
+        if (finalPath === '/') {
           console.log('[Deep Link] Homepage detected, replacing with /');
           router.replace('/');
           return;
-        }
-
-        let finalPath = cleanPath;
-        // 3. Naked long ID heuristic (15+ digits)
-        if (/^\/\d{15,25}$/.test(cleanPath)) {
-          const id = cleanPath.substring(1);
-          finalPath = id.startsWith('19') ? `/question/${id}` : `/answer/${id}`;
-        } 
-        // 4. Naked short ID heuristic (8-14 digits)
-        else if (/^\/\d{8,14}$/.test(cleanPath)) {
-          finalPath = `/question/${cleanPath.substring(1)}`;
         }
 
         console.log('[Deep Link] Navigating to:', finalPath);

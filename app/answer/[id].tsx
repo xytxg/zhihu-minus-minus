@@ -432,75 +432,78 @@ export default function AnswerDetailScreen() {
         } : null}
       />
 
-      <Modal
-        visible={menuVisible && !isSharing}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable
-          className="flex-1 justify-end bg-black/40"
-          onPress={() => setMenuVisible(false)}
+      {/* 操作菜单 */}
+      {menuVisible && !isSharing && (
+        <Modal
+          visible={menuVisible && !isSharing}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
         >
-          <View
-            className="rounded-t-[24px] px-5 pt-2.5"
-            style={{
-              backgroundColor: surfaceColor,
-              paddingBottom: insets.bottom + 20,
-            }}
+          <Pressable
+            className="flex-1 justify-end bg-black/40"
+            onPress={() => setMenuVisible(false)}
           >
-            <View className="items-center py-2.5 bg-transparent">
-              <View className="w-10 h-1.5 rounded-[3px] bg-[#ddd]" />
-            </View>
+            <View
+              className="rounded-t-[24px] px-5 pt-2.5"
+              style={{
+                backgroundColor: surfaceColor,
+                paddingBottom: insets.bottom + 20,
+              }}
+            >
+              <View className="items-center py-2.5 bg-transparent">
+                <View className="w-10 h-1.5 rounded-[3px] bg-[#ddd]" />
+              </View>
 
-            <View className="py-2.5 bg-transparent">
-              <MenuOption
-                icon={isLiked ? 'heart' : 'heart-outline'}
-                label={isLiked ? '取消喜欢' : '加入喜欢'}
-                color={isLiked ? '#ff4d4f' : undefined}
-                onPress={() => {
-                  setIsLiked(!isLiked);
-                  setMenuVisible(false);
-                }}
-              />
-              <MenuOption
-                icon={isCollected ? 'star' : 'star-outline'}
-                label={isCollected ? '取消收藏' : '移至收藏'}
-                color={isCollected ? '#ffb400' : undefined}
-                onPress={() => {
-                  collectMutation.mutate();
-                  setMenuVisible(false);
-                }}
-              />
-              <MenuOption
-                icon="share-social-outline"
-                label="分享回答"
-                onPress={() => setIsSharing(true)}
-              />
-              {answer?.relationship?.is_author && (
-                <View className="h-px my-1.5 bg-[rgba(150,150,150,0.15)]" />
-              )}
-              {answer?.relationship?.is_author && (
+              <View className="py-2.5 bg-transparent">
                 <MenuOption
-                  icon="trash-outline"
-                  label="删除回答"
-                  color="#ff4d4f"
+                  icon={isLiked ? 'heart' : 'heart-outline'}
+                  label={isLiked ? '取消喜欢' : '加入喜欢'}
+                  color={isLiked ? '#ff4d4f' : undefined}
                   onPress={() => {
-                    handleDelete();
+                    setIsLiked(!isLiked);
                     setMenuVisible(false);
                   }}
                 />
-              )}
+                <MenuOption
+                  icon={isCollected ? 'star' : 'star-outline'}
+                  label={isCollected ? '取消收藏' : '移至收藏'}
+                  color={isCollected ? '#ffb400' : undefined}
+                  onPress={() => {
+                    collectMutation.mutate();
+                    setMenuVisible(false);
+                  }}
+                />
+                <MenuOption
+                  icon="share-social-outline"
+                  label="分享回答"
+                  onPress={() => setIsSharing(true)}
+                />
+                {answer?.relationship?.is_author && (
+                  <View className="h-px my-1.5 bg-[rgba(150,150,150,0.15)]" />
+                )}
+                {answer?.relationship?.is_author && (
+                  <MenuOption
+                    icon="trash-outline"
+                    label="删除回答"
+                    color="#ff4d4f"
+                    onPress={() => {
+                      handleDelete();
+                      setMenuVisible(false);
+                    }}
+                  />
+                )}
+              </View>
+              <Pressable
+                className="py-[18px] mt-2.5 items-center"
+                onPress={() => setMenuVisible(false)}
+              >
+                <Text className="text-base font-bold">取消</Text>
+              </Pressable>
             </View>
-            <Pressable
-              className="py-[18px] mt-2.5 items-center"
-              onPress={() => setMenuVisible(false)}
-            >
-              <Text className="text-base font-bold">取消</Text>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }
