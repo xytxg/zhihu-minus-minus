@@ -353,9 +353,9 @@ export default function QuestionDetail() {
   const handleScroll = (event: any) => {
     const { currentY } = baseHandleScroll(event);
 
-    if (!qLoading && isRestored && currentY > 0) {
-      saveProgress(id as string, currentY);
-    }
+    // if (!qLoading && isRestored && currentY > 0) {
+    //   saveProgress(id as string, currentY);
+    // }
 
     const now = Date.now();
 
@@ -456,9 +456,11 @@ export default function QuestionDetail() {
     [answersData],
   );
 
-  // 恢复进度逻辑
+  // 恢复进度逻辑已禁用
   React.useEffect(() => {
     if (!qLoading && question && answers.length > 0 && !isRestored) {
+      setIsRestored(true);
+      /*
       const savedProgress = getProgress(id as string);
       if (savedProgress > 0) {
         setTimeout(() => {
@@ -471,8 +473,9 @@ export default function QuestionDetail() {
       } else {
         setIsRestored(true);
       }
+      */
     }
-  }, [id, qLoading, question, answers.length, isRestored, getProgress]);
+  }, [id, qLoading, question, answers.length, isRestored]);
 
   const renderHeader = useMemo(
     () => (

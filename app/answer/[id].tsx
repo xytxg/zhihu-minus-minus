@@ -73,9 +73,9 @@ export default function AnswerDetailScreen() {
     baseHandleScroll(event, (currentY) => {
       scrollY.setValue(currentY);
       // 只有在数据加载完成且已恢复过进度后才保存，防止初始化时的 0 覆盖了旧进度
-      if (!queryLoading && isRestored && currentY > 0) {
-        saveProgress(id as string, currentY);
-      }
+      // if (!queryLoading && isRestored && currentY > 0) {
+      //   saveProgress(id as string, currentY);
+      // }
     });
   };
 
@@ -88,9 +88,11 @@ export default function AnswerDetailScreen() {
     queryFn: () => getAnswer(id as string),
   });
 
-  // 恢复进度逻辑
+  // 恢复进度逻辑已禁用
   React.useEffect(() => {
     if (!queryLoading && answer && !isRestored) {
+      setIsRestored(true);
+      /*
       const savedProgress = getProgress(id as string);
       if (savedProgress > 0) {
         // 稍微延迟一点确保内容渲染完成
@@ -101,8 +103,9 @@ export default function AnswerDetailScreen() {
       } else {
         setIsRestored(true);
       }
+      */
     }
-  }, [id, queryLoading, answer, isRestored, getProgress]);
+  }, [id, queryLoading, answer, isRestored]);
 
   const followMutation = useOptimisticToggle({
     mutationFn: async () => {

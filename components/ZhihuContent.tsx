@@ -26,7 +26,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
 import { Text, View } from './Themed';
-import { LaTeXRenderer } from './LaTeXRenderer';
+import MathView from './MathView';
+import ZhihuDOMContent from './ZhihuDOMContent';
 
 interface SegmentInfo {
   pid: string;
@@ -227,7 +228,7 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
   // 确保 src 有协议
   const finalSrc = src.startsWith('//') ? `https:${src}` : src;
 
-  // 如果有 LaTeX 源码，尝试渲染源码
+  // 如果有 LaTeX 源码，尝试渲染源码 (MathView DOM Component)
   if (isFormula && alt) {
     return (
       <View
@@ -238,11 +239,11 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
         }
       >
         <Pressable onPress={() => onPress(finalSrc)} className="bg-transparent w-full">
-          <LaTeXRenderer
-            tex={alt}
-            inline={!isBlockFormula}
+          <MathView
+            dom={{ matchContents: true }}
+            formula={alt}
+            displayMode={isBlockFormula}
             colorScheme={colorScheme}
-            width={contentWidth}
           />
         </Pressable>
       </View>
@@ -660,19 +661,24 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         {contentArray ? (
           renderPinContent()
         ) : (
-          <RenderHtml
-            contentWidth={width - 40}
-            source={{ html: content || '' }}
-            renderers={renderers as any}
-            tagsStyles={tagsStyles as any}
-            classesStyles={classesStyles as any}
-            domVisitors={domVisitors}
-            systemFonts={systemFonts}
-            ignoredDomTags={['noscript']}
-            renderersProps={renderersProps as any}
-            defaultTextProps={{
-              selectable: true,
-              selectionColor: '#0084ff',
+          <ZhihuDOMContent
+            dom={{ matchContents: true }}
+            htmlContent={content || ''}
+            segmentInfos={segmentInfos as any}
+            colorScheme={colorScheme}
+            onImagePress={(src) => {
+              setViewerImage(src);
+              setViewerVisible(true);
+            }}
+            onLinkPress={handleInternalLink}
+            onSegmentPress={(pid) => {
+              const segment = segmentMap.get(pid);
+              if (segment) {
+                const interaction = findActiveInteraction(segment);
+                if (interaction) {
+                  handlePress(pid, segment, interaction);
+                }
+              }
             }}
           />
         )}
