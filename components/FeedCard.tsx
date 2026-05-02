@@ -9,7 +9,7 @@ import { Text, View } from './Themed';
 
 const slowTransition = SharedTransition.duration(600);
 
-export const FeedCard = ({ item }: { item: any }) => {
+export const FeedCard = ({ item, tab }: { item: any; tab?: string }) => {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
   const isQuestionType = item.type === 'questions';
@@ -106,9 +106,17 @@ export const FeedCard = ({ item }: { item: any }) => {
       <Pressable
         onPress={() => {
           const routeType = item.type.slice(0, -1);
+          const params: any = {
+            title: item.title,
+            questionId: item.questionId,
+          };
+          if (tab) {
+            params.source = 'feed';
+            params.tab = tab;
+          }
           router.push({
             pathname: `/${routeType}/${item.id}`,
-            params: { title: item.title, questionId: item.questionId },
+            params,
           } as any);
         }}
         className="flex-row mt-1"
