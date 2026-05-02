@@ -494,10 +494,16 @@ export default function QuestionDetail() {
     initialPageParam: 0,
   });
 
-  const answers = useMemo(
-    () => answersData?.pages.flatMap((p: any) => p.data) || [],
-    [answersData],
-  );
+  const answers = useMemo(() => {
+    const all = answersData?.pages.flatMap((p: any) => p.data) || [];
+    const seen = new Set();
+    return all.filter((item: any) => {
+      const id = item?.id?.toString();
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [answersData]);
 
   // 恢复进度逻辑已禁用
   React.useEffect(() => {

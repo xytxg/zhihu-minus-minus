@@ -483,12 +483,22 @@ const FeedList = React.forwardRef<
     enabled: !!cookies,
   });
 
-  const flattenedData = data?.pages.flatMap((page) => page.items) ?? [];
+  const flattenedData = useMemo(() => {
+    const all = data?.pages.flatMap((page) => page.items) ?? [];
+    const seen = new Set();
+    return all.filter((item: any) => {
+      const id = item?.id?.toString();
+      if (!id || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [data]);
 
   return (
     <FlashList
       ref={ref}
       data={flattenedData}
+      keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
       onRefresh={refetch}

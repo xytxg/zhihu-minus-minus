@@ -57,11 +57,14 @@ export default function AnswerDetailScreen() {
   const answerIds = useMemo(() => {
     const listIds = answersData?.pages.flatMap((p: any) => p.data).map((i: any) => i.id.toString()) || [];
     
+    let combined = listIds;
     // 确保初始 ID 在列表中
     if (id && !listIds.includes(id as string)) {
-      return [id as string, ...listIds];
+      combined = [id as string, ...listIds];
     }
-    return listIds.length > 0 ? listIds : [id as string];
+    
+    // 使用 Set 去重
+    return Array.from(new Set(combined));
   }, [answersData, id]);
 
   const initialPage = useMemo(() => {
