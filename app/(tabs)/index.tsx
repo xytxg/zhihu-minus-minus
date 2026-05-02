@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
-import { useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState, useCallback } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -51,6 +51,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: string }>();
   const { visibleTabs, defaultTab } = useSettingsStore();
 
   // 动态过滤 Tabs
@@ -61,9 +62,14 @@ export default function HomeScreen() {
 
   // 计算初始页码
   const initialPageIndex = useMemo(() => {
+    // 优先考虑 URL 参数中的 tab
+    if (params.tab) {
+      const idx = currentTabs.indexOf(params.tab as TabKey);
+      if (idx >= 0) return idx;
+    }
     const idx = currentTabs.indexOf(defaultTab);
     return idx >= 0 ? idx : 0;
-  }, [currentTabs, defaultTab]);
+  }, [currentTabs, defaultTab, params.tab]);
 
   // 核心状态：共享滚动位置
   const scrollX = useSharedValue(initialPageIndex);
@@ -73,6 +79,18 @@ export default function HomeScreen() {
   const tintColor = Colors[colorScheme].tint;
   const textColor = Colors[colorScheme].text;
   const [currentPage, setCurrentPage] = useState(initialPageIndex);
+
+  // 监听 params.tab 变化并切换页面
+  useEffect(() => {
+    if (params.tab) {
+      const idx = currentTabs.indexOf(params.tab as TabKey);
+      if (idx >= 0 && idx !== currentPage) {
+        pagerRef.current?.setPage(idx);
+        setCurrentPage(idx);
+      }
+    }
+  }, [params.tab, currentTabs]);
+
   const [scrolledTabs, setScrolledTabs] = useState<Record<number, boolean>>({});
   const listRefs = useRef<any[]>([]);
 

@@ -92,7 +92,8 @@ export default function LoginScreen() {
         if (router.canGoBack()) {
           router.back();
         } else {
-          router.replace('/(tabs)/profile');
+          // 使用参数跳转，确保回到主容器 index.tsx 从而保留自定义 TabBar
+          router.replace({ pathname: '/(tabs)', params: { tab: 'profile' } } as any);
         }
       } else if (hasZc0 && !hasZseCk) {
         console.log('⚠️ 捕获到 z_c0 但缺失 __zse_ck，请在验证页面稍候...');
