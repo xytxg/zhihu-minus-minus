@@ -365,7 +365,7 @@ export default function AnswerDetailScreen() {
 
       <View
         className="absolute left-5 right-5 z-[1000] shadow-black/10 shadow-[0_10px_20px] elevation-10"
-        style={{ bottom: insets.bottom + 20 }}
+        style={{ bottom: insets.bottom }}
       >
         <BlurView
           intensity={130}
