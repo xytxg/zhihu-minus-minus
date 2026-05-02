@@ -786,7 +786,7 @@ export default function QuestionDetail() {
         className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
         style={[
           {
-            bottom: insets.bottom + 15,
+            bottom: insets.bottom,
             transform: [
               {
                 translateY: footerAnim.interpolate({

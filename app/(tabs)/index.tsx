@@ -148,7 +148,7 @@ export default function HomeScreen() {
     const homeTabsCount = currentTabs.filter(t => !['publish', 'profile'].includes(t)).length;
     const hasPublish = currentTabs.includes('publish');
     const hasProfile = currentTabs.includes('profile');
-    
+
     // 底部导航栏总图标数 (首页算一个)
     const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
     const iconWidth = (SCREEN_WIDTH - 40) / (totalBottomIcons || 1);
@@ -156,17 +156,17 @@ export default function HomeScreen() {
     // 计算平滑位移
     // 映射逻辑：将 scrollX (0~N) 映射到 底部图标索引 (0~M)
     const homeEndIndex = homeTabsCount > 0 ? homeTabsCount - 1 : -1;
-    
+
     // 构建插值映射表
     const inputRange: number[] = [];
     const outputRange: number[] = [];
-    
+
     // 1. 首页区域：无论在首页内怎么滑，底部指示器都在索引 0 (如果是存在的)
     if (homeTabsCount > 0) {
       inputRange.push(0, homeEndIndex);
       outputRange.push(0, 0);
     }
-    
+
     // 2. 发布区域
     if (hasPublish) {
       const publishIdx = currentTabs.indexOf('publish');
@@ -174,7 +174,7 @@ export default function HomeScreen() {
       inputRange.push(publishIdx);
       outputRange.push(bottomIdx * iconWidth);
     }
-    
+
     // 3. 个人区域
     if (hasProfile) {
       const profileIdx = currentTabs.indexOf('profile');
@@ -190,7 +190,7 @@ export default function HomeScreen() {
       outputRange.length > 1 ? outputRange : [0, 0],
       Extrapolate.CLAMP
     );
-    
+
     return {
       transform: [{ translateX }],
     };
@@ -202,7 +202,7 @@ export default function HomeScreen() {
       <Animated.View
         style={[
           styles.topNavContainer,
-          { top: insets.top + 10 },
+          { top: insets.top },
           topNavAnimStyle,
         ]}
       >
@@ -292,13 +292,13 @@ export default function HomeScreen() {
         {currentTabs.map((tab, idx) => {
           const globalIndex = (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[]).indexOf(tab);
           const isHomeTab = !['publish', 'profile'].includes(tab);
-          
+
           return (
             <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
               {globalIndex === 3 ? (
-                <DailyList 
+                <DailyList
                   ref={el => listRefs.current[idx] = el}
-                  insets={insets} 
+                  insets={insets}
                   onScroll={(offset) => handleScrollUpdate(idx, offset)}
                 />
               ) : globalIndex === 4 ? (
@@ -318,10 +318,10 @@ export default function HomeScreen() {
                   </Pressable>
                 </View>
               ) : (
-                <FeedList 
+                <FeedList
                   ref={el => listRefs.current[idx] = el}
-                  tab={tab as any} 
-                  insets={insets} 
+                  tab={tab as any}
+                  insets={insets}
                   onScroll={(offset) => handleScrollUpdate(idx, offset)}
                 />
               )}
@@ -331,7 +331,7 @@ export default function HomeScreen() {
       </PagerView>
 
       {/* 3. 底部悬浮导航栏 (Custom TabBar) */}
-      <View style={[styles.bottomBarContainer, { bottom: insets.bottom + 20 }]}>
+      <View style={[styles.bottomBarContainer, { bottom: insets.bottom }]}>
         <BlurView
           intensity={130}
           tint={colorScheme === 'dark' ? 'dark' : 'light'}
@@ -350,7 +350,7 @@ export default function HomeScreen() {
             <Animated.View
               style={[
                 styles.bottomIndicator,
-                { 
+                {
                   backgroundColor: tintColor + '15',
                   width: (SCREEN_WIDTH - 40) / ((currentTabs.filter(t => !['publish', 'profile'].includes(t)).length > 0 ? 1 : 0) + (currentTabs.includes('publish') ? 1 : 0) + (currentTabs.includes('profile') ? 1 : 0)) - 20
                 },
@@ -370,7 +370,7 @@ export default function HomeScreen() {
                 }
               />
             )}
-            
+
             {currentTabs.includes('publish') && (
               <BottomTabIcon
                 icon={currentTabs[currentPage] === 'publish' ? 'add-circle' : 'add'}
@@ -414,7 +414,7 @@ function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }:
   // 当置顶状态切换时播放动画
   React.useEffect(() => {
     scale.value = withSequence(
-      withTiming(0.6, { duration: 150 }), 
+      withTiming(0.6, { duration: 150 }),
       withTiming(1, { duration: 150 })
     );
   }, [isScrollTop]);
@@ -427,10 +427,10 @@ function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }:
   return (
     <Pressable onPress={onPress} style={styles.bottomTabItem}>
       <Animated.View style={animatedStyle}>
-        <Ionicons 
-          name={isScrollTop ? 'arrow-up-circle' : icon} 
-          size={isScrollTop ? size + 4 : size} 
-          color={isScrollTop ? color : color} 
+        <Ionicons
+          name={isScrollTop ? 'arrow-up-circle' : icon}
+          size={isScrollTop ? size + 4 : size}
+          color={isScrollTop ? color : color}
         />
       </Animated.View>
     </Pressable>
@@ -439,7 +439,7 @@ function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }:
 
 // FeedList 组件
 const FeedList = React.forwardRef<
-  any, 
+  any,
   { tab: TabType; insets: any; onScroll?: (offset: number) => void }
 >(({ tab, insets, onScroll }, ref) => {
   const { cookies } = useAuthStore();
@@ -506,7 +506,7 @@ const FeedList = React.forwardRef<
         isFetchingNextPage ? <ActivityIndicator style={{ margin: 20 }} /> : null
       }
     />
-);
+  );
 });
 
 // 数据解析函数保持不变 (省略以节省空间，实际代码中应保留)
