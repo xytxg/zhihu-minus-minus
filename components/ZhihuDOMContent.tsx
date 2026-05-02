@@ -51,8 +51,15 @@ export default function ZhihuDOMContent({
       const src = img.getAttribute('src') || '';
       const eeimg = img.getAttribute('eeimg');
       const isFormula = src.includes('zhihu.com/equation') || eeimg === '1' || eeimg === '2';
+      const alt = img.getAttribute('alt') || '';
 
-      if (!isFormula) {
+      if (isFormula && alt) {
+        // Improved detection: treat \begin or \\ as block formula even if eeimg="1"
+        const isBlockFormula = eeimg === '2' || alt.includes('\\begin') || alt.includes('\\\\');
+        const textContent = isBlockFormula ? `$$${alt}$$` : `$${alt}$`;
+        const textNode = doc.createTextNode(textContent);
+        img.parentNode?.replaceChild(textNode, img);
+      } else if (!isFormula) {
         let actualSrc = img.getAttribute('data-actualsrc') || img.getAttribute('data-original') || src;
         if (actualSrc) {
           actualSrc = actualSrc.trim();
@@ -70,23 +77,6 @@ export default function ZhihuDOMContent({
   // Handle KaTeX auto-render and Interaction Styling
   useLayoutEffect(() => {
     if (!containerRef.current) return;
-
-    // 1. Process Equations (convert to text nodes for KaTeX)
-    const images = containerRef.current.querySelectorAll('img');
-    images.forEach((img) => {
-      const src = img.getAttribute('src') || '';
-      const eeimg = img.getAttribute('eeimg');
-      const isFormula = src.includes('zhihu.com/equation') || eeimg === '1' || eeimg === '2';
-      const alt = img.getAttribute('alt') || '';
-
-      if (isFormula && alt) {
-        const isBlockFormula = eeimg === '2' || (!eeimg && (alt.includes('\\begin') || alt.includes('\\\\')));
-        // Create a text node with the delimiters
-        const textContent = isBlockFormula ? `$$${alt}$$` : `$${alt}$`;
-        const textNode = document.createTextNode(textContent);
-        img.parentNode?.replaceChild(textNode, img);
-      }
-    });
 
     // 2. Run auto-render
     renderMathInElement(containerRef.current, {
@@ -172,7 +162,7 @@ export default function ZhihuDOMContent({
 
 
     return (
-      <div style={{ width: '100%', backgroundColor: surfaceColor }}>
+      <div style={{ width: '100%', backgroundColor: 'transparent' }}>
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -183,7 +173,7 @@ export default function ZhihuDOMContent({
         body {
           margin: 0;
           padding: 0;
-          background-color: ${surfaceColor};
+          background-color: transparent !important;
           max-width: 100vw;
           overflow-x: hidden;
         }
@@ -204,6 +194,15 @@ export default function ZhihuDOMContent({
           max-width: 100%;
           overflow-x: auto;
           color: ${textColor};
+          font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+          font-size: 14px;
+        }
+        .highlight {
+          background-color: ${isDark ? '#1a1a1a' : '#f6f6f6'};
+          padding: 12px;
+          border-radius: 8px;
+          margin: 15px 0;
+          border: 1px solid ${isDark ? '#333' : '#eee'};
         }
         .zhihu-content p {
           margin-bottom: 20px;

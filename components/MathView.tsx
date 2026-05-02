@@ -21,9 +21,17 @@ export default function MathView({ formula, displayMode = false, colorScheme = '
   return (
     <span style={{ 
       display: displayMode ? 'block' : 'inline-block',
-      textAlign: displayMode ? 'center' : 'left'
+      textAlign: displayMode ? 'center' : 'left',
+      backgroundColor: 'transparent'
     }}>
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+      <style>{`
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: transparent !important;
+        }
+      `}</style>
       <span 
         dangerouslySetInnerHTML={{ __html: html }} 
         style={{ 

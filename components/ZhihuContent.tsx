@@ -244,6 +244,7 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
             formula={alt}
             displayMode={isBlockFormula}
             colorScheme={colorScheme}
+            style={{ backgroundColor: 'transparent' }}
           />
         </Pressable>
       </View>
@@ -680,6 +681,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
                 }
               }
             }}
+            style={{ backgroundColor: 'transparent' }}
           />
         )}
 
