@@ -26,6 +26,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
 import { Text, View } from './Themed';
+import MathView from './MathView';
+import ZhihuDOMContent from './ZhihuDOMContent';
 
 interface SegmentInfo {
   pid: string;
@@ -176,11 +178,16 @@ const P_Renderer: CustomBlockRenderer = ({ TDefaultRenderer, ...props }) => {
 };
 
 const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
-  const { src, width: attrWidth, height: attrHeight } = tnode.attributes;
+  const {
+    src,
+    width: attrWidth,
+    height: attrHeight,
+    eeimg,
+  } = tnode.attributes;
   const rendererProps = useRendererProps('img');
 
   if (!rendererProps) return null;
-  const { onPress, width: contentWidth } = rendererProps as any;
+  const { onPress, width: contentWidth, colorScheme } = rendererProps as any;
 
   const originalWidth = parseInt(attrWidth as string) || 0;
   const originalHeight = parseInt(attrHeight as string) || 0;
@@ -189,22 +196,75 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
     return null;
   }
 
+  const isFormula =
+    src.includes('zhihu.com/equation') || eeimg === '1' || eeimg === '2';
+  const alt = tnode.attributes.alt || '';
+
+  // 优先级：eeimg=2 为块级，eeimg=1 为行内；如果缺失则根据源码内容启发式判断
+  const isBlockFormula = eeimg === '2' || (!eeimg && (alt.includes('\\begin') || alt.includes('\\\\')));
+
   let displayHeight = 200;
+  let displayWidth: number | string = contentWidth;
+
   if (originalWidth > 0 && originalHeight > 0) {
-    displayHeight = (contentWidth * originalHeight) / originalWidth;
+    if (isFormula && originalHeight < 100 && originalWidth < contentWidth) {
+      // 小公式保持原比例，不拉伸到全屏
+      displayWidth = originalWidth;
+      displayHeight = originalHeight;
+    } else {
+      displayHeight = (contentWidth * originalHeight) / originalWidth;
+    }
+  } else if (isFormula) {
+    // 默认高度估计
+    displayHeight = isBlockFormula ? 60 : 22;
+    displayWidth = contentWidth;
+  }
+
+  const imageStyle: any = {
+    width: displayWidth,
+    height: displayHeight,
+  };
+
+  // 确保 src 有协议
+  const finalSrc = src.startsWith('//') ? `https:${src}` : src;
+
+  // 如果有 LaTeX 源码，尝试渲染源码 (MathView DOM Component)
+  if (isFormula && alt) {
+    return (
+      <View
+        className={
+          isFormula
+            ? `my-1.5 items-center bg-transparent ${isBlockFormula ? 'w-full' : ''}`
+            : 'my-2.5 items-center w-full bg-transparent'
+        }
+      >
+        <Pressable onPress={() => onPress(finalSrc)} className="bg-transparent w-full">
+          <MathView
+            dom={{ matchContents: true }}
+            formula={alt}
+            displayMode={isBlockFormula}
+            colorScheme={colorScheme}
+            style={{ backgroundColor: 'transparent' }}
+          />
+        </Pressable>
+      </View>
+    );
   }
 
   return (
-    <View className="my-2.5 items-center w-full bg-transparent">
-      <Pressable onPress={() => onPress(src)}>
+    <View
+      className={
+        isFormula
+          ? `my-1.5 items-center bg-transparent ${isBlockFormula ? 'w-full' : ''}`
+          : 'my-2.5 items-center w-full bg-transparent'
+      }
+    >
+      <Pressable onPress={() => onPress(finalSrc)} className="bg-transparent">
         <Image
-          source={{ uri: src }}
-          className="rounded-xl bg-[rgba(150,150,150,0.1)]"
-          style={{
-            width: contentWidth,
-            height: displayHeight,
-          }}
-          resizeMode="cover"
+          source={{ uri: finalSrc }}
+          className={isFormula ? '' : 'rounded-xl bg-[rgba(150,150,150,0.1)]'}
+          style={imageStyle}
+          resizeMode="contain"
         />
       </Pressable>
     </View>
@@ -267,15 +327,11 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
     const [modalVisible, setModalVisible] = useState(false);
     const [viewerVisible, setViewerVisible] = useState(false);
     const [viewerImage, setViewerImage] = useState<string | null>(null);
-    const [shouldRender, setShouldRender] = useState(false);
+    const [shouldRender, setShouldRender] = useState(true);
 
-    // 延迟解析 HTML 以保证转场动画流畅
+    // 延迟解析 HTML 已不再需要，直接渲染以保证丝滑
     React.useEffect(() => {
-      // 避免 InteractionManager 弃用警告，改为使用 requestAnimationFrame 或 setTimeout
-      const timer = setTimeout(() => {
-        setShouldRender(true);
-      }, 0);
-      return () => clearTimeout(timer);
+      setShouldRender(true);
     }, []);
 
     const handleInternalLink = useCallback(
@@ -380,15 +436,14 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         onElement: (element: any) => {
           if (element.name === 'img') {
             const { attribs } = element;
-            const actualSrc =
+            const actualSrc = (
               attribs['data-actualsrc'] ||
               attribs['data-original'] ||
-              attribs.src;
-            if (
-              actualSrc &&
-              (attribs.src?.startsWith('data:image') || !attribs.src)
-            ) {
-              attribs.src = actualSrc;
+              attribs.src || ''
+            ).trim();
+            if (actualSrc) {
+              // 确保有协议
+              attribs.src = actualSrc.startsWith('//') ? `https:${actualSrc}` : actualSrc;
             }
             if (attribs['data-rawwidth'])
               attribs.width = attribs['data-rawwidth'];
@@ -439,6 +494,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
             setViewerVisible(true);
           },
           width: width - 40,
+          colorScheme,
         },
       }),
       [
@@ -602,20 +658,26 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         {contentArray ? (
           renderPinContent()
         ) : (
-          <RenderHtml
-            contentWidth={width - 40}
-            source={{ html: content || '' }}
-            renderers={renderers as any}
-            tagsStyles={tagsStyles as any}
-            classesStyles={classesStyles as any}
-            domVisitors={domVisitors}
-            systemFonts={systemFonts}
-            ignoredDomTags={['noscript']}
-            renderersProps={renderersProps as any}
-            defaultTextProps={{
-              selectable: true,
-              selectionColor: '#0084ff',
+          <ZhihuDOMContent
+            dom={{ matchContents: true }}
+            htmlContent={content || ''}
+            segmentInfos={segmentInfos as any}
+            colorScheme={colorScheme}
+            onImagePress={(src) => {
+              setViewerImage(src);
+              setViewerVisible(true);
             }}
+            onLinkPress={handleInternalLink}
+            onSegmentPress={(pid) => {
+              const segment = segmentMap.get(pid);
+              if (segment) {
+                const interaction = findActiveInteraction(segment);
+                if (interaction) {
+                  handlePress(pid, segment, interaction);
+                }
+              }
+            }}
+            style={{ backgroundColor: 'transparent' }}
           />
         )}
 
