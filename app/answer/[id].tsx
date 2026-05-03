@@ -120,17 +120,12 @@ export default function AnswerDetailScreen() {
       >
         {answerIds.map((aid, index) => (
           <View key={aid} className="flex-1">
-            {Math.abs(index - currentPage) <= 1 ? (
-              <AnswerDetailView
-                id={aid}
-                initialTitle={aid === id ? (initialTitle as string) : undefined}
-                questionId={questionId as string}
-              />
-            ) : (
-              <View className="flex-1 justify-center items-center">
-                <ActivityIndicator color={Colors[colorScheme].primary} />
-              </View>
-            )}
+            <AnswerDetailView
+              id={aid}
+              initialTitle={aid === id ? (initialTitle as string) : undefined}
+              questionId={questionId as string}
+              isFocused={index === currentPage}
+            />
           </View>
         ))}
       </PagerView>

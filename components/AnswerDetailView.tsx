@@ -43,6 +43,7 @@ interface AnswerDetailViewProps {
   initialTitle?: string;
   questionId?: string;
   onScroll?: (y: number) => void;
+  isFocused?: boolean;
 }
 
 export const AnswerDetailView = ({
@@ -50,6 +51,7 @@ export const AnswerDetailView = ({
   initialTitle,
   questionId,
   onScroll,
+  isFocused = false,
 }: AnswerDetailViewProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -68,6 +70,13 @@ export const AnswerDetailView = ({
   const [isLiked, setIsLiked] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [isSharing, setIsSharing] = React.useState(false);
+  const [hasBeenFocused, setHasBeenFocused] = React.useState(isFocused);
+
+  React.useEffect(() => {
+    if (isFocused && !hasBeenFocused) {
+      setHasBeenFocused(true);
+    }
+  }, [isFocused]);
 
   const handleScrollInternal = (event: any) => {
     baseHandleScroll(event, (currentY) => {
@@ -294,13 +303,19 @@ export const AnswerDetailView = ({
             </View>
 
             <View className="px-5 bg-transparent">
-              <ZhihuContent
-                content={answer?.content || ''}
-                segmentInfos={answer?.segment_infos}
-                objectId={id}
-                type="answer"
-                onRefresh={refetch}
-              />
+              {hasBeenFocused ? (
+                <ZhihuContent
+                  content={answer?.content || ''}
+                  segmentInfos={answer?.segment_infos}
+                  objectId={id}
+                  type="answer"
+                  onRefresh={refetch}
+                />
+              ) : (
+                <View className="h-[300px] justify-center items-center bg-transparent">
+                  <ActivityIndicator size="small" color="#0084ff" />
+                </View>
+              )}
               <Text
                 type="secondary"
                 className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"

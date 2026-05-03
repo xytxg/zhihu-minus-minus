@@ -159,8 +159,10 @@ export default function ZhihuDOMContent({
   const primaryColor = '#0084ff';
 
 
+  const isReady = cssLoaded && mathRendered;
+
   return (
-    <div style={{ width: '100%', backgroundColor: 'transparent' }}>
+    <div style={{ width: '100%', backgroundColor: 'transparent', position: 'relative' }}>
       <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
@@ -181,6 +183,28 @@ export default function ZhihuDOMContent({
           line-height: 1.6;
           color: ${textColor};
           max-width: 100%;
+          opacity: ${isReady ? 1 : 0};
+          transition: opacity 0.3s ease-in-out;
+        }
+        .loading-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          padding: 20px 0;
+          display: ${isReady ? 'none' : 'block'};
+        }
+        .skeleton-line {
+          height: 14px;
+          background-color: ${isDark ? '#333' : '#eee'};
+          margin-bottom: 15px;
+          border-radius: 4px;
+          animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+          0% { opacity: 0.6; }
+          50% { opacity: 1; }
+          100% { opacity: 0.6; }
         }
         .katex { color: ${textColor}; }
         .katex-display {
@@ -254,6 +278,12 @@ export default function ZhihuDOMContent({
           background-color: ${isDark ? 'rgba(0, 132, 255, 0.15)' : 'rgba(0, 132, 255, 0.05)'};
         }
       `}</style>
+
+      <div className="loading-container">
+        <div className="skeleton-line" style={{ width: '90%' }} />
+        <div className="skeleton-line" style={{ width: '100%' }} />
+        <div className="skeleton-line" style={{ width: '80%' }} />
+      </div>
 
       <div
         ref={containerRef}
