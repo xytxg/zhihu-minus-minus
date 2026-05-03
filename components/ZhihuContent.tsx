@@ -328,11 +328,26 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
     const [viewerVisible, setViewerVisible] = useState(false);
     const [viewerImage, setViewerImage] = useState<string | null>(null);
     const [shouldRender, setShouldRender] = useState(true);
+    const [domReady, setDomReady] = useState(false);
+    const [useNativeFallback, setUseNativeFallback] = useState(false);
 
     // 延迟解析 HTML 已不再需要，直接渲染以保证丝滑
     React.useEffect(() => {
       setShouldRender(true);
     }, []);
+
+    // 备选方案：如果 DOM 组件加载太慢或失败，回退到原生渲染
+    React.useEffect(() => {
+      if (!contentArray && content && !domReady) {
+        const timer = setTimeout(() => {
+          if (!domReady) {
+            console.log('DOM component timeout, falling back to native rendering');
+            setUseNativeFallback(true);
+          }
+        }, 3500);
+        return () => clearTimeout(timer);
+      }
+    }, [content, domReady, contentArray]);
 
     const handleInternalLink = useCallback(
       (url: string) => {
@@ -657,28 +672,50 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       <View className="bg-transparent">
         {contentArray ? (
           renderPinContent()
+        ) : useNativeFallback ? (
+          <View className="px-1">
+            <RenderHtml
+              contentWidth={width - 40}
+              source={{ html: `<div>${content}</div>` }}
+              renderers={renderers as any}
+              tagsStyles={tagsStyles as any}
+              classesStyles={classesStyles as any}
+              domVisitors={domVisitors}
+              systemFonts={systemFonts}
+              renderersProps={renderersProps as any}
+            />
+          </View>
         ) : (
-          <ZhihuDOMContent
-            dom={{ matchContents: true }}
-            htmlContent={content || ''}
-            segmentInfos={segmentInfos as any}
-            colorScheme={colorScheme}
-            onImagePress={(src) => {
-              setViewerImage(src);
-              setViewerVisible(true);
-            }}
-            onLinkPress={handleInternalLink}
-            onSegmentPress={(pid) => {
-              const segment = segmentMap.get(pid);
-              if (segment) {
-                const interaction = findActiveInteraction(segment);
-                if (interaction) {
-                  handlePress(pid, segment, interaction);
+          <View style={{ minHeight: 400 }}>
+            {!domReady && !useNativeFallback && (
+              <View className="absolute inset-0 z-10 justify-center items-center bg-transparent">
+                <ActivityIndicator size="small" color="#0084ff" />
+                <Text type="secondary" className="mt-4 text-xs opacity-50">正在建立连接...</Text>
+              </View>
+            )}
+            <ZhihuDOMContent
+              dom={{ matchContents: true }}
+              htmlContent={content || ''}
+              segmentInfos={segmentInfos as any}
+              colorScheme={colorScheme}
+              onReady={() => setDomReady(true)}
+              onImagePress={(src) => {
+                setViewerImage(src);
+                setViewerVisible(true);
+              }}
+              onLinkPress={handleInternalLink}
+              onSegmentPress={(pid) => {
+                const segment = segmentMap.get(pid);
+                if (segment) {
+                  const interaction = findActiveInteraction(segment);
+                  if (interaction) {
+                    handlePress(pid, segment, interaction);
+                  }
                 }
-              }
-            }}
-            style={{ backgroundColor: 'transparent' }}
-          />
+              }}
+              style={{ backgroundColor: 'transparent', minHeight: 400 }}
+            />
+          </View>
         )}
 
         {modalVisible && (

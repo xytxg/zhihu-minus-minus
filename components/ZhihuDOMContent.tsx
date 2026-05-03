@@ -26,6 +26,7 @@ interface ZhihuDOMContentProps {
   onImagePress: (src: string) => void;
   onLinkPress: (href: string) => void;
   onSegmentPress: (pid: string) => void;
+  onReady?: () => void;
 }
 
 export default function ZhihuDOMContent({
@@ -35,6 +36,7 @@ export default function ZhihuDOMContent({
   onImagePress,
   onLinkPress,
   onSegmentPress,
+  onReady,
 }: ZhihuDOMContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [cssLoaded, setCssLoaded] = useState(false);
@@ -126,7 +128,8 @@ export default function ZhihuDOMContent({
 
     // Reveal immediately
     setMathRendered(true);
-  }, [processedHtml, segmentInfos]);
+    onReady?.();
+  }, [processedHtml, segmentInfos, onReady]);
 
   // Handle Clicks
   const handleClick = (e: React.MouseEvent) => {
