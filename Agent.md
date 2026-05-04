@@ -54,7 +54,9 @@
 
 ## 🏛️ 项目演进里程碑 (Changelog)
 
-- **当前版本：v0.0.11**
+- **v0.0.12**:
+  - **基础稳定性优化**: 修复了若干 UI 细节与已知的小概率崩溃问题。
+- **v0.0.11**:
   - **回答滑动导航**: 实现 `react-native-pager-view` 驱动的横向滑动切换回答。
   - **Feed 交互增强**: `FeedCard` 集成“更多”功能菜单（分享、举报、不感兴趣等）。
   - **性能与渲染**: 深度优化 LaTeX 渲染逻辑与短内容原生渲染引擎。
@@ -95,5 +97,5 @@
 2. **FlashList Layout**: 如果列表底部留白异常，检查 `contentContainerStyle` 与 `paddingBottom`。
 3. **Cookie Sync**: `WebView` 与 `Axios` 的 Cookie 同步在部分 Android 版本上有延迟，建议手动触发一次 `SecureStore` 重刷。
 
-**Status**: 🏗️ 持续开发中 (v0.0.11) - 核心功能与基础架构迭代中  
-**Last Updated**: 2026-05-02
+**Status**: 🏗️ 持续开发中 (v0.0.13) - 核心功能与基础架构迭代中  
+**Last Updated**: 2026-05-04

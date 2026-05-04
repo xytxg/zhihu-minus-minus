@@ -2,7 +2,7 @@
   "expo": {
     "name": "知乎--",
     "slug": "ZhihuMinusMinus",
-    "version": "0.0.12",
+    "version": "0.0.13",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "zhihu--",
@@ -89,6 +89,17 @@
     },
     "extra": {
       "router": {},
+      "releaseNotes": {
+        "v0.0.13": [
+          "ZSE 签名算法重构: 引入 zhi-purity 纯 JS 实现，全面替换旧版 JS/Rust 混合逻辑，彻底解决签名失败导致的 403 问题，提升 API 调用成功率。",
+          "环境兼容性增强: 针对 React Native 环境优化加密核心，移除对 Node.js 原生模块的依赖。"
+        ],
+        "v0.0.12": [
+          "基础稳定性优化: 修复了若干 UI 细节与已知的小概率崩溃问题。"
+        ]
+      },
+      "status": "🏗️ 持续开发中 (v0.0.13) - 核心功能与基础架构迭代中",
+      "lastUpdated": "2026-05-04",
       "eas": {
         "projectId": "faa0f061-50e6-4ec4-bb6f-accda0dbd24f"
       },
