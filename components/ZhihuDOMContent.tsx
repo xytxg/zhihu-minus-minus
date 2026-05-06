@@ -1,8 +1,7 @@
 'use dom';
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import renderMathInElement from 'katex/dist/contrib/auto-render.js';
-
+import renderMathInElement from 'katex/dist/contrib/auto-render';
 interface SegmentInfo {
   pid: string;
   marks: Array<{
