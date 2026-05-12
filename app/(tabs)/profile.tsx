@@ -68,12 +68,6 @@ export default function ProfileScreen() {
 
   const profile = member || me;
 
-  React.useEffect(() => {
-    if (profile && cookies) {
-      addAccount(cookies, profile);
-    }
-  }, [profile, cookies, addAccount]);
-
   const isLoading = isMeLoading || isMemberLoading;
   const refetch = React.useCallback(() => {
     refetchMe();
@@ -161,10 +155,14 @@ export default function ProfileScreen() {
     if (index === activeAccountIndex) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    const targetAccount = accounts[index];
-
     useVerificationStore.getState().hide();
-    await syncNativeSession(targetAccount.cookies);
+
+    if (index === -1) {
+      await syncNativeSession(null);
+    } else {
+      const targetAccount = accounts[index];
+      await syncNativeSession(targetAccount.cookies);
+    }
 
     switchAccount(index);
     queryClient.clear();
@@ -361,7 +359,7 @@ export default function ProfileScreen() {
             ) : undefined
           }
         />
-        {/* <MenuItem
+        <MenuItem
           icon="people-outline"
           title="切换账号"
           onPress={() => setAccountModalVisible(true)}
@@ -373,7 +371,7 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={16} color="#ccc" />
             </View>
           }
-        /> */}
+        />
         <MenuItem
           icon="help-circle-outline"
           title="反馈与建议"
@@ -467,6 +465,47 @@ export default function ProfileScreen() {
                   </Pressable>
                 </View>
               ))}
+
+              {/* 游客模式 */}
+              <View className="flex-row items-center bg-transparent">
+                <Pressable
+                  onPress={() => handleSwitchAccount(-1)}
+                  className="flex-row items-center py-4 flex-1 border-b border-gray-100 dark:border-gray-800 bg-transparent"
+                >
+                  <View className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 justify-center items-center">
+                    <Ionicons name="person-outline" size={24} color="#666" />
+                  </View>
+                  <View className="flex-1 ml-4 bg-transparent">
+                    <View className="flex-row items-center bg-transparent">
+                      <Text className="text-base font-bold">游客模式 (未登录)</Text>
+                      {activeAccountIndex === -1 && (
+                        <View className="ml-2 bg-[#0084ff20] px-1.5 py-0.5 rounded">
+                          <Text className="text-[#0084ff] text-[10px] font-bold">
+                            当前
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text
+                      type="secondary"
+                      className="text-xs mt-1"
+                      numberOfLines={1}
+                    >
+                      不使用任何账号浏览
+                    </Text>
+                  </View>
+                  {activeAccountIndex === -1 && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={22}
+                      color="#0084ff"
+                    />
+                  )}
+                </Pressable>
+                <View className="pl-4 py-4">
+                  <Ionicons name="trash-outline" size={20} color="transparent" />
+                </View>
+              </View>
 
               <Pressable
                 onPress={handleAddAccount}

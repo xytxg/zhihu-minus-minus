@@ -1,4 +1,5 @@
 import CookieManager from '@react-native-cookies/cookies';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import React, { useRef, useState } from 'react';
@@ -14,6 +15,7 @@ import { useVerificationStore } from '@/store/useVerificationStore';
 export default function LoginScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(true);
   const webViewRef = useRef<WebView>(null);
   const borderColor = Colors[colorScheme].border;
@@ -86,6 +88,7 @@ export default function LoginScreen() {
         }
 
         useVerificationStore.getState().hide(); // 登录成功后强制关闭验证弹窗
+        queryClient.clear(); // 清理缓存，强制重新拉取数据 (解决 feed 不更新问题)
         console.log('✅ 登录 Cookie 已保存至 SecureStore 和 AuthStore');
 
         // 成功后跳转，确保存储生效

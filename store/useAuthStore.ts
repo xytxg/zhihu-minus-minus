@@ -63,17 +63,7 @@ export const useAuthStore = create<AuthState>()(
       me: null,
 
       setCookies: (cookies) => {
-        const { accounts, activeAccountIndex } = get();
-        if (activeAccountIndex >= 0) {
-          const newAccounts = [...accounts];
-          newAccounts[activeAccountIndex] = {
-            ...newAccounts[activeAccountIndex],
-            cookies,
-          };
-          set({ accounts: newAccounts, cookies });
-        } else {
-          set({ cookies });
-        }
+        set({ cookies });
       },
 
       setMe: (me) => {
@@ -121,6 +111,14 @@ export const useAuthStore = create<AuthState>()(
       },
 
       switchAccount: (index) => {
+        if (index === -1) {
+          set({
+            activeAccountIndex: -1,
+            cookies: null,
+            me: null,
+          });
+          return;
+        }
         const { accounts } = get();
         if (index >= 0 && index < accounts.length) {
           const account = accounts[index];
