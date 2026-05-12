@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import { useMemo, useState, useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
-  InteractionManager,
   Linking,
   Modal,
   Pressable,
@@ -15,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   useWindowDimensions,
 } from 'react-native';
-import { isInternalZhihuLink, parseZhihuUrl } from '@/utils/url';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import RenderHtml, {
   type CustomBlockRenderer,
   defaultSystemFonts,
@@ -25,8 +23,9 @@ import { reactAnswerSegment, unreactAnswerSegment } from '@/api/zhihu/answer';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
-import { Text, View } from './Themed';
+import { parseZhihuUrl } from '@/utils/url';
 import MathView from './MathView';
+import { Text, View } from './Themed';
 import ZhihuDOMContent from './ZhihuDOMContent';
 
 interface SegmentInfo {
@@ -178,19 +177,14 @@ const P_Renderer: CustomBlockRenderer = ({ TDefaultRenderer, ...props }) => {
 };
 
 const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
-  const {
-    src,
-    width: attrWidth,
-    height: attrHeight,
-    eeimg,
-  } = tnode.attributes;
+  const { src, width: attrWidth, height: attrHeight, eeimg } = tnode.attributes;
   const rendererProps = useRendererProps('img');
 
   if (!rendererProps) return null;
   const { onPress, width: contentWidth, colorScheme } = rendererProps as any;
 
-  const originalWidth = parseInt(attrWidth as string) || 0;
-  const originalHeight = parseInt(attrHeight as string) || 0;
+  const originalWidth = parseInt(attrWidth as string, 10) || 0;
+  const originalHeight = parseInt(attrHeight as string, 10) || 0;
 
   if (!src || src.startsWith('data:image/svg')) {
     return null;
@@ -201,7 +195,9 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
   const alt = tnode.attributes.alt || '';
 
   // 优先级：eeimg=2 为块级，eeimg=1 为行内；如果缺失则根据源码内容启发式判断
-  const isBlockFormula = eeimg === '2' || (!eeimg && (alt.includes('\\begin') || alt.includes('\\\\')));
+  const isBlockFormula =
+    eeimg === '2' ||
+    (!eeimg && (alt.includes('\\begin') || alt.includes('\\\\')));
 
   let displayHeight = 200;
   let displayWidth: number | string = contentWidth;
@@ -238,7 +234,10 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
             : 'my-2.5 items-center w-full bg-transparent'
         }
       >
-        <Pressable onPress={() => onPress(finalSrc)} className="bg-transparent w-full">
+        <Pressable
+          onPress={() => onPress(finalSrc)}
+          className="bg-transparent w-full"
+        >
           <MathView
             dom={{ matchContents: true }}
             formula={alt}
@@ -341,7 +340,9 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       if (!contentArray && content && !domReady) {
         const timer = setTimeout(() => {
           if (!domReady) {
-            console.log('DOM component timeout, falling back to native rendering');
+            console.log(
+              'DOM component timeout, falling back to native rendering',
+            );
             setUseNativeFallback(true);
           }
         }, 3500);
@@ -454,11 +455,14 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
             const actualSrc = (
               attribs['data-actualsrc'] ||
               attribs['data-original'] ||
-              attribs.src || ''
+              attribs.src ||
+              ''
             ).trim();
             if (actualSrc) {
               // 确保有协议
-              attribs.src = actualSrc.startsWith('//') ? `https:${actualSrc}` : actualSrc;
+              attribs.src = actualSrc.startsWith('//')
+                ? `https:${actualSrc}`
+                : actualSrc;
             }
             if (attribs['data-rawwidth'])
               attribs.width = attribs['data-rawwidth'];
@@ -475,8 +479,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
                 interaction.comment_count > 0 ||
                 interaction.is_like)
             ) {
-              element.attribs.class =
-                (element.attribs.class || '') + ' segment-interactable';
+              element.attribs.class = `${element.attribs.class || ''} segment-interactable`;
               if (interaction.is_like) {
                 element.attribs.class += ' segment-liked';
               }
@@ -498,7 +501,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           colorScheme,
         },
         a: {
-          onPress: (event: any, href: string) => handleInternalLink(href),
+          onPress: (_event: any, href: string) => handleInternalLink(href),
           onLinkCardPress: handleInternalLink,
           surfaceColor,
           colorScheme,
@@ -545,7 +548,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           borderLeftWidth: 4,
           borderLeftColor: Colors[colorScheme].primary,
           paddingLeft: 18,
-          backgroundColor: surfaceColor + '80',
+          backgroundColor: `${surfaceColor}80`,
           paddingVertical: 12,
           marginVertical: 15,
           fontStyle: 'italic',
@@ -678,7 +681,10 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       },
       [segmentMap, findActiveInteraction, handlePress],
     );
-    const domStyle = useMemo(() => ({ backgroundColor: 'transparent', minHeight: 400 }), []);
+    const domStyle = useMemo(
+      () => ({ backgroundColor: 'transparent', minHeight: 400 }),
+      [],
+    );
 
     if (!shouldRender && !contentArray) {
       return (
@@ -710,7 +716,9 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
             {!domReady && !useNativeFallback && (
               <View className="absolute inset-0 z-10 justify-center items-center bg-transparent">
                 <ActivityIndicator size="small" color="#0084ff" />
-                <Text type="secondary" className="mt-4 text-xs opacity-50">正在建立连接...</Text>
+                <Text type="secondary" className="mt-4 text-xs opacity-50">
+                  正在建立连接...
+                </Text>
               </View>
             )}
             <ZhihuDOMContent
@@ -826,33 +834,20 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         {viewerVisible && (
           <Modal
             visible={viewerVisible}
-            transparent
-            animationType="fade"
+            transparent={true}
             onRequestClose={() => setViewerVisible(false)}
           >
-            <View className="flex-1 bg-black justify-center items-center">
-              <TouchableWithoutFeedback
-                onPress={() => setViewerVisible(false)}
-              >
-                <View className="absolute inset-0" />
-              </TouchableWithoutFeedback>
-
-              {viewerImage && (
-                <Image
-                  source={{ uri: viewerImage }}
-                  className="w-full h-full"
-                  resizeMode="contain"
-                />
-              )}
-
-              <TouchableOpacity
-                className="absolute right-5 w-[44px] h-[44px] rounded-[22px] bg-black/50 justify-center items-center z-10"
-                style={{ top: 50 }}
-                onPress={() => setViewerVisible(false)}
-              >
-                <Ionicons name="close" size={28} color="#fff" />
-              </TouchableOpacity>
-            </View>
+            {viewerImage && (
+              <ImageViewer
+                imageUrls={[{ url: viewerImage }]}
+                onCancel={() => setViewerVisible(false)}
+                onClick={() => setViewerVisible(false)}
+                enableSwipeDown={true}
+                onSwipeDown={() => setViewerVisible(false)}
+                renderIndicator={() => <></>}
+                saveToLocalByLongPress={false}
+              />
+            )}
           </Modal>
         )}
       </View>
