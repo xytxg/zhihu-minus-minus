@@ -170,7 +170,7 @@ export default function ReplyDetailScreen() {
           {...({ estimatedItemSize: 100 } as any)}
           contentContainerStyle={{ paddingBottom: 160 }}
           onRefresh={refetch}
-          refreshing={isFetching}
+          refreshing={isFetching && !isLoading}
           keyboardDismissMode="on-drag"
           ListEmptyComponent={
             isLoading ? (

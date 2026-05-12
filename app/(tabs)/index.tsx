@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
   Pressable,
+  RefreshControl,
   StyleSheet,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
@@ -490,6 +491,8 @@ const FeedList = React.forwardRef<
   { tab: TabType; insets: any; guestCookieReady: boolean; onScroll?: (offset: number) => void }
 >(({ tab, insets, guestCookieReady, onScroll }, ref) => {
   const { cookies } = useAuthStore();
+  const colorScheme = useColorScheme();
+  const tintColor = Colors[colorScheme].tint;
   const {
     data,
     fetchNextPage,
@@ -548,8 +551,15 @@ const FeedList = React.forwardRef<
       keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
-      onRefresh={refetch}
-      refreshing={isRefetching}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          tintColor={tintColor}
+          colors={[tintColor]}
+          progressViewOffset={insets.top + 70}
+        />
+      }
       onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
       scrollEventThrottle={100}
       contentContainerStyle={{
@@ -562,6 +572,17 @@ const FeedList = React.forwardRef<
       ListHeaderComponent={tab === 'following' ? <RecentMoments /> : null}
       ListFooterComponent={
         isFetchingNextPage ? <ActivityIndicator style={{ margin: 20 }} /> : null
+      }
+      ListEmptyComponent={
+        isLoading ? (
+          <View className="flex-1 items-center justify-center mt-[100px] bg-transparent">
+            <ActivityIndicator size="large" color={tintColor} />
+          </View>
+        ) : (
+          <View className="flex-1 items-center justify-center mt-[100px] bg-transparent">
+            <Text type="secondary">暂无内容 喵~</Text>
+          </View>
+        )
       }
     />
   );

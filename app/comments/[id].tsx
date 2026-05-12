@@ -217,7 +217,7 @@ export default function CommentScreen() {
           keyExtractor={(item: any) => item.id.toString()}
           {...({ estimatedItemSize: 120 } as any)}
           onRefresh={refetch}
-          refreshing={isFetching}
+          refreshing={isFetching && !isLoading}
           keyboardDismissMode="on-drag"
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 10 }}
           ListEmptyComponent={
