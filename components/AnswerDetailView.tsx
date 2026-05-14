@@ -181,7 +181,7 @@ export const AnswerDetailView = ({
         style={[
           {
             backgroundColor,
-            paddingTop: insets.top,
+            paddingTop: 0,
             opacity: headerVisible,
             transform: [
               {

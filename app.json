@@ -28,25 +28,83 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.huamu013.ZhihuMinusMinus",
-      "permissions": ["REQUEST_INSTALL_PACKAGES"],
+      "permissions": [
+        "REQUEST_INSTALL_PACKAGES"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "data": [
-            { "scheme": "https", "host": "www.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "https", "host": "zhihu.com", "pathPrefix": "/" },
-            { "scheme": "https", "host": "zhuanlan.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "https", "host": "oia.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "https", "host": "video.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "http", "host": "www.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "http", "host": "zhihu.com", "pathPrefix": "/" },
-            { "scheme": "http", "host": "zhuanlan.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "http", "host": "oia.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "http", "host": "video.zhihu.com", "pathPrefix": "/" },
-            { "scheme": "zhihu" },
-            { "scheme": "zhihu--" }
+            {
+              "scheme": "https",
+              "host": "www.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "zhuanlan.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "oia.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "https",
+              "host": "video.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "http",
+              "host": "www.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "http",
+              "host": "zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "http",
+              "host": "zhuanlan.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "http",
+              "host": "oia.zhihu.com",
+              "pathPrefix": "/"
+            },
+            {
+              "scheme": "http",
+              "host": "video.zhihu.com",
+              "pathPrefix": "/"
+            }
           ],
-          "category": [ "BROWSABLE", "DEFAULT" ]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "zhihu"
+            },
+            {
+              "scheme": "zhihu--"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

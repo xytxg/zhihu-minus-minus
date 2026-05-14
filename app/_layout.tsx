@@ -5,12 +5,12 @@ import {
 } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, Redirect } from 'expo-router';
+import { Stack, useRouter, Redirect, useRootNavigationState } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { parseZhihuUrl } from '@/utils/url';
 import Constants from 'expo-constants';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import { UpdateChecker } from '@/components/UpdateChecker';
 import { VerificationModal } from '@/components/VerificationModal';
@@ -60,6 +60,11 @@ function RootLayout() {
   useSyncThemeWithNativeWind();
 
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
+  const isReady = !!rootNavigationState?.key;
+
+  const [pendingUrl, setPendingUrl] = useState<string | null>(null);
+  const [isInitialUrl, setIsInitialUrl] = useState(false);
 
   // Handle deep links manually
   useEffect(() => {
@@ -69,29 +74,7 @@ function RootLayout() {
       if (url.includes('expo-development-client') || url.includes('expo-auth-session')) {
         return;
       }
-      try {
-        let path = '';
-        const finalPath = parseZhihuUrl(url);
-
-        if (!finalPath) return;
-
-        if (finalPath === '/') {
-          console.log('[Deep Link] Homepage detected, replacing with /');
-          router.replace('/');
-          return;
-        }
-
-        console.log('[Deep Link] Navigating to:', finalPath);
-        setTimeout(() => {
-          try {
-            router.push(finalPath as any);
-          } catch (e) {
-            console.error('[Deep Link] Navigation failed for:', finalPath, e);
-          }
-        }, 500);
-      } catch (err) {
-        // Silently ignore errors in production
-      }
+      setPendingUrl(url);
     };
 
     const subscription = Linking.addEventListener('url', (event) => {
@@ -99,6 +82,9 @@ function RootLayout() {
     });
 
     Linking.getInitialURL().then((url) => {
+      if (url) {
+        setIsInitialUrl(true);
+      }
       handleUrl(url);
     });
 
@@ -106,6 +92,40 @@ function RootLayout() {
       subscription.remove();
     };
   }, []);
+
+  // Process pending URL when navigation is ready
+  useEffect(() => {
+    if (isReady && pendingUrl) {
+      const url = pendingUrl;
+      setPendingUrl(null); // Clear it
+      
+      try {
+        const finalPath = parseZhihuUrl(url);
+        if (!finalPath) return;
+
+        console.log('[Deep Link] Processing URL:', url, '->', finalPath);
+
+        if (finalPath === '/') {
+          router.replace('/');
+          return;
+        }
+
+        if (isInitialUrl) {
+          console.log('[Deep Link] Cold start, setting home as root');
+          router.replace('/');
+          // Small delay to ensure replace completes before push
+          setTimeout(() => {
+            router.push(finalPath as any);
+          }, 100);
+          setIsInitialUrl(false);
+        } else {
+          router.push(finalPath as any);
+        }
+      } catch (err) {
+        console.error('[Deep Link] Navigation failed:', err);
+      }
+    }
+  }, [isReady, pendingUrl, isInitialUrl]);
 
   // 这里简单处理：如果以后需要加载字体，可以写在这里
   useEffect(() => {
