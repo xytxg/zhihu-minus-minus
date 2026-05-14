@@ -15,11 +15,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.huamu013.ZhihuMinusMinus",
-      "associatedDomains": [
-        "applinks:www.zhihu.com",
-        "applinks:zhuanlan.zhihu.com",
-        "applinks:zhihu.com"
-      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

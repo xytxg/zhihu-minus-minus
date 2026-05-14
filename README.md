@@ -67,17 +67,52 @@
 > [!NOTE]
 > 注意 apk 名称，目前提供的 20mb 左右的 APK 只能在 `arm64` 的安卓设备上运行（只要不是太老的设备都可以）。
 
+或者
+
+1. `git clone` 本仓库。
+2. 安装环境（参考下方的 **快速开始**）。
+3. 难蚌 expo 搞的只有 macOS 才能本地打包安卓...
+
+`npm run prebuild`
+
+`SENTRY_DISABLE_AUTO_UPLOAD=true eas build --platform android --profile preview --local`
+
+这个还没试过：
+
+`cd android && ./gradlew assembleRelease`
+
+或者修改 app.json 信息，删掉 sentry 相关组件，注册 expo 账号使用 expo 服务器打包。
+
 ### 🍎 iOS
 由于 iOS 平台的限制，目前未在 App Store 上架。你需要：
 1. `git clone` 本仓库。
 2. 安装环境（参考下方的 **快速开始**）。
 3. 使用自己的 Apple ID 在 Xcode 中进行签名并编译到真机。
 
+`SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --configuration Release --device`
+
+⬆️ 这个在 ios26 也不好用了，建议 Xcode 里 build。
+
+(有认试过 expo 的线上打包一定要 apple 开发者账号哦...)
+
 ## 🚀 快速开始
 
 本项目涉及到一些原生库，推荐使用 **Development Build** 进行开发。
 
+基础环境:
+- node, npm
+- eas cli
+- 安卓
+  - Android Studio/或者至少 adb sdk
+  - Java JDK 17, maven...
+- iOS
+  - Xcode
+  - cocoapods ...
+
+对于本项目:
+
 1. **准备环境**
+
 ```bash
 npm install -g expo-cli
 ```
@@ -87,12 +122,18 @@ npm install -g expo-cli
 npm install
 ```
 
+2.1 **生成原生项目目录**
+
+```bash
+npm run prebuild
+```
+
 3. **运行 Android** (需要 ADB 或模拟器环境)
 ```bash
 npm run android
 ```
 
-4. **运行 iOS** (需要 Mac 且安装 Xcode)
+4. **运行 iOS** (需要 Mac 且安装 Xcode, idb)
 ```bash
 npm run ios
 ```
@@ -114,4 +155,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.0.11 | **Last Updated**: 2026-05-02
+**Version**: v0.0.14 | **Last Updated**: 2026-05-14
