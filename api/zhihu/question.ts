@@ -1,5 +1,88 @@
 import apiClient from '../client';
 
+export interface ZhihuBadgeV2 {
+  detail_badges: any[];
+  icon: string;
+  merged_badges: any[];
+  night_icon: string;
+  title: string;
+}
+
+export interface ZhihuAuthor {
+  avatar_url: string;
+  avatar_url_template: string;
+  badge: any[];
+  badge_v2: ZhihuBadgeV2;
+  gender: number;
+  headline: string;
+  id: string;
+  is_advertiser: boolean;
+  is_org: boolean;
+  is_privacy: boolean;
+  name: string;
+  type: string;
+  url: string;
+  url_token: string;
+  user_type: string;
+  is_following?: boolean;
+}
+
+export interface ZhihuQuestionBrief {
+  created: number;
+  id: string | number;
+  question_type: string;
+  relationship: any;
+  title: string;
+  type: 'question';
+  updated_time: number;
+  url: string;
+}
+
+export interface ZhihuAnswerRelationship {
+  upvoted_followees: any[];
+  voting?: number;
+  is_author?: boolean;
+}
+
+export interface ZhihuAnswer {
+  allow_segment_interaction: number;
+  answer_type: string;
+  author: ZhihuAuthor;
+  comment_count: number;
+  content: string;
+  content_need_truncated: boolean;
+  created_time: number;
+  extras: string;
+  force_login_when_click_read_more: boolean;
+  id: string | number;
+  is_collapsed: boolean;
+  is_copyable: boolean;
+  is_jump_native: boolean;
+  question: ZhihuQuestionBrief;
+  relationship: ZhihuAnswerRelationship;
+  type: 'answer';
+  updated_time: number;
+  url: string;
+  voteup_count: number;
+  thumbnail?: string;
+  content_img?: string[];
+  segment_infos?: any[];
+}
+
+export interface ZhihuAnswersPaging {
+  is_end: boolean;
+  is_start: boolean;
+  next: string;
+  previous: string;
+  totals: number;
+}
+
+export interface ZhihuAnswersResponse {
+  data: ZhihuAnswer[];
+  paging: ZhihuAnswersPaging;
+  read_count: number;
+}
+
 export const QUESTION_INCLUDE =
   'author,content,excerpt,answer_count,comment_count,follower_count,visit_count,topics,relationship.is_following,relationship.is_author,relationship.is_anonymous,relationship.voting,relationship.is_thanked,relationship.is_nothelp';
 

@@ -56,8 +56,9 @@ interface ZhihuContentProps {
   contentArray?: any[];
   segmentInfos?: SegmentInfo[];
   objectId: string;
-  type: 'answer' | 'article' | 'pin';
+  type: 'answer' | 'article' | 'pin' | 'question';
   onRefresh?: () => void;
+  useNative?: boolean;
 }
 
 const LinkCard: React.FC<{
@@ -321,10 +322,10 @@ const renderers = {
 };
 
 export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
-  ({ content, contentArray, segmentInfos, objectId, type, onRefresh }) => {
+  ({ content, contentArray, segmentInfos, objectId, type, onRefresh, useNative }) => {
     const colorScheme = useColorScheme();
     const { width } = useWindowDimensions();
-    const { useWebView } = useSettingsStore();
+    const { useWebView, fontSizeScale, lineHeightScale } = useSettingsStore();
     const textColor = Colors[colorScheme].text;
     const surfaceColor = Colors[colorScheme].surface;
     const router = useRouter();
@@ -557,7 +558,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
 
     const tagsStyles = useMemo(
       () => ({
-        p: { color: textColor, fontSize: 18, lineHeight: 28, marginBottom: 20 },
+        p: { color: textColor, fontSize: 18 * fontSizeScale, lineHeight: (30 * lineHeightScale) / 1.5, marginBottom: 20 },
         b: { color: Colors[colorScheme].primary, fontWeight: 'bold' },
         img: { borderRadius: 12, marginVertical: 10, display: 'inline' },
         blockquote: {
@@ -572,28 +573,28 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         },
         h1: {
           color: textColor,
-          fontSize: 22,
+          fontSize: 22 * fontSizeScale,
           fontWeight: 'bold',
           marginVertical: 20,
-          lineHeight: 30,
+          lineHeight: (34 * lineHeightScale) / 1.5,
         },
         h2: {
           color: textColor,
-          fontSize: 20,
+          fontSize: 20 * fontSizeScale,
           fontWeight: 'bold',
           marginVertical: 18,
-          lineHeight: 28,
+          lineHeight: (31 * lineHeightScale) / 1.5,
         },
         h3: {
           color: textColor,
-          fontSize: 18,
+          fontSize: 18 * fontSizeScale,
           fontWeight: 'bold',
           marginVertical: 15,
-          lineHeight: 26,
+          lineHeight: (28 * lineHeightScale) / 1.5,
         },
         ul: { paddingLeft: 20, color: textColor, marginVertical: 10 },
         ol: { paddingLeft: 20, color: textColor, marginVertical: 10 },
-        li: { marginBottom: 8, color: textColor, fontSize: 17, lineHeight: 26 },
+        li: { marginBottom: 8, color: textColor, fontSize: 17 * fontSizeScale, lineHeight: (28 * lineHeightScale) / 1.5 },
         hr: {
           height: 1,
           backgroundColor: 'rgba(150,150,150,0.2)',
@@ -602,7 +603,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         figure: { marginVertical: 15, alignItems: 'center' },
         figcaption: {
           color: '#999',
-          fontSize: 13,
+          fontSize: 13 * fontSizeScale,
           marginTop: 8,
           textAlign: 'center',
           fontStyle: 'italic',
@@ -615,10 +616,10 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           borderRadius: 4,
           paddingHorizontal: 4,
           fontFamily: 'monospace',
-          fontSize: 14,
+          fontSize: 14 * fontSizeScale,
         },
       }),
-      [textColor, surfaceColor, colorScheme],
+      [textColor, surfaceColor, colorScheme, fontSizeScale, lineHeightScale],
     );
 
     const systemFonts = [...defaultSystemFonts, 'Inter', 'Roboto'];
@@ -714,7 +715,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       <View className="bg-transparent">
         {contentArray ? (
           renderPinContent()
-        ) : (!useWebView || useNativeFallback) ? (
+        ) : (!useWebView || useNativeFallback || useNative) ? (
           <View className="px-1">
             <RenderHtml
               contentWidth={width - 40}

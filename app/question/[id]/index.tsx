@@ -89,7 +89,7 @@ const AnswerItem = forwardRef(
     }));
 
     const rawText = item.content?.replace(/<[^>]+>/g, '') || '';
-    const isLongContent = rawText?.length > 120;
+    const isLongContent = rawText?.length > 120 || item.content?.includes('<img') || item.content?.includes('<figure');
     const excerpt = isLongContent ? rawText.substring(0, 100) + '...' : rawText;
 
     const followMutation = useOptimisticToggle({
@@ -179,20 +179,14 @@ const AnswerItem = forwardRef(
 
         <View className="my-1 bg-transparent">
           {!isLongContent ? (
-            <View className="flex-row flex-1">
-              <Text
-                className="text-[17px] flex-1"
-                style={{ color: textColor, lineHeight: 27 }}
-              >
-                {rawText}
-              </Text>
-              {item.thumbnail || (item.content_img && item.content_img.length > 0) ? (
-                <Image
-                  source={{ uri: item.thumbnail || item.content_img[0] }}
-                  className="w-20 h-[60px] rounded ml-3"
-                  resizeMode="cover"
-                />
-              ) : null}
+            <View className="flex-1 bg-transparent">
+              <ZhihuContent
+                objectId={item.id}
+                type="answer"
+                content={item.content}
+                segmentInfos={item.segment_infos}
+                useNative={true}
+              />
             </View>
           ) : isExpanded ? (
             <View className="flex-1 bg-transparent">
@@ -225,29 +219,31 @@ const AnswerItem = forwardRef(
               onPress={() => {
                 onToggle(item.id.toString(), true);
               }}
-              className="flex-row flex-1"
+              style={{ maxHeight: 150, overflow: 'hidden' }}
+              className="flex-1"
             >
-              <Text
-                className="text-[17px] flex-1"
-                style={{ color: textColor, lineHeight: 27 }}
-              >
-                {excerpt}
-                <Text
-                  type="primary"
-                  className="font-medium"
-                  style={{ color: '#0084ff' }}
-                >
-                  {' '}
-                  展开全文
-                </Text>
-              </Text>
-              {item.thumbnail || (item.content_img && item.content_img.length > 0) ? (
-                <Image
-                  source={{ uri: item.thumbnail || item.content_img[0] }}
-                  className="w-20 h-[60px] rounded ml-3"
-                  resizeMode="cover"
-                />
-              ) : null}
+              <ZhihuContent
+                objectId={item.id}
+                type="answer"
+                content={item.content}
+                segmentInfos={item.segment_infos}
+                useNative={true}
+              />
+              <View className="absolute inset-x-0 bottom-0 h-24 pointer-events-none">
+                {/* 4 layers of progressive opacity to emulate gradient */}
+                <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.2)` }} />
+                <View style={{ position: 'absolute', left: 0, right: 0, top: 16, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.5)` }} />
+                <View style={{ position: 'absolute', left: 0, right: 0, top: 32, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.8)` }} />
+                <View style={{ position: 'absolute', left: 0, right: 0, top: 48, bottom: 0, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 1.0)`, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 6 }} >
+                  <Text
+                    type="primary"
+                    className="text-[13px] font-bold"
+                    style={{ color: '#0084ff' }}
+                  >
+                    展开全文
+                  </Text>
+                </View>
+              </View>
             </Pressable>
           )}
         </View>
@@ -726,17 +722,26 @@ export default function QuestionDetail() {
               {
                 translateY: headerVisible.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [-insets.top - 50, 0],
+                  outputRange: [-insets.top - 120, 0],
                 }),
               },
             ],
           },
         ]}
       >
-        <View className="h-[50px] flex-row items-center justify-center px-[15px] bg-transparent">
+        <View
+          className="flex-row items-start bg-transparent"
+          style={{
+            minHeight: 56,
+            paddingTop: 17,
+            paddingBottom: 8,
+            paddingLeft: 52,
+            paddingRight: 16,
+          }}
+        >
           <Text
-            className="flex-1 text-base font-bold text-center"
-            numberOfLines={1}
+            className="flex-1 text-[16px] font-bold text-left"
+            style={{ color: textColor, lineHeight: 22 }}
           >
             {question?.title || initialTitle}
           </Text>
