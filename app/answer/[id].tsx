@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   Pressable,
   ActivityIndicator,
+  Animated,
+  StyleSheet,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -81,6 +83,24 @@ export default function AnswerDetailScreen() {
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isSharing, setIsSharing] = useState(false);
 
+  // Animated values and refs to manage scrolling headers
+  const scrollYAnim = useRef(new Animated.Value(0)).current;
+  const scrollPositions = useRef<{ [key: string]: number }>({});
+  const isCollapsedRef = useRef(false);
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+
+  const headerBgOpacity = scrollYAnim.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
+  const headerContentOpacity = scrollYAnim.interpolate({
+    inputRange: [0, 80],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
   // 4. 这里的关键是：PagerView 在 Android 下如果动态改变 children 且没有重置 key，可能会导致页面错乱。
   // 但重置 key 又会导致 WebView 重新加载。
   // 我们使用一个更稳定的 key，仅在数据从“单条”变为“多条”时重置一次。
@@ -120,46 +140,69 @@ export default function AnswerDetailScreen() {
 
       {/* Header Bar */}
       <View
-        className="flex-row items-center px-2.5"
+        className="flex-row items-start px-2.5 absolute left-0 right-0 z-50"
         style={{
-          marginTop: insets.top + 8,
-          minHeight: 44,
-          backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)'
+          top: 0,
+          paddingTop: insets.top + 8,
+          minHeight: 44 + insets.top + 8,
+          paddingBottom: 8,
+          backgroundColor: 'transparent',
         }}
+        pointerEvents="box-none"
       >
-        {/* 返回按钮 */}
+        {/* Background (Animates to transparent on scroll) */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)',
+              opacity: headerBgOpacity,
+            }
+          ]}
+          pointerEvents="none"
+        />
+
+        {/* 返回按钮 (Always Visible) */}
         <Pressable
           onPress={() => router.back()}
-          className="w-10 h-10 justify-center items-center"
+          className="w-10 h-10 justify-center items-center z-50"
         >
           <Ionicons name="chevron-back" size={28} color={textColor} />
         </Pressable>
 
-        {/* 标题区域 */}
-        <Pressable
-          className="flex-1 mx-2"
-          onPress={() =>
-            router.push(`/question/${initialAnswer?.question?.id || questionId}`)
-          }
+        {/* 可折叠/淡出的内容区域 (标题和分享按钮) */}
+        <Animated.View
+          className="flex-1 flex-row items-start"
+          style={{ opacity: headerContentOpacity }}
+          pointerEvents={isHeaderCollapsed ? 'none' : 'auto'}
         >
-          <Reanimated.View
-            sharedTransitionTag={`title-${questionId || id}`}
-            sharedTransitionStyle={slowTransition}
-            className="bg-transparent"
+          {/* 标题区域 */}
+          <Pressable
+            className="flex-1 mx-2"
+            onPress={() =>
+              router.push(`/question/${initialAnswer?.question?.id || questionId}`)
+            }
+            style={{ paddingTop: 8 }}
           >
-            <Text className="text-[18px] font-bold leading-6" numberOfLines={2}>
-              {initialAnswer?.question?.title || (initialTitle as string) || '加载中...'}
-            </Text>
-          </Reanimated.View>
-        </Pressable>
+            <Reanimated.View
+              sharedTransitionTag={`title-${questionId || id}`}
+              sharedTransitionStyle={slowTransition}
+              className="bg-transparent"
+            >
+              <Text className="text-[18px] font-bold leading-6" numberOfLines={2}>
+                {initialAnswer?.question?.title || (initialTitle as string) || '加载中...'}
+              </Text>
+            </Reanimated.View>
+          </Pressable>
 
-        {/* 分享按钮 */}
-        <Pressable
-          onPress={() => setIsSharing(true)}
-          className="w-10 h-10 justify-center items-center"
-        >
-          <Ionicons name="share-outline" size={24} color={textColor} />
-        </Pressable>
+          {/* 分享按钮 */}
+          <Pressable
+            onPress={() => setIsSharing(true)}
+            className="w-10 h-10 justify-center items-center"
+          >
+            <Ionicons name="share-outline" size={24} color={textColor} />
+          </Pressable>
+        </Animated.View>
       </View>
 
       <PagerView
@@ -173,6 +216,14 @@ export default function AnswerDetailScreen() {
           const newId = answerIds[newIndex];
           if (newId) {
             router.setParams({ id: newId });
+            
+            // Sync scroll position
+            const lastY = scrollPositions.current[newId] || 0;
+            scrollYAnim.setValue(lastY);
+            
+            const shouldCollapse = lastY > 80;
+            isCollapsedRef.current = shouldCollapse;
+            setIsHeaderCollapsed(shouldCollapse);
           }
 
           // 如果滑到了最后几个，预加载下一页 ID
@@ -189,6 +240,18 @@ export default function AnswerDetailScreen() {
               questionId={questionId as string}
               isFocused={index === currentPage}
               shouldPreload={Math.abs(index - currentPage) <= 1}
+              onScroll={(y) => {
+                scrollPositions.current[aid] = y;
+                if (index === currentPage) {
+                  scrollYAnim.setValue(y);
+                  
+                  const shouldCollapse = y > 80;
+                  if (shouldCollapse !== isCollapsedRef.current) {
+                    isCollapsedRef.current = shouldCollapse;
+                    setIsHeaderCollapsed(shouldCollapse);
+                  }
+                }
+              }}
             />
           </View>
         ))}

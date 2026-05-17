@@ -181,7 +181,7 @@ export const AnswerDetailView = ({
         style={[
           {
             backgroundColor,
-            paddingTop: 0,
+            paddingTop: insets.top,
             opacity: headerVisible,
             transform: [
               {
@@ -194,20 +194,39 @@ export const AnswerDetailView = ({
           },
         ]}
       >
-        <View className="h-[50px] flex-row items-center px-[15px] justify-between bg-transparent">
+        <View
+          className="flex-row items-start px-[15px] justify-between bg-transparent"
+          style={{ marginTop: 8, paddingBottom: 8 }}
+        >
           <View className="w-10 bg-transparent" />
-          <Pressable
-            onPress={goToProfile}
-            className="flex-1 flex-row items-center justify-center bg-transparent"
-          >
-            <Image
-              source={{ uri: answer?.author?.avatar_url }}
-              className="w-6 h-6 rounded-full mr-2"
-            />
-            <Text className="text-[15px] font-semibold" numberOfLines={1}>
-              {answer?.author?.name || '知乎用户'}
-            </Text>
-          </Pressable>
+          <View className="flex-1 flex-col items-center bg-transparent">
+            {/* 问题标题 */}
+            <Pressable
+              onPress={() =>
+                router.push(`/question/${answer?.question?.id || questionId}`)
+              }
+              style={{ maxWidth: '90%', paddingTop: 6 }}
+              className="bg-transparent"
+            >
+              <Text className="text-[14px] font-bold text-center" numberOfLines={1}>
+                {answer?.question?.title || '加载中...'}
+              </Text>
+            </Pressable>
+
+            {/* 用户头像 + 名字 */}
+            <Pressable
+              onPress={goToProfile}
+              className="flex-row items-center justify-center mt-1 bg-transparent"
+            >
+              <Image
+                source={{ uri: answer?.author?.avatar_url }}
+                className="w-4 h-4 rounded-full mr-1"
+              />
+              <Text className="text-[11px] font-medium opacity-60" numberOfLines={1}>
+                {answer?.author?.name || '知乎用户'}
+              </Text>
+            </Pressable>
+          </View>
           <View className="w-10 bg-transparent" />
         </View>
       </Animated.View>
@@ -223,7 +242,10 @@ export const AnswerDetailView = ({
         }}
         scrollEventThrottle={16}
         onScroll={handleScrollInternal}
-        contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 76,
+          paddingBottom: 100 + insets.bottom,
+        }}
       >
 
         <View className="flex-row items-center p-5 justify-between bg-transparent">
