@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { refreshInfiniteQuery } from '@/utils/query';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, {
@@ -586,6 +587,7 @@ const FeedList = React.forwardRef<
     onScroll?: (offset: number) => void;
   }
 >(({ tab, insets, guestCookieReady, onScroll }, ref) => {
+  const queryClient = useQueryClient();
   const { cookies } = useAuthStore();
   const colorScheme = useColorScheme();
   const tintColor = Colors[colorScheme].tint;
@@ -607,8 +609,8 @@ const FeedList = React.forwardRef<
         let items: Array<FeedItem | HotItem>;
         if (tab === 'following')
           items = rawItems
-            .map((item: RawFeedItem) => parseFollowingData(item))
-            .filter(Boolean) as FeedItem[];
+             .map((item: RawFeedItem) => parseFollowingData(item))
+             .filter(Boolean) as FeedItem[];
         else if (tab === 'recommend')
           items = rawItems.map((item: RawFeedItem) => parseRecommendData(item));
         else
@@ -627,6 +629,10 @@ const FeedList = React.forwardRef<
     getNextPageParam: (lastPage) => lastPage.nextUrl,
     enabled: !!cookies || guestCookieReady,
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['zhihu-feed', tab], refetch);
+  }, [queryClient, tab, refetch]);
 
   const flattenedData = useMemo(() => {
     const all = data?.pages.flatMap((page) => page.items) ?? [];
@@ -649,7 +655,7 @@ const FeedList = React.forwardRef<
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
-          onRefresh={refetch}
+          onRefresh={handleRefresh}
           tintColor={tintColor}
           colors={[tintColor]}
           progressViewOffset={insets.top + 70}

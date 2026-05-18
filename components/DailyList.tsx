@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { refreshInfiniteQuery } from '@/utils/query';
 import { Dimensions, Image, Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -93,6 +94,7 @@ export const DailyList = React.forwardRef<
   any,
   { insets: any; onScroll?: (offset: number) => void }
 >(({ insets, onScroll }, ref) => {
+  const queryClient = useQueryClient();
   const router = useRouter();
 
   const {
@@ -114,6 +116,10 @@ export const DailyList = React.forwardRef<
     initialPageParam: '',
     getNextPageParam: (lastPage) => lastPage.date,
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['zhihu-daily'], refetch);
+  }, [queryClient, refetch]);
 
   const flattenedData = useMemo(() => {
     if (!data) return [];
@@ -171,7 +177,7 @@ export const DailyList = React.forwardRef<
           hasNextPage && !isFetchingNextPage && fetchNextPage()
         }
         onEndReachedThreshold={0.5}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         refreshing={isRefetching}
         onScroll={(e) => onScroll?.(e.nativeEvent.contentOffset.y)}
         scrollEventThrottle={16}

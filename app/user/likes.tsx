@@ -1,6 +1,7 @@
 import { FlashList } from '@shopify/flash-list';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import { getMyLikes } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
@@ -8,8 +9,10 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
+import { refreshInfiniteQuery } from '@/utils/query';
 
 export default function MyLikesScreen() {
+  const queryClient = useQueryClient();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<'answers' | 'articles'>('answers');
@@ -34,6 +37,10 @@ export default function MyLikesScreen() {
       getMyLikes(activeTab, 20, pageParam as number),
     initialPageParam: 0,
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['my-likes', activeTab], refetch);
+  }, [queryClient, activeTab, refetch]);
 
   const listItems = data?.pages.flatMap((page: any) => page.data) || [];
 
@@ -92,7 +99,7 @@ export default function MyLikesScreen() {
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         refreshing={isRefetching}
         ListEmptyComponent={() => (
           <View className="flex-1 p-[100px] items-center">

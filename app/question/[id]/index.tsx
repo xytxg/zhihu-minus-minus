@@ -51,6 +51,7 @@ import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { showToast } from '@/utils/toast';
+import { refreshInfiniteQuery } from '@/utils/query';
 
 const AnswerItem = forwardRef(
   (
@@ -405,6 +406,10 @@ export default function QuestionDetail() {
     },
     initialPageParam: 0,
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['question-answers', id, sortBy], refetch);
+  }, [queryClient, id, sortBy, refetch]);
 
   const answers = useMemo(() => {
     const all = answersData?.pages.flatMap((p: any) => p.data) || [];
@@ -843,7 +848,7 @@ export default function QuestionDetail() {
             </Text>
           ) : null
         }
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         refreshing={isRefetching}
       />
 

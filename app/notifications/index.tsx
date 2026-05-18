@@ -18,6 +18,7 @@ import { getNotifications, markAllNotificationsRead } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { refreshInfiniteQuery } from '@/utils/query';
 
 const NOTIFICATION_TYPES = [
   { label: '全部', value: 'all' },
@@ -71,6 +72,10 @@ export default function NotificationScreen() {
       return lastPage.paging?.next;
     },
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['notifications', selectedType], refetch);
+  }, [queryClient, selectedType, refetch]);
 
   const notifications = data?.pages.flatMap((page) => page.data) || [];
 
@@ -244,7 +249,7 @@ export default function NotificationScreen() {
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         refreshing={isRefetching}
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={() => (

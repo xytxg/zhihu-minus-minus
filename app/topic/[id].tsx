@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { refreshInfiniteQuery } from '@/utils/query';
 import {
   ActivityIndicator,
   Image,
@@ -28,6 +29,7 @@ import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 
 export default function TopicDetail() {
+  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -76,6 +78,10 @@ export default function TopicDetail() {
     initialPageParam: 0,
     enabled: activeTab !== 'structure',
   });
+
+  const handleRefresh = useCallback(() => {
+    return refreshInfiniteQuery(queryClient, ['topic-feed', id, activeTab], refetch);
+  }, [queryClient, id, activeTab, refetch]);
 
   const { data: parentsData, isLoading: parentsLoading } = useQuery({
     queryKey: ['topic-parents', id],
@@ -226,7 +232,7 @@ export default function TopicDetail() {
 
       <FlashList
         data={activeTab === 'structure' ? [] : items}
-        renderItem={({ item }) => <FeedCard item={item} />}
+        renderItem={({ item }) => <FeedCard item={item as any} />}
         ListHeaderComponent={() => (
           <>
             {renderHeader}
@@ -249,7 +255,7 @@ export default function TopicDetail() {
           fetchNextPage()
         }
         onEndReachedThreshold={0.5}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
         refreshing={isRefetching}
         ListFooterComponent={() =>
           isFetchingNextPage ? (
