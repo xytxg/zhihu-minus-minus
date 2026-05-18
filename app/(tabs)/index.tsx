@@ -12,10 +12,10 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   Pressable,
   RefreshControl,
   StyleSheet,
+  useWindowDimensions,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import Animated, {
@@ -47,7 +47,6 @@ import { type TabKey, useSettingsStore } from '@/store/useSettingsStore';
 import ProfileScreen from './profile';
 import PublishScreen from './publish';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const _tintColor = Colors.light.tint; // Fallback or use colorScheme logic inside component
 
 // 统一的所有可滑动的页面索引
@@ -63,6 +62,9 @@ const TABS = [
 type TabType = (typeof TABS)[number];
 
 export default function HomeScreen() {
+  const { width: windowWidth } = useWindowDimensions();
+  const containerWidth = Math.min(windowWidth - 40, 500);
+
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const router = useRouter();
@@ -204,7 +206,7 @@ export default function HomeScreen() {
     // 底部导航栏总图标数 (首页算一个)
     const totalBottomIcons =
       (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
-    const iconWidth = (SCREEN_WIDTH - 40) / (totalBottomIcons || 1);
+    const iconWidth = containerWidth / (totalBottomIcons || 1);
 
     // 计算平滑位移
     // 映射逻辑：将 scrollX (0~N) 映射到 底部图标索引 (0~M)
@@ -390,7 +392,12 @@ export default function HomeScreen() {
       </PagerView>
 
       {/* 3. 底部悬浮导航栏 (Custom TabBar) */}
-      <View style={[styles.bottomBarContainer, { bottom: insets.bottom }]}>
+      <View
+        style={[
+          styles.bottomBarContainer,
+          { bottom: insets.bottom, width: containerWidth },
+        ]}
+      >
         <BlurView
           intensity={130}
           tint={colorScheme === 'dark' ? 'dark' : 'light'}
@@ -412,7 +419,7 @@ export default function HomeScreen() {
                 {
                   backgroundColor: `${tintColor}15`,
                   width:
-                    (SCREEN_WIDTH - 40) /
+                    containerWidth /
                       ((currentTabs.filter(
                         (t) => !['publish', 'profile'].includes(t),
                       ).length > 0
@@ -811,8 +818,7 @@ const styles = StyleSheet.create({
 
   bottomBarContainer: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    alignSelf: 'center',
     zIndex: 1001,
   },
   bottomBlur: { borderRadius: 32, overflow: 'hidden', height: 64 },
@@ -830,7 +836,6 @@ const styles = StyleSheet.create({
   },
   bottomIndicator: {
     position: 'absolute',
-    width: (SCREEN_WIDTH - 40) / 3 - 20,
     height: 44,
     borderRadius: 22,
     left: 10,
