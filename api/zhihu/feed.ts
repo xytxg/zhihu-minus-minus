@@ -37,7 +37,7 @@ export interface RawFeedTarget {
   type: string;
   title?: string;
   excerpt?: string;
-  content?: string;
+  content?: any;
   thumbnail?: string;
   content_img?: string[];
   voteup_count?: number;

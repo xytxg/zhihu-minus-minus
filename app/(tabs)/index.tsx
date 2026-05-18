@@ -717,17 +717,19 @@ function parseFollowingData(item: RawFeedItem): FeedItem | null {
     content: target.content || '',
     image:
       target.thumbnail ||
-      (target.content_img?.length > 0 ? target.content_img[0] : null),
+      (target.content_img && target.content_img.length > 0
+        ? target.content_img[0]
+        : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
-    topics: target.topics?.map((t) => ({ id: t.id, name: t.name })) || [],
+    topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
   };
 }
 
 function parseRecommendData(item: RawFeedItem): FeedItem {
-  const target = item.target || item;
+  const target = (item.target || item) as any;
   const type = target.type;
   let appType: 'answers' | 'articles' | 'pins' | 'questions' = 'answers';
   if (type === 'answer') appType = 'answers';
@@ -753,17 +755,19 @@ function parseRecommendData(item: RawFeedItem): FeedItem {
     content: target.content || '',
     image:
       target.thumbnail ||
-      (target.content_img?.length > 0 ? target.content_img[0] : null),
+      (target.content_img && target.content_img.length > 0
+        ? target.content_img[0]
+        : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
-    topics: target.topics?.map((t) => ({ id: t.id, name: t.name })) || [],
+    topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
   };
 }
 
 function parseHotData(item: RawFeedItem, index: number): HotItem {
-  const target = item.target || item;
+  const target = (item.target || item) as any;
   const questionId = target.url?.split('/').pop() || '';
   return {
     id: target.id?.toString() || Math.random().toString(),
