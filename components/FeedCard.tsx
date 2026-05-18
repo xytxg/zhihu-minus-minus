@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import Animated, { SharedTransition } from 'react-native-reanimated';
 import type { FeedItem } from '@/api/zhihu';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, View } from './Themed';
@@ -17,12 +19,41 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const isQuestionType = item.type === 'questions';
   const isGuest = !cookies;
+  const colorScheme = useColorScheme();
 
   return (
-    <View
-      type="surface"
-      className="p-4 mb-2"
-      style={isQuestionType ? { paddingBottom: 10 } : undefined}
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={() => {
+        if (isGuest) {
+          router.push({
+            pathname: '/guest/detail',
+            params: { item: JSON.stringify(item) },
+          } as any);
+          return;
+        }
+        const routeType = item.type.slice(0, -1);
+        const params: any = {
+          title: item.title,
+          questionId: item.questionId,
+        };
+        if (tab) {
+          params.source = 'feed';
+          params.tab = tab;
+        }
+        router.push({
+          pathname: `/${routeType}/${item.id}`,
+          params,
+        } as any);
+      }}
+      style={[
+        {
+          backgroundColor: Colors[colorScheme].backgroundSecondary,
+          borderRadius: 12,
+        },
+        isQuestionType ? { paddingBottom: 10 } : undefined,
+      ]}
+      className="p-4 mb-2 shadow-sm"
     >
       {/* 动态动作提示 (针对关注流) */}
       {item.actionText && (
@@ -35,7 +66,8 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
       )}
 
       {/* 热区1：点击作者头像/姓名 -> 用户页 */}
-      <Pressable
+      <TouchableOpacity
+        activeOpacity={0.6}
         onPress={() =>
           router.push({
             pathname: `/user/${item.author.url_token || item.author.id}`,
@@ -52,13 +84,14 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         <Text type="secondary" className="ml-2 text-[13px]">
           {item.author.name}
         </Text>
-      </Pressable>
+      </TouchableOpacity>
 
       {/* 话题标签 */}
       {item.topics && item.topics.length > 0 && (
         <View className="flex-row flex-wrap mb-2 bg-transparent">
           {item.topics.map((topic: any) => (
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.6}
               key={topic.id}
               onPress={() => router.push(`/topic/${topic.id}` as any)}
               className="px-2 py-0.5 rounded-sm mr-2 mb-1"
@@ -67,78 +100,29 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
               <Text className="text-[11px] text-tertiary dark:text-tertiary-dark">
                 {topic.name}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {/* 热区2：点击标题 -> 详情页 */}
+      {/* 标题 - 统一为主卡片点击，完美穿透 */}
       {item.title ? (
-        <Pressable
-          onPress={() => {
-            if (isGuest) {
-              router.push({
-                pathname: '/guest/detail',
-                params: { item: JSON.stringify(item) },
-              } as any);
-              return;
-            }
-            if (item.type === 'articles') {
-              router.push({
-                pathname: `/article/${item.id}`,
-                params: { title: item.title },
-              } as any);
-              return;
-            }
-            const id =
-              isQuestionType || !item.questionId ? item.id : item.questionId;
-            router.push({
-              pathname: `/question/${id}`,
-              params: { title: item.title },
-            } as any);
-          }}
+        <Animated.View
+          sharedTransitionTag={`title-${item.questionId || item.id}`}
+          sharedTransitionStyle={slowTransition}
           className="mb-1.5"
         >
-          <Animated.View
-            sharedTransitionTag={`title-${item.questionId || item.id}`}
-            sharedTransitionStyle={slowTransition}
+          <Text
+            className="text-lg font-bold leading-6 text-foreground dark:text-foreground-dark"
+            numberOfLines={2}
           >
-            <Text
-              className="text-lg font-bold leading-6 text-foreground dark:text-foreground-dark"
-              numberOfLines={2}
-            >
-              {item.title}
-            </Text>
-          </Animated.View>
-        </Pressable>
+            {item.title}
+          </Text>
+        </Animated.View>
       ) : null}
 
-      {/* 热区3：点击内容摘要 -> 详情页 */}
-      <Pressable
-        onPress={() => {
-          if (isGuest) {
-            router.push({
-              pathname: '/guest/detail',
-              params: { item: JSON.stringify(item) },
-            } as any);
-            return;
-          }
-          const routeType = item.type.slice(0, -1);
-          const params: any = {
-            title: item.title,
-            questionId: item.questionId,
-          };
-          if (tab) {
-            params.source = 'feed';
-            params.tab = tab;
-          }
-          router.push({
-            pathname: `/${routeType}/${item.id}`,
-            params,
-          } as any);
-        }}
-        className="flex-row mt-1"
-      >
+      {/* 摘要与图片 - 统一为主卡片点击，完美穿透 */}
+      <View className="flex-row mt-1 bg-transparent">
         <View className="flex-1 bg-transparent">
           <Text
             type="secondary"
@@ -156,7 +140,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
             sharedTransitionTag={`image-${item.id}`}
           />
         )}
-      </Pressable>
+      </View>
 
       {/* 热区4：底部操作栏 - 问题关注类动态不显示 */}
       {!isQuestionType && (
@@ -169,7 +153,8 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           />
 
           {/* 点击评论按钮 -> 评论页 */}
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.6}
             onPress={() => {
               const type =
                 item.type === 'articles'
@@ -187,14 +172,15 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
             <Text className="text-[#888] ml-1 text-[13px]">
               {item.commentCount} 评论
             </Text>
-          </Pressable>
+          </TouchableOpacity>
 
-          <Pressable
+          <TouchableOpacity
+            activeOpacity={0.6}
             onPress={() => setMenuVisible(true)}
             className="ml-auto p-2 -mr-2"
           >
             <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
-          </Pressable>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -210,6 +196,6 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           excerpt: item.excerpt,
         }}
       />
-    </View>
+    </TouchableOpacity>
   );
 };

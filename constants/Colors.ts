@@ -48,9 +48,9 @@ export default {
 
     // Backgrounds & Surface
     background: '#121212', // Less harsh than #000000
-    backgroundSecondary: '#1a1a1a',
-    backgroundTertiary: '#333333',
-    surface: '#1a1a1a', // Kept for backwards compatibility
+    backgroundSecondary: '#1e1e22', // Slate dark grey (NOT pitch black!)
+    backgroundTertiary: '#2c2c30', // Elevated elements
+    surface: '#1e1e22', // Kept for backwards compatibility
 
     // Borders & Dividers
     border: '#333333',
