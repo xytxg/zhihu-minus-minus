@@ -148,6 +148,7 @@ export const CreationCard = ({
                     ? 'pins'
                     : 'answers'
               }
+              variant="ghost"
             />
             <Pressable
               onPress={() =>
@@ -155,11 +156,11 @@ export const CreationCard = ({
                   `/comments/${item.id}?type=${type}&count=${item.comment_count || 0}`,
                 )
               }
-              className="flex-row items-center ml-2.5"
+              className="flex-row items-center ml-5 bg-transparent py-1"
             >
               <Ionicons name="chatbubble-outline" size={16} color="#888" />
-              <Text className="text-[#888] ml-1 text-[13px]">
-                {item.comment_count || 0} 评论
+              <Text className="text-[#888] ml-1 text-xs font-semibold">
+                {item.comment_count > 0 ? item.comment_count : '评论'}
               </Text>
             </Pressable>
           </View>

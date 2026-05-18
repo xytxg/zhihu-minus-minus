@@ -124,7 +124,13 @@ const AnswerItem = forwardRef(
     };
 
     return (
-      <View type="surface" className="p-[15px] mb-1.5">
+      <View
+        style={{
+          backgroundColor: Colors[colorScheme].backgroundSecondary,
+          borderRadius: 12,
+        }}
+        className="p-4 mb-2.5 shadow-sm"
+      >
         <View className="flex-row items-center mb-3 bg-transparent">
           <Pressable
             onPress={() =>
@@ -229,7 +235,10 @@ const AnswerItem = forwardRef(
                 segmentInfos={item.segment_infos}
                 useNative={true}
               />
-              <View className="absolute inset-x-0 bottom-0 h-24 pointer-events-none">
+              <Pressable
+                onPress={() => onToggle(item.id.toString(), true)}
+                className="absolute inset-x-0 bottom-0 h-24 z-[100]"
+              >
                 {/* 4 layers of progressive opacity to emulate gradient */}
                 <View
                   style={{
@@ -238,7 +247,7 @@ const AnswerItem = forwardRef(
                     right: 0,
                     top: 0,
                     height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.2)`,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
                   }}
                 />
                 <View
@@ -248,7 +257,7 @@ const AnswerItem = forwardRef(
                     right: 0,
                     top: 16,
                     height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.5)`,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
                   }}
                 />
                 <View
@@ -258,7 +267,7 @@ const AnswerItem = forwardRef(
                     right: 0,
                     top: 32,
                     height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.8)`,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
                   }}
                 />
                 <View
@@ -268,7 +277,7 @@ const AnswerItem = forwardRef(
                     right: 0,
                     top: 48,
                     bottom: 0,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 1.0)`,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
                     justifyContent: 'flex-end',
                     alignItems: 'center',
                     paddingBottom: 6,
@@ -282,14 +291,14 @@ const AnswerItem = forwardRef(
                     展开全文
                   </Text>
                 </View>
-              </View>
+              </Pressable>
             </Pressable>
           )}
         </View>
 
         <NativeView
           ref={footerRef}
-          className="flex-row items-center mt-3 pt-2.5 px-1"
+          className="flex-row items-center mt-3 pt-2.5 px-1 bg-transparent"
           style={{
             borderTopWidth: StyleSheet.hairlineWidth,
             borderTopColor: Colors[colorScheme].border,
@@ -301,11 +310,11 @@ const AnswerItem = forwardRef(
               count={item.voteup_count}
               voted={item.relationship?.voting}
               type="answers"
-              variant="minimal"
+              variant="ghost"
             />
           </View>
           <Pressable
-            className="flex-row items-center ml-[25px]"
+            className="flex-row items-center ml-5 bg-transparent py-1"
             onPress={() =>
               router.push({
                 pathname: '/comments/[id]',
@@ -319,11 +328,11 @@ const AnswerItem = forwardRef(
           >
             <Ionicons
               name="chatbubble-outline"
-              size={18}
-              color={Colors[colorScheme].textSecondary}
+              size={16}
+              color="#888"
             />
-            <Text type="secondary" className="ml-1 text-[13px] text-[#888]">
-              {item.comment_count}
+            <Text className="text-[#888] ml-1 text-xs font-semibold">
+              {item.comment_count > 0 ? item.comment_count : '评论'}
             </Text>
           </Pressable>
           {item.relationship?.is_author && (

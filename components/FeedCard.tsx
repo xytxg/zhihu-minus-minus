@@ -150,6 +150,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
             count={item.voteCount}
             voted={item.voted}
             type={item.type as any}
+            variant="ghost"
           />
 
           {/* 点击评论按钮 -> 评论页 */}
@@ -166,18 +167,18 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                 `/comments/${item.id}?type=${type}&count=${item.commentCount}`,
               );
             }}
-            className="flex-row items-center ml-5"
+            className="flex-row items-center ml-5 bg-transparent py-1"
           >
             <Ionicons name="chatbubble-outline" size={16} color="#888" />
-            <Text className="text-[#888] ml-1 text-[13px]">
-              {item.commentCount} 评论
+            <Text className="text-[#888] ml-1 text-xs font-semibold">
+              {item.commentCount > 0 ? item.commentCount : '评论'}
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.6}
             onPress={() => setMenuVisible(true)}
-            className="ml-auto p-2 -mr-2"
+            className="ml-auto p-2 -mr-2 bg-transparent"
           >
             <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
           </TouchableOpacity>
