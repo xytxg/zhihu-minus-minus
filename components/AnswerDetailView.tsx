@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import React, { useRef } from 'react';
@@ -14,7 +14,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import Reanimated, { SharedTransition } from 'react-native-reanimated';
+import { SharedTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteAnswer, getAnswer } from '@/api/zhihu';
 import {
@@ -35,7 +35,7 @@ import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { showToast } from '@/utils/toast';
 
-const slowTransition = SharedTransition.duration(600);
+const _slowTransition = SharedTransition.duration(600);
 
 interface AnswerDetailViewProps {
   id: string;
@@ -61,7 +61,7 @@ export const AnswerDetailView = ({
   const colorScheme = useColorScheme();
   const surfaceColor = Colors[colorScheme].surface;
   const backgroundColor = Colors[colorScheme].background;
-  const textColor = Colors[colorScheme].text;
+  const _textColor = Colors[colorScheme].text;
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
@@ -77,7 +77,7 @@ export const AnswerDetailView = ({
     if (isFocused && !hasBeenFocused) {
       setHasBeenFocused(true);
     }
-  }, [isFocused]);
+  }, [isFocused, hasBeenFocused]);
 
   const handleScrollInternal = (event: any) => {
     baseHandleScroll(event, (currentY) => {
@@ -94,6 +94,7 @@ export const AnswerDetailView = ({
     queryKey: ['answer-detail', id],
     queryFn: () => getAnswer(id),
     enabled: isFocused || shouldPreload,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const followMutation = useOptimisticToggle({
@@ -136,6 +137,7 @@ export const AnswerDetailView = ({
       queryKey: ['answer-collection-status', id],
       queryFn: () => getAnswerCollectionStatus(id),
       enabled: !!id && hasBeenFocused,
+      staleTime: 60 * 1000, // 1 minute
     },
   );
 

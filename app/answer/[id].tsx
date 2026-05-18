@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -43,6 +43,7 @@ export default function AnswerDetailScreen() {
     queryKey: ['answer-detail', initialId],
     queryFn: () => getAnswer(initialId),
     enabled: !!initialId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const questionId = propQuestionId || initialAnswer?.question?.id;
@@ -50,7 +51,6 @@ export default function AnswerDetailScreen() {
   // 2. 获取该问题下的所有回答列表
   const {
     data: answersData,
-    isLoading: loadingList,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -90,6 +90,13 @@ export default function AnswerDetailScreen() {
 
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [isSharing, setIsSharing] = useState(false);
+  const [shareData, setShareData] = useState<{
+    id: string;
+    title?: string;
+    author?: string;
+    authorHeadline?: string;
+    url: string;
+  } | null>(null);
 
   // Animated values and refs to manage scrolling headers
   const scrollYAnim = useRef(new Animated.Value(0)).current;
@@ -121,17 +128,28 @@ export default function AnswerDetailScreen() {
 
   const pagerKey = `pager-${questionId}-${pagerReady ? 'ready' : 'pending'}`;
 
-  // 同步当前页面的数据，用于分享
   const currentId = answerIds[currentPage];
-  const { data: currentAnswer } = useQuery({
-    queryKey: ['answer-detail', currentId],
-    queryFn: () => getAnswer(currentId as string),
-    enabled: !!currentId,
-  });
 
-  const getShareLink = () => {
-    const actualQid = currentAnswer?.question?.id || questionId;
-    return `https://www.zhihu.com/question/${actualQid}/answer/${currentId}`;
+  const handleShareClick = () => {
+    if (!currentId) return;
+    const cachedAnswer = queryClient.getQueryData<any>([
+      'answer-detail',
+      currentId,
+    ]);
+    const actualQid = cachedAnswer?.question?.id || questionId;
+    const url = `https://www.zhihu.com/question/${actualQid}/answer/${currentId}`;
+
+    setShareData({
+      id: currentId,
+      title:
+        cachedAnswer?.question?.title ||
+        initialAnswer?.question?.title ||
+        (initialTitle as string),
+      author: cachedAnswer?.author?.name,
+      authorHeadline: cachedAnswer?.author?.headline,
+      url,
+    });
+    setIsSharing(true);
   };
 
   if (loadingInitial && !initialAnswer) {
@@ -215,7 +233,7 @@ export default function AnswerDetailScreen() {
 
           {/* 分享按钮 */}
           <Pressable
-            onPress={() => setIsSharing(true)}
+            onPress={handleShareClick}
             className="w-10 h-10 justify-center items-center"
           >
             <Ionicons name="share-outline" size={24} color={textColor} />
@@ -283,17 +301,7 @@ export default function AnswerDetailScreen() {
         visible={isSharing}
         onClose={() => setIsSharing(false)}
         type="answer"
-        data={
-          currentAnswer
-            ? {
-                id: currentAnswer.id,
-                title: currentAnswer.question?.title,
-                author: currentAnswer.author?.name,
-                authorHeadline: currentAnswer.author?.headline,
-                url: getShareLink(),
-              }
-            : null
-        }
+        data={shareData}
       />
     </View>
   );
