@@ -6,12 +6,7 @@ import {
 import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
-import {
-  Redirect,
-  Stack,
-  useRootNavigationState,
-  useRouter,
-} from 'expo-router';
+import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -57,7 +52,7 @@ const queryClient = new QueryClient({
 });
 
 function RootLayout() {
-  const colorScheme = useColorScheme();
+  const _colorScheme = useColorScheme();
   const isDark = useThemeStore((state) => state.isDark);
   const theme = isDark ? DarkTheme : DefaultTheme;
 
@@ -133,7 +128,7 @@ function RootLayout() {
         console.error('[Deep Link] Navigation failed:', err);
       }
     }
-  }, [isReady, pendingUrl, isInitialUrl]);
+  }, [isReady, pendingUrl, isInitialUrl, router.push, router.replace]);
 
   // 这里简单处理：如果以后需要加载字体，可以写在这里
   useEffect(() => {
