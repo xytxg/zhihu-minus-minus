@@ -37,11 +37,20 @@ export interface CommentAuthor {
   member: CommentMember;
 }
 
+export interface CommentTag {
+  type: string;
+  text: string;
+  color?: string;
+  night_color?: string;
+  has_border?: boolean;
+}
+
 export interface CommentItem {
   id: number | string;
   type: 'comment';
   url?: string;
   content: string;
+  comment_tag?: CommentTag[];
   featured?: boolean;
   top?: boolean;
   collapsed?: boolean;
@@ -307,6 +316,20 @@ const normalizeComment = (comment: any): CommentItem => {
   // 5. 递归处理子评论 (V5 有时候会自带部分子评论)
   if (comment.child_comments && Array.isArray(comment.child_comments)) {
     comment.child_comments = comment.child_comments.map(normalizeComment);
+  }
+
+  // 6. 处理 IP 属地 (V5 使用 comment_tag 结构)
+  if (
+    !comment.address_text &&
+    comment.comment_tag &&
+    Array.isArray(comment.comment_tag)
+  ) {
+    const ipTag = comment.comment_tag.find(
+      (tag: any) => tag.type === 'ip_info',
+    );
+    if (ipTag) {
+      comment.address_text = ipTag.text;
+    }
   }
 
   return comment;

@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { Stack, useRootNavigationState, useRouter } from 'expo-router';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -58,6 +59,20 @@ function RootLayout() {
 
   // Sync NativeWind dark mode with zustand store
   useSyncThemeWithNativeWind();
+
+  // 默认开启感应自动旋转
+  useEffect(() => {
+    async function enableAutoRotation() {
+      try {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.DEFAULT,
+        );
+      } catch (e) {
+        console.warn('Failed to enable default screen auto-rotation:', e);
+      }
+    }
+    enableAutoRotation();
+  }, []);
 
   const router = useRouter();
   const rootNavigationState = useRootNavigationState();
