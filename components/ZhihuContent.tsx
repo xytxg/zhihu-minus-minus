@@ -337,6 +337,8 @@ const renderers = {
   a: A_Renderer,
 };
 
+const ignoredDomTags = ['noscript'];
+
 export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
   ({
     content,
@@ -378,7 +380,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
 
     // 备选方案：如果 DOM 组件加载太慢或失败，回退到原生渲染
     React.useEffect(() => {
-      if (!contentArray && content && !domReady) {
+      if (useWebView && !useNative && !contentArray && content && !domReady) {
         const timer = setTimeout(() => {
           if (!domReady) {
             console.log(
@@ -389,7 +391,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         }, 3500);
         return () => clearTimeout(timer);
       }
-    }, [content, domReady, contentArray]);
+    }, [content, domReady, contentArray, useWebView, useNative]);
 
     const handleInternalLink = useCallback(
       (url: string) => {
@@ -673,6 +675,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               domVisitors={domVisitors}
               systemFonts={systemFonts}
               renderersProps={renderersProps as any}
+              ignoredDomTags={ignoredDomTags}
             />
           );
         }
@@ -760,6 +763,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               domVisitors={domVisitors}
               systemFonts={systemFonts}
               renderersProps={renderersProps as any}
+              ignoredDomTags={ignoredDomTags}
             />
           </View>
         ) : (

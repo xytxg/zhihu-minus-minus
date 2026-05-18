@@ -160,6 +160,7 @@ export default function PinDetailScreen() {
           <RenderHtml
             contentWidth={width - 40}
             source={{ html: pin?.content_html || '' }}
+            ignoredDomTags={['noscript']}
             tagsStyles={{
               div: { color: textColor, fontSize: 18, lineHeight: 28 },
               p: {
