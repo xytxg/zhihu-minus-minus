@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import CookieManager from '@react-native-cookies/cookies';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
@@ -30,10 +29,15 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 // 使用 @ 别名导入组件
-import { FEED_URLS, getFeed } from '@/api/zhihu';
+import {
+  FEED_URLS,
+  type FeedItem,
+  getFeed,
+  type RawFeedItem,
+} from '@/api/zhihu';
 import { DailyList } from '@/components/DailyList';
 import { FeedCard } from '@/components/FeedCard';
-import { HotCard, HotItem } from '@/components/HotCard';
+import { HotCard, type HotItem } from '@/components/HotCard';
 import { RecentMoments } from '@/components/RecentMoments';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -44,7 +48,7 @@ import ProfileScreen from './profile';
 import PublishScreen from './publish';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const tintColor = Colors.light.tint; // Fallback or use colorScheme logic inside component
+const _tintColor = Colors.light.tint; // Fallback or use colorScheme logic inside component
 
 // 统一的所有可滑动的页面索引
 // 0: 关注, 1: 推荐, 2: 热榜, 3: 日报, 4: 发布, 5: 我的
@@ -109,7 +113,7 @@ export default function HomeScreen() {
         setCurrentPage(idx);
       }
     }
-  }, [params.tab, currentTabs]);
+  }, [params.tab, currentTabs, currentPage]);
 
   const [scrolledTabs, setScrolledTabs] = useState<Record<number, boolean>>({});
   const listRefs = useRef<any[]>([]);
@@ -277,7 +281,7 @@ export default function HomeScreen() {
               <Animated.View
                 style={[
                   styles.topPill,
-                  { backgroundColor: tintColor + '15' },
+                  { backgroundColor: `${tintColor}15` },
                   topIndicatorStyle,
                 ]}
               />
@@ -345,7 +349,7 @@ export default function HomeScreen() {
               'profile',
             ] as TabKey[]
           ).indexOf(tab);
-          const isHomeTab = !['publish', 'profile'].includes(tab);
+          const _isHomeTab = !['publish', 'profile'].includes(tab);
 
           return (
             <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
@@ -406,7 +410,7 @@ export default function HomeScreen() {
               style={[
                 styles.bottomIndicator,
                 {
-                  backgroundColor: tintColor + '15',
+                  backgroundColor: `${tintColor}15`,
                   width:
                     (SCREEN_WIDTH - 40) /
                       ((currentTabs.filter(
@@ -525,7 +529,7 @@ export default function HomeScreen() {
   );
 }
 
-const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
+const _AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
 
 function BottomTabIcon({
   icon,
@@ -545,7 +549,7 @@ function BottomTabIcon({
       withTiming(0.6, { duration: 150 }),
       withTiming(1, { duration: 150 }),
     );
-  }, [isScrollTop]);
+  }, [scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -593,22 +597,22 @@ const FeedList = React.forwardRef<
       try {
         const data = await getFeed(pageParam as string);
         const rawItems = data.data || [];
-        let items;
+        let items: Array<FeedItem | HotItem>;
         if (tab === 'following')
           items = rawItems
-            .map((item: any) => parseFollowingData(item))
-            .filter(Boolean);
+            .map((item: RawFeedItem) => parseFollowingData(item))
+            .filter(Boolean) as FeedItem[];
         else if (tab === 'recommend')
-          items = rawItems.map((item: any) => parseRecommendData(item));
+          items = rawItems.map((item: RawFeedItem) => parseRecommendData(item));
         else
-          items = rawItems.map((item: any, index: number) =>
+          items = rawItems.map((item: RawFeedItem, index: number) =>
             parseHotData(item, index),
           );
         return {
           items,
           nextUrl: data.paging?.next?.replace('http://', 'https://'),
         };
-      } catch (e: any) {
+      } catch (_e: any) {
         return { items: [], nextUrl: null };
       }
     },
@@ -677,7 +681,7 @@ const FeedList = React.forwardRef<
 });
 
 // 数据解析函数保持不变 (省略以节省空间，实际代码中应保留)
-function parseFollowingData(item: any) {
+function parseFollowingData(item: RawFeedItem): FeedItem | null {
   const target = item.target;
   if (!target) return null;
   const type = target.type;
@@ -703,6 +707,7 @@ function parseFollowingData(item: any) {
         'https://picx.zhimg.com/v2-abed1a8c04700ba7d72b45195223e0ff_l.jpg',
     },
     excerpt: target.excerpt || target.content?.[0]?.content || '',
+    content: target.content || '',
     image:
       target.thumbnail ||
       (target.content_img?.length > 0 ? target.content_img[0] : null),
@@ -710,11 +715,11 @@ function parseFollowingData(item: any) {
     commentCount: target.comment_count || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
-    topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
+    topics: target.topics?.map((t) => ({ id: t.id, name: t.name })) || [],
   };
 }
 
-function parseRecommendData(item: any) {
+function parseRecommendData(item: RawFeedItem): FeedItem {
   const target = item.target || item;
   const type = target.type;
   let appType: 'answers' | 'articles' | 'pins' | 'questions' = 'answers';
@@ -738,6 +743,7 @@ function parseRecommendData(item: any) {
       headline: target.author?.headline || '',
     },
     excerpt: target.excerpt || target.content?.[0]?.content || '',
+    content: target.content || '',
     image:
       target.thumbnail ||
       (target.content_img?.length > 0 ? target.content_img[0] : null),
@@ -745,13 +751,13 @@ function parseRecommendData(item: any) {
     commentCount: target.comment_count || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
-    topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
+    topics: target.topics?.map((t) => ({ id: t.id, name: t.name })) || [],
   };
 }
 
-function parseHotData(item: any, index: number) {
+function parseHotData(item: RawFeedItem, index: number): HotItem {
   const target = item.target || item;
-  const questionId = target.url.split('/').pop();
+  const questionId = target.url?.split('/').pop() || '';
   return {
     id: target.id?.toString() || Math.random().toString(),
     questionId: questionId,

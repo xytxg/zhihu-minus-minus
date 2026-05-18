@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { Image, Pressable } from 'react-native';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Text, View } from './Themed';
 
 export interface HotItem {
@@ -14,11 +15,32 @@ export interface HotItem {
 
 export const HotCard = ({ item }: { item: HotItem }) => {
   const router = useRouter();
+  const { cookies } = useAuthStore();
+  const isGuest = !cookies;
 
   return (
     <Pressable
       className="flex-row py-3 px-4 border-b border-border dark:border-border-dark bg-surface dark:bg-surface-dark"
-      onPress={() => router.push(`/question/${item.questionId}`)}
+      onPress={() => {
+        if (isGuest) {
+          router.push({
+            pathname: '/guest/detail',
+            params: {
+              item: JSON.stringify({
+                id: item.id,
+                title: item.title,
+                excerpt: item.excerpt,
+                image: item.image,
+                hotValue: item.hotValue,
+                rank: item.rank,
+                type: 'questions',
+              }),
+            },
+          } as any);
+        } else {
+          router.push(`/question/${item.questionId}`);
+        }
+      }}
       style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
     >
       <View className="w-[30px] items-start pt-0.5 bg-transparent">

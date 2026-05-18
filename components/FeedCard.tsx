@@ -1,18 +1,22 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import Animated, { SharedTransition } from 'react-native-reanimated';
+import type { FeedItem } from '@/api/zhihu';
+import { useAuthStore } from '@/store/useAuthStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, View } from './Themed';
 
 const slowTransition = SharedTransition.duration(600);
 
-export const FeedCard = ({ item, tab }: { item: any; tab?: string }) => {
+export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const router = useRouter();
+  const { cookies } = useAuthStore();
   const [menuVisible, setMenuVisible] = useState(false);
   const isQuestionType = item.type === 'questions';
+  const isGuest = !cookies;
 
   return (
     <View
@@ -72,6 +76,13 @@ export const FeedCard = ({ item, tab }: { item: any; tab?: string }) => {
       {item.title ? (
         <Pressable
           onPress={() => {
+            if (isGuest) {
+              router.push({
+                pathname: '/guest/detail',
+                params: { item: JSON.stringify(item) },
+              } as any);
+              return;
+            }
             if (item.type === 'articles') {
               router.push({
                 pathname: `/article/${item.id}`,
@@ -105,6 +116,13 @@ export const FeedCard = ({ item, tab }: { item: any; tab?: string }) => {
       {/* 热区3：点击内容摘要 -> 详情页 */}
       <Pressable
         onPress={() => {
+          if (isGuest) {
+            router.push({
+              pathname: '/guest/detail',
+              params: { item: JSON.stringify(item) },
+            } as any);
+            return;
+          }
           const routeType = item.type.slice(0, -1);
           const params: any = {
             title: item.title,

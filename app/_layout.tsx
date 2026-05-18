@@ -232,6 +232,15 @@ function RootLayout() {
                 }}
               />
 
+              {/* 游客预览页 */}
+              <Stack.Screen
+                name="guest/detail"
+                options={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                }}
+              />
+
               {/* 其他 Modal 弹窗 */}
               <Stack.Screen
                 name="modal"
