@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -10,7 +11,6 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
-import RenderHtml from 'react-native-render-html';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { getPin } from '@/api/zhihu/pin';
@@ -18,7 +18,9 @@ import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
+import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
+import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 
 export default function PinDetailScreen() {
   const colorScheme = useColorScheme();
@@ -33,30 +35,31 @@ export default function PinDetailScreen() {
 
   const [isSharing, setIsSharing] = React.useState(false);
 
-  const { data: pin, isLoading } = useQuery({
+  const { data: pin, isLoading, refetch } = useQuery({
     queryKey: ['pin-detail', id],
     queryFn: () => getPin(id as string),
   });
 
-  const followMutation = useMutation({
+  const followMutation = useOptimisticToggle({
     mutationFn: async () => {
       if (pin?.author?.is_following)
         return unfollowMember(pin.author.url_token || pin.author.id);
       return followMember(pin.author.url_token || pin.author.id);
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['pin-detail', id] }),
+    isActive: pin?.author?.is_following,
+    successMessage: (isActive) => (isActive ? '已取消关注' : '已关注'),
+    invalidateQueries: [['pin-detail', id]],
   });
 
-  const goToProfile = () => {
+  const goToProfile = useCallback(() => {
     const token = pin?.author?.url_token || pin?.author?.id;
     if (token) router.push(`/user/${token}`);
-  };
+  }, [pin?.author, router]);
 
   if (isLoading)
     return (
       <View type="default" className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color="#0084ff" />
+        <ActivityIndicator size="large" color={Colors[colorScheme].primary} />
         <Text type="secondary" className="mt-2.5">
           载入想法中...喵
         </Text>
@@ -65,7 +68,22 @@ export default function PinDetailScreen() {
 
   return (
     <View type="default" className="flex-1">
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen
+        options={{
+          headerTitle: '想法详情',
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor },
+          headerTintColor: textColor,
+          headerRight: () => (
+            <Pressable
+              onPress={() => setIsSharing(true)}
+              style={{ marginRight: 10 }}
+            >
+              <Ionicons name="share-outline" size={24} color={textColor} />
+            </Pressable>
+          ),
+        }}
+      />
 
       <ShareMenu
         visible={isSharing}
@@ -83,42 +101,22 @@ export default function PinDetailScreen() {
         }
       />
 
-      {/* Header */}
-      <View
-        style={{
-          paddingTop: insets.top,
-          backgroundColor,
-          borderBottomColor: borderColor,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-        }}
-        className="flex-row items-center justify-between px-2.5"
-      >
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 justify-center items-center"
-        >
-          <Ionicons name="chevron-back" size={28} color={textColor} />
-        </Pressable>
-        <Text className="text-[17px] font-bold">想法详情</Text>
-        <View className="w-10" />
-      </View>
-
       <ScrollView
         className="flex-1"
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
       >
         {/* 作者信息栏 */}
-        <View className="flex-row items-center p-5 justify-between">
+        <View className="flex-row items-center p-5 justify-between bg-transparent">
           <Pressable
             onPress={goToProfile}
-            className="flex-row items-center flex-1"
+            className="flex-row items-center flex-1 bg-transparent"
           >
             <Image
               source={{ uri: pin?.author?.avatar_url }}
               className="w-11 h-11 rounded-full"
             />
-            <View className="ml-3 flex-1">
+            <View className="ml-3 flex-1 bg-transparent">
               <Text className="text-base font-bold">{pin?.author?.name}</Text>
               <Text
                 type="secondary"
@@ -130,25 +128,26 @@ export default function PinDetailScreen() {
             </View>
           </Pressable>
           <Pressable
-            className="px-[15px] py-1.5 rounded-full"
-            style={
-              pin?.author?.is_following
-                ? {
+            className="px-[15px] py-1.5 rounded-[20px]"
+            style={[
+              !pin?.author?.is_following
+                ? { backgroundColor: '#0084ff15' }
+                : {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
-                    borderColor: '#eee',
-                  }
-                : { backgroundColor: '#0084ff15' }
-            }
+                    borderColor: borderColor,
+                  },
+            ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
           >
             <Text
-              style={{
-                color: pin?.author?.is_following ? '#999' : '#0084ff',
-                fontWeight: 'bold',
-                fontSize: 14,
-              }}
+              className="text-sm font-bold"
+              style={[
+                pin?.author?.is_following
+                  ? { color: '#999' }
+                  : { color: '#0084ff' },
+              ]}
             >
               {pin?.author?.is_following ? '已关注' : '关注'}
             </Text>
@@ -156,73 +155,78 @@ export default function PinDetailScreen() {
         </View>
 
         {/* 想法内容 */}
-        <View className="px-5">
-          <RenderHtml
-            contentWidth={width - 40}
-            source={{ html: pin?.content_html || '' }}
-            ignoredDomTags={['noscript']}
-            tagsStyles={{
-              div: { color: textColor, fontSize: 18, lineHeight: 28 },
-              p: {
-                color: textColor,
-                fontSize: 18,
-                lineHeight: 28,
-                marginBottom: 15,
-              },
-              img: { borderRadius: 12, marginVertical: 10 },
-              span: { color: textColor },
-            }}
+        <View className="px-5 bg-transparent">
+          <ZhihuContent
+            content={pin?.content_html || ''}
+            objectId={id as string}
+            type="pin"
+            onRefresh={refetch}
           />
-          <Text type="secondary" className="text-[13px] mt-[30px] italic">
+          <Text
+            type="secondary"
+            className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
+          >
             发布于{' '}
             {pin?.created
               ? new Date(pin.created * 1000).toLocaleString()
-              : '不久前'}
+              : '不久前'}{' '}
+            · 著作权归作者所有
           </Text>
         </View>
       </ScrollView>
 
       {/* 底部交互栏 */}
       <View
-        type="surface"
-        className="absolute bottom-0 w-full flex-row items-center px-[15px]"
-        style={{
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-          height: 60 + (insets.bottom > 0 ? insets.bottom : 15),
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: borderColor,
-          elevation: 20,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -3 },
-          shadowOpacity: 0.1,
-          shadowRadius: 5,
-        }}
+        className="absolute left-5 right-5 z-[1000] shadow-black/10 shadow-[0_10px_20px] elevation-10"
+        style={{ bottom: insets.bottom > 0 ? insets.bottom : 15 }}
       >
-        <View className="flex-row items-center">
-          <LikeButton
-            id={pin?.id}
-            count={pin?.like_count || 0}
-            voted={pin?.relationship?.voting}
-            type="pins"
-          />
-        </View>
-        <View className="flex-1 flex-row justify-end items-center">
-          <Pressable
-            className="items-center ml-[22px] flex-row"
-            onPress={() => router.push(`/comments/${id}?type=pin`)}
-          >
-            <Ionicons name="chatbubble-outline" size={22} color="#888" />
-            <Text type="secondary" className="ml-1 text-[13px]">
-              {pin?.comment_count}
-            </Text>
-          </Pressable>
-          <Pressable
-            className="items-center ml-[22px] flex-row"
-            onPress={() => setIsSharing(true)}
-          >
-            <Ionicons name="share-social-outline" size={22} color="#888" />
-          </Pressable>
-        </View>
+        <BlurView
+          intensity={130}
+          tint={colorScheme === 'dark' ? 'dark' : 'light'}
+          className="rounded-[32px] overflow-hidden h-16"
+          style={{
+            backgroundColor:
+              colorScheme === 'dark'
+                ? 'rgba(26,26,26,0.8)'
+                : 'rgba(255,255,255,0.85)',
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: 'rgba(150,150,150,0.1)',
+          }}
+        >
+          <View className="flex-row items-center px-5 h-full bg-transparent">
+            <View className="flex-row items-center bg-transparent">
+              <LikeButton
+                id={pin?.id}
+                count={pin?.like_count || 0}
+                voted={pin?.relationship?.voting}
+                type="pins"
+                variant="minimal"
+              />
+            </View>
+            <View className="flex-1 flex-row justify-end items-center bg-transparent">
+              <Pressable
+                className="items-center ml-5 flex-row bg-transparent"
+                onPress={() => router.push(`/comments/${id}?type=pin`)}
+              >
+                <Ionicons name="chatbubble-outline" size={24} color="#888" />
+                {pin?.comment_count > 0 && (
+                  <Text
+                    type="secondary"
+                    className="ml-1 text-[13px] font-medium text-[#888]"
+                  >
+                    {pin?.comment_count}
+                  </Text>
+                )}
+              </Pressable>
+              <Pressable
+                className="items-center ml-5 flex-row bg-transparent"
+                onPress={() => setIsSharing(true)}
+              >
+                <Ionicons name="share-social-outline" size={24} color="#888" />
+              </Pressable>
+            </View>
+          </View>
+        </BlurView>
       </View>
     </View>
   );
