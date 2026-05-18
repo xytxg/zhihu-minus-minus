@@ -452,7 +452,7 @@ export default function QuestionDetail() {
         // Collapsing: scroll back to the item to prevent losing context
         // Use setTimeout to ensure the list has updated its layout
         setTimeout(() => {
-          const index = answers.findIndex((a) => a.id.toString() === id);
+          const index = answers.findIndex((a: any) => a.id.toString() === id);
           if (index >= 0) {
             flashListRef.current?.scrollToIndex({
               index: index,
@@ -836,8 +836,8 @@ export default function QuestionDetail() {
             sortBy={sortBy}
           />
         )}
-        keyExtractor={(item: any) =>
-          item?.id?.toString() || Math.random().toString()
+        keyExtractor={(item: any, index: number) =>
+          `ans-${item?.id?.toString() || index}-${index}`
         }
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}

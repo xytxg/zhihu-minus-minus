@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import Reanimated from 'react-native-reanimated';
+import PagerView from 'react-native-pager-view';
 import {
   followMember,
   getMe,
@@ -23,22 +23,35 @@ import {
   unfollowMember,
 } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
+import { ZhihuMemberRelation } from '@/types/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+
+const subTabKeys: ('answers' | 'articles' | 'questions' | 'pins')[] = [
+  'answers',
+  'articles',
+  'questions',
+  'pins',
+];
 
 export default function UserDetailScreen() {
   const colorScheme = useColorScheme();
   const { id, avatar: initialAvatar } = useLocalSearchParams();
   const router = useRouter();
   const navigation = useNavigation();
+  const [activeMainTab, setActiveMainTab] = useState(0); // 0: 创作, 1: 动态 (默认创作)
   const [activeTab, setActiveTab] = useState<
     'activities' | 'answers' | 'questions' | 'articles' | 'pins'
-  >('activities');
+  >('answers');
   const [sortBy, setSortBy] = useState<'created' | 'voteups'>('created');
   const [followLoading, setFollowLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  const pagerRef = useRef<PagerView>(null);
+  const nestedPagerRef = useRef<PagerView>(null);
+  const nestedSubTabIndexRef = useRef(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
@@ -64,7 +77,7 @@ export default function UserDetailScreen() {
         if (err.response?.status === 403)
           return await getMember(
             id as string,
-            'follower_count,headline,cover_url,description,answer_count,articles_count',
+            'follower_count,headline,cover_url,description,answer_count,articles_count,question_count,pins_count',
           );
         return null;
       }
@@ -90,16 +103,16 @@ export default function UserDetailScreen() {
         let include = '';
         if (activeTab === 'answers')
           include =
-            'data[*].content,voteup_count,comment_count,created_time,updated_time,excerpt,question.title,relationship.voting,relationship.is_thanked';
+            'data[*].content,data[*].voteup_count,data[*].comment_count,data[*].created_time,data[*].updated_time,data[*].excerpt,data[*].question.title,data[*].relationship.voting,data[*].relationship.is_thanked';
         else if (activeTab === 'questions')
           include =
-            'data[*].created,answer_count,follower_count,author,admin_closed_comment,relationship.is_following';
+            'data[*].created,data[*].answer_count,data[*].follower_count,data[*].author,data[*].admin_closed_comment,data[*].relationship.is_following';
         else if (activeTab === 'articles')
           include =
-            'data[*].comment_count,content,voteup_count,created,updated,title,excerpt,relationship.voting';
+            'data[*].comment_count,data[*].content,data[*].voteup_count,data[*].created,data[*].updated,data[*].title,data[*].excerpt,data[*].relationship.voting';
         else if (activeTab === 'pins')
           include =
-            'data[*].content,reaction_count,comment_count,created,relationship.voting';
+            'data[*].content,data[*].reaction_count,data[*].comment_count,data[*].created,data[*].relationship.voting';
 
         return await getMemberRelations(targetId, activeTab, {
           limit: 20,
@@ -120,7 +133,7 @@ export default function UserDetailScreen() {
     },
   });
 
-  const listItems = listData?.pages.flatMap((page) => page.data) || [];
+  const listItems = listData?.pages.flatMap((page) => page.data || []) || [];
 
   const {
     data: searchResults,
@@ -150,6 +163,11 @@ export default function UserDetailScreen() {
   const currentListItems = isSearching
     ? searchResults?.pages.flatMap((page) => page.data || []) || []
     : listItems;
+
+  const getSubTabIndex = (tab: string) => {
+    const index = subTabKeys.indexOf(tab as any);
+    return index === -1 ? 0 : index;
+  };
 
   const HighlightText = (
     text: string,
@@ -198,6 +216,20 @@ export default function UserDetailScreen() {
     }
   };
 
+  const handleScroll = (event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isCloseToBottom =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - 400;
+    if (isCloseToBottom) {
+      if (isSearching) {
+        if (hasNextSearchPage && !isFetchingNextSearchPage)
+          fetchNextSearchPage();
+      } else {
+        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+      }
+    }
+  };
+
   const renderHeader = () => (
     <View className="bg-transparent">
       <Image
@@ -208,11 +240,11 @@ export default function UserDetailScreen() {
         }}
         className="h-[140px] w-full"
       />
-      <View type="surface" className="px-5 pt-0 pb-5">
+      <View type="surface" className="px-5 pt-0 pb-5 rounded-b-[24px]">
         <View className="flex-row justify-between items-end -mt-10">
           <Reanimated.Image
             source={{ uri: user?.avatar_url || (initialAvatar as string) }}
-            className="w-20 h-20 rounded-[40px] border-4 border-white dark:border-[#1a1a1a]"
+            className="w-20 h-20 rounded-[40px] border-4 border-white dark:border-[#1e1e22]"
             sharedTransitionTag={`avatar-${user?.url_token || id}`}
           />
           {!isMe && (
@@ -221,10 +253,10 @@ export default function UserDetailScreen() {
               style={[
                 user?.is_following
                   ? {
-                      backgroundColor: 'transparent',
-                      borderColor: borderColor,
-                      borderWidth: 1,
-                    }
+                    backgroundColor: 'transparent',
+                    borderColor: borderColor,
+                    borderWidth: 1,
+                  }
                   : { backgroundColor: Colors[colorScheme].primary },
               ]}
               onPress={handleFollow}
@@ -288,10 +320,7 @@ export default function UserDetailScreen() {
           </Pressable>
         )}
 
-        <View
-          className="flex-row mt-5 pt-[15px] bg-transparent"
-          style={{ borderTopWidth: 0.5, borderTopColor: borderColor }}
-        >
+        <View className="flex-row mt-5 pt-[15px] bg-transparent">
           <Pressable
             className="mr-[30px] items-center"
             onPress={() =>
@@ -326,147 +355,169 @@ export default function UserDetailScreen() {
           </View>
         </View>
       </View>
+    </View>
+  );
 
-      {/* 创作搜索栏 */}
-      <View type="surface" className="px-[15px] pb-[15px] pt-1.5">
-        <View
-          className="flex-row items-center rounded-3xl mx-[15px] my-2.5 pr-2.5 h-9"
-          style={{ backgroundColor: Colors[colorScheme].backgroundTertiary }}
-        >
-          <Ionicons
-            name="search"
-            size={16}
-            color={Colors[colorScheme].textTertiary}
-            className="ml-2.5"
-          />
-          <TextInput
-            className="flex-1 text-sm px-2.5 h-full py-0"
-            style={{
-              color: Colors[colorScheme].text,
-              textAlignVertical: 'center',
-            }}
-            placeholder={`搜索 ${user?.name || '用户'} 的创作...`}
-            placeholderTextColor={Colors[colorScheme].textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            returnKeyType="search"
-          />
-          {isSearching && searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} className="p-[5px]">
-              <Ionicons
-                name="close-circle"
-                size={16}
-                color={Colors[colorScheme].textTertiary}
-              />
-            </Pressable>
-          )}
-        </View>
-      </View>
-
+  const renderSearchBar = () => (
+    <View className="pb-1 pt-1 bg-transparent">
       <View
-        type="surface"
-        style={{
-          borderTopWidth: 0.5,
-          borderTopColor: borderColor,
-          borderBottomWidth: 0.5,
-          borderBottomColor: borderColor,
-        }}
+        className="flex-row items-center rounded-3xl mx-[15px] my-2.5 pr-2.5 h-9"
+        style={{ backgroundColor: Colors[colorScheme].backgroundTertiary }}
       >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[isSearching && { opacity: 0.5 }]}
-          className="flex-row"
-        >
-          {[
-            { key: 'activities', label: '动态' },
-            { key: 'answers', label: '回答', count: user?.answer_count },
-            { key: 'questions', label: '提问', count: user?.question_count },
-            { key: 'articles', label: '文章', count: user?.articles_count },
-            { key: 'pins', label: '想法', count: user?.pins_count },
-          ].map((tab) => (
-            <Pressable
-              key={tab.key}
-              onPress={() => {
-                if (!isSearching) setActiveTab(tab.key as any);
-              }}
-              className="px-5 py-[15px] items-center"
-              style={[
-                !isSearching &&
-                  activeTab === tab.key && {
-                    borderBottomWidth: 2,
-                    borderBottomColor: primaryColor,
-                  },
-              ]}
-            >
-              <Text
-                className="font-bold"
-                style={[
-                  !isSearching &&
-                    activeTab === tab.key && { color: primaryColor },
-                ]}
-              >
-                {tab.label}{' '}
-                {tab.count !== undefined && tab.count > 0 ? tab.count : ''}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-        {isSearching && (
-          <View
-            className="px-5 py-2.5"
-            style={{
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: borderColor,
-              backgroundColor: 'rgba(0,132,255,0.05)',
-            }}
-          >
-            <Text
-              className="text-[13px] font-bold"
-              style={{ color: primaryColor }}
-            >
-              搜索结果
-            </Text>
-          </View>
-        )}
-        {!isSearching && activeTab === 'answers' && (
-          <View
-            className="flex-row px-[15px] py-2.5 bg-black/5 dark:bg-white/5"
-            style={{
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: borderColor,
-            }}
-          >
-            {[
-              { key: 'created', label: '最新' },
-              { key: 'voteups', label: '赞同' },
-            ].map((item) => (
-              <Pressable
-                key={item.key}
-                onPress={() => setSortBy(item.key as any)}
-                className="px-3 py-1 mr-2.5 rounded"
-                style={[
-                  sortBy === item.key && {
-                    backgroundColor: 'rgba(0,132,255,0.08)',
-                  },
-                ]}
-              >
-                <Text
-                  type={sortBy === item.key ? 'primary' : 'secondary'}
-                  className="text-[13px]"
-                  style={[sortBy === item.key && { fontWeight: 'bold' }]}
-                >
-                  {item.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        <Ionicons
+          name="search"
+          size={16}
+          color={Colors[colorScheme].textTertiary}
+          className="ml-2.5"
+        />
+        <TextInput
+          className="flex-1 text-sm px-2.5 h-full py-0"
+          style={{
+            color: Colors[colorScheme].text,
+            textAlignVertical: 'center',
+          }}
+          placeholder={`搜索 ${user?.name || '用户'} 的创作...`}
+          placeholderTextColor={Colors[colorScheme].textTertiary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          returnKeyType="search"
+        />
+        {isSearching && searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery('')} className="p-[5px]">
+            <Ionicons
+              name="close-circle"
+              size={16}
+              color={Colors[colorScheme].textTertiary}
+            />
+          </Pressable>
         )}
       </View>
     </View>
   );
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderMainTabsSelector = () => (
+    <View className="flex-row bg-transparent my-1 border-b border-gray-100 dark:border-gray-800">
+      {[
+        { index: 0, label: '创作' },
+        { index: 1, label: '动态' },
+      ].map((tab) => (
+        <Pressable
+          key={tab.index}
+          onPress={() => {
+            setActiveMainTab(tab.index);
+            pagerRef.current?.setPage(tab.index);
+            if (tab.index === 1) {
+              setActiveTab('activities');
+            } else {
+              if (activeTab === 'activities') {
+                setActiveTab(subTabKeys[nestedSubTabIndexRef.current]);
+              }
+            }
+          }}
+          className="flex-1 py-3.5 items-center"
+          style={
+            activeMainTab === tab.index && {
+              borderBottomWidth: 2.5,
+              borderBottomColor: primaryColor,
+            }
+          }
+        >
+          <Text
+            className="font-bold text-[16px]"
+            style={{
+              color:
+                activeMainTab === tab.index
+                  ? primaryColor
+                  : Colors[colorScheme].textSecondary,
+            }}
+          >
+            {tab.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+
+  const renderCreationsSubTabs = () => (
+    <View className="flex-row bg-transparent py-3 px-4 justify-between items-center">
+      {[
+        { key: 'answers', label: '回答', count: user?.answer_count },
+        { key: 'articles', label: '文章', count: user?.articles_count },
+        { key: 'questions', label: '提问', count: user?.question_count },
+        { key: 'pins', label: '想法', count: user?.pins_count },
+      ].map((subTab) => {
+        const isActive = !isSearching && activeTab === subTab.key;
+        return (
+          <Pressable
+            key={subTab.key}
+            onPress={() => {
+              if (!isSearching) {
+                const key = subTab.key as any;
+                setActiveTab(key);
+                const targetIndex = getSubTabIndex(key);
+                nestedPagerRef.current?.setPage(targetIndex);
+              }
+            }}
+            className="px-4 py-1.5 rounded-full items-center justify-center"
+            style={[
+              isActive
+                ? { backgroundColor: primaryColor }
+                : { backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)' },
+              { minWidth: 68 }
+            ]}
+          >
+            <Text
+              className="font-bold text-[12.5px]"
+              style={{
+                color: isActive ? '#fff' : Colors[colorScheme].textSecondary,
+              }}
+            >
+              {subTab.label}
+              {subTab.count !== undefined && subTab.count > 0
+                ? ` ${subTab.count}`
+                : ''}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
+  const renderAnswersSortSelector = () => {
+    if (isSearching || activeTab !== 'answers') return null;
+    return (
+      <View
+        className="flex-row px-[15px] py-2.5 bg-black/5 dark:bg-white/5"
+        style={{ borderBottomWidth: 0 }}
+      >
+        {[
+          { key: 'created', label: '最新' },
+          { key: 'voteups', label: '赞同' },
+        ].map((item) => (
+          <Pressable
+            key={item.key}
+            onPress={() => setSortBy(item.key as any)}
+            className="px-3 py-1 mr-2.5 rounded"
+            style={[
+              sortBy === item.key && {
+                backgroundColor: 'rgba(0,132,255,0.08)',
+              },
+            ]}
+          >
+            <Text
+              type={sortBy === item.key ? 'primary' : 'secondary'}
+              className="text-[13px]"
+              style={[sortBy === item.key && { fontWeight: 'bold' }]}
+            >
+              {item.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    );
+  };
+
+  const renderItemContent = (item: any, index: number) => {
     if (isSearching) {
       const obj = item.object;
       const highlight = item.highlight || {};
@@ -483,19 +534,40 @@ export default function UserDetailScreen() {
           : obj.title,
       };
       return (
-        <CreationCard
-          item={displayItem}
-          type={type}
-          excerpt={
-            highlight.description
-              ? (HighlightText(highlight.description) as any)
-              : undefined
-          }
-        />
+        <View key={`search-${obj.id || ''}-${index}`}>
+          <CreationCard
+            item={displayItem}
+            type={type}
+            excerpt={
+              highlight.description
+                ? (HighlightText(highlight.description) as any)
+                : undefined
+            }
+            onPress={() => {
+              const streamType =
+                type === 'answer'
+                  ? 'answers'
+                  : type === 'article'
+                    ? 'articles'
+                    : type === 'question'
+                      ? 'questions'
+                      : type === 'pin'
+                        ? 'pins'
+                        : 'activities';
+              router.push({
+                pathname: `/user/${user?.url_token || id}/stream`,
+                params: {
+                  type: streamType,
+                  initialId: displayItem.id,
+                },
+              } as any);
+            }}
+          />
+        </View>
       );
     }
 
-    let displayItem = item;
+    let displayItem = item as ZhihuMemberRelation;
     if (activeTab === 'activities') displayItem = item.target || item;
     if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
 
@@ -506,30 +578,132 @@ export default function UserDetailScreen() {
     else if (itemType === 'pin') type = 'pin';
     else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
 
-    return <CreationCard item={displayItem} type={type} />;
+    return (
+      <View key={`item-${displayItem.id || ''}-${index}`}>
+        <CreationCard
+          item={displayItem}
+          type={type}
+          onPress={() => {
+            router.push({
+              pathname: `/user/${user?.url_token || id}/stream`,
+              params: {
+                type: activeTab,
+                initialId: displayItem.id,
+              },
+            } as any);
+          }}
+        />
+      </View>
+    );
   };
 
+  // Dynamic Height calculation
+  const itemHeight = 220;
+  const creationsCount = activeTab !== 'activities' ? currentListItems.length : 4;
+  const activitiesCount = activeTab === 'activities' ? currentListItems.length : 4;
+
+  const creationsHeaderHeight = activeTab === 'answers' ? 85 : 45;
+  const creationsHeight = Math.max(400, creationsCount * itemHeight + creationsHeaderHeight + 100);
+  const activitiesHeight = Math.max(400, activitiesCount * itemHeight + 100);
+
+  const currentPagerHeight =
+    activeMainTab === 0 ? creationsHeight : activitiesHeight;
+
   return (
-    <View className="flex-1">
-      <FlashList
-        data={currentListItems}
-        renderItem={renderItem}
-        {...({ estimatedItemSize: 120 } as any)}
-        keyExtractor={(item: any, index: number) =>
-          `${activeTab}-${item.id || item.target?.id || index}-${index}`
-        }
-        onEndReached={() => {
-          if (isSearching) {
-            if (hasNextSearchPage && !isFetchingNextSearchPage)
-              fetchNextSearchPage();
-          } else {
-            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-          }
-        }}
-        onEndReachedThreshold={0.5}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={() =>
-          isFetchingNextPage || isFetchingNextSearchPage ? (
+    <View
+      className="flex-1"
+      style={{ backgroundColor: Colors[colorScheme].background }}
+    >
+      <ScrollView
+        className="flex-1"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {renderHeader()}
+        {renderSearchBar()}
+        {renderMainTabsSelector()}
+
+        <PagerView
+          ref={pagerRef}
+          style={{ height: currentPagerHeight }}
+          initialPage={0} // 默认创作放左边打开
+          onPageSelected={(e) => {
+            const pageIndex = e.nativeEvent.position;
+            setActiveMainTab(pageIndex);
+            if (pageIndex === 1) {
+              setActiveTab('activities');
+            } else {
+              if (activeTab === 'activities') {
+                setActiveTab(subTabKeys[nestedSubTabIndexRef.current]);
+              }
+            }
+          }}
+        >
+          {/* Page 0: 创作 */}
+          <View key="creations" className="bg-transparent">
+            {renderCreationsSubTabs()}
+            {renderAnswersSortSelector()}
+            <PagerView
+              ref={nestedPagerRef}
+              style={{ flex: 1 }}
+              scrollEnabled={false} // 不需要手势
+              initialPage={0}
+              onPageSelected={(e) => {
+                nestedSubTabIndexRef.current = e.nativeEvent.position;
+              }}
+            >
+              <View key="answers" className="bg-transparent">
+                {activeTab === 'answers' && (
+                  <View className="bg-transparent">
+                    {currentListItems.map((item, index) =>
+                      renderItemContent(item, index),
+                    )}
+                  </View>
+                )}
+              </View>
+              <View key="articles" className="bg-transparent">
+                {activeTab === 'articles' && (
+                  <View className="bg-transparent">
+                    {currentListItems.map((item, index) =>
+                      renderItemContent(item, index),
+                    )}
+                  </View>
+                )}
+              </View>
+              <View key="questions" className="bg-transparent">
+                {activeTab === 'questions' && (
+                  <View className="bg-transparent">
+                    {currentListItems.map((item, index) =>
+                      renderItemContent(item, index),
+                    )}
+                  </View>
+                )}
+              </View>
+              <View key="pins" className="bg-transparent">
+                {activeTab === 'pins' && (
+                  <View className="bg-transparent">
+                    {currentListItems.map((item, index) =>
+                      renderItemContent(item, index),
+                    )}
+                  </View>
+                )}
+              </View>
+            </PagerView>
+          </View>
+
+          {/* Page 1: 动态 */}
+          <View key="activities" className="bg-transparent">
+            <View className="bg-transparent">
+              {currentListItems.map((item, index) =>
+                renderItemContent(item, index),
+              )}
+            </View>
+          </View>
+        </PagerView>
+
+        {/* Loading and Footer Indicators */}
+        <View className="bg-transparent">
+          {listLoading || searchLoading || isFetchingNextPage ? (
             <ActivityIndicator
               style={{ margin: 20 }}
               color={Colors[colorScheme].primary}
@@ -539,25 +713,9 @@ export default function UserDetailScreen() {
             <Text type="secondary" className="text-center p-5 text-xs">
               — 已经到底了喵 —
             </Text>
-          ) : null
-        }
-        ListEmptyComponent={() => (
-          <View className="p-[50px] items-center bg-transparent">
-            {listLoading || searchLoading ? (
-              <ActivityIndicator
-                size="small"
-                color={Colors[colorScheme].primary}
-              />
-            ) : (
-              <Text type="secondary">
-                {isSearching ? '没有找到匹配的创作' : '这里空空如也喵'}
-              </Text>
-            )}
-          </View>
-        )}
-        onRefresh={isSearching ? refetchSearch : refetchList}
-        refreshing={isSearching ? false : isRefetching}
-      />
+          ) : null}
+        </View>
+      </ScrollView>
     </View>
   );
 }

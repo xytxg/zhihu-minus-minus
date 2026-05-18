@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Text, View } from '@/components/Themed';
 import { LikeButton } from './LikeButton';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { type ShareContentType, ShareMenu } from './ShareMenu';
+import { ZhihuContent } from './ZhihuContent';
 
 export const CreationCard = ({
   item,
@@ -18,15 +22,17 @@ export const CreationCard = ({
   excerpt?: string;
 }) => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const [expanded, setExpanded] = React.useState(false);
+  const [menuVisible, setMenuVisible] = React.useState(false);
 
   const handlePress = () => {
-    if (type === 'pin') {
-      setExpanded(!expanded);
-      return;
-    }
     if (onPress) {
       onPress();
+      return;
+    }
+    if (type === 'pin') {
+      setExpanded(!expanded);
       return;
     }
     if (type === 'video') {
@@ -100,46 +106,75 @@ export const CreationCard = ({
   const content = expanded ? getFullContent() : getExcerpt();
   const showExpandButton = !expanded && getFullContent().length > 100;
 
+  const displayTypeForShare =
+    type === 'answer' ? 'answer' : type === 'article' ? 'article' : 'pin';
+
   return (
-    <View type="surface" className="p-4 mb-0.5 mt-px">
-      <Pressable onPress={handlePress}>
-        <Animated.View
-          sharedTransitionTag={`title-${item.question?.id || item.id}`}
+    <TouchableOpacity
+      activeOpacity={0.82}
+      onPress={handlePress}
+      style={{
+        backgroundColor: Colors[colorScheme].backgroundSecondary,
+        borderRadius: 12,
+      }}
+      className="p-4 mb-2.5 shadow-sm"
+    >
+      <Animated.View
+        sharedTransitionTag={`title-${item.question?.id || item.id}`}
+      >
+        <Text
+          className="text-lg font-bold mb-1.5 leading-6 text-foreground dark:text-foreground-dark"
+          numberOfLines={expanded ? undefined : 2}
         >
-          <Text
-            className="text-base font-bold mb-2 leading-[22px] text-foreground dark:text-foreground-dark"
-            numberOfLines={expanded ? undefined : 2}
-          >
-            {getTitle()}
-          </Text>
-        </Animated.View>
-        <View className="bg-transparent">
-          <Text
-            type="secondary"
-            className="text-sm leading-5"
-            numberOfLines={expanded ? undefined : 3}
-          >
-            {content}
-          </Text>
-          {showExpandButton && (
-            <Pressable onPress={() => setExpanded(true)} className="mt-2">
-              <Text className="text-sm text-primary">展开全文</Text>
+          {getTitle()}
+        </Text>
+      </Animated.View>
+
+      <View className="bg-transparent mt-1">
+        {expanded && (type === 'answer' || type === 'article' || type === 'pin') ? (
+          <View className="flex-1 bg-transparent mt-1">
+            <ZhihuContent
+              objectId={item.id?.toString()}
+              type={type === 'pin' ? 'pin' : type}
+              content={typeof item.content === 'string' ? item.content : undefined}
+              contentArray={type === 'pin' && Array.isArray(item.content) ? item.content : undefined}
+              useNative={true}
+            />
+            <Pressable
+              onPress={() => setExpanded(false)}
+              className="mt-3 py-2.5 flex-row items-center justify-center border-t border-gray-100 dark:border-gray-800"
+            >
+              <Text className="text-sm text-primary font-bold mr-1">
+                收起{type === 'answer' ? '回答' : type === 'article' ? '文章' : '想法'}
+              </Text>
+              <Ionicons name="chevron-up" size={14} color={Colors[colorScheme].primary} />
             </Pressable>
-          )}
-          {expanded && (
-            <Pressable onPress={() => setExpanded(false)} className="mt-2">
-              <Text className="text-sm text-primary">收起</Text>
-            </Pressable>
-          )}
-        </View>
-      </Pressable>
+          </View>
+        ) : (
+          <View className="bg-transparent">
+            <Text
+              type="secondary"
+              className="text-[17px]"
+              style={{ lineHeight: 27 }}
+              numberOfLines={3}
+            >
+              {getExcerpt()}
+            </Text>
+            {showExpandButton && (
+              <Pressable onPress={() => setExpanded(true)} className="mt-2 py-1">
+                <Text className="text-sm text-primary font-bold">展开全文</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
 
       <View className="flex-row justify-between mt-4 items-center bg-transparent">
         {type !== 'question' && type !== 'video' ? (
           <View className="flex-row items-center bg-transparent">
             <LikeButton
               id={item.id}
-              count={item.voteup_count || item.reaction_count || 0}
+              count={item.reaction?.statistics?.like_count || item.voteup_count || item.reaction_count || 0}
               voted={item.relationship?.voting || 0}
               type={
                 type === 'article'
@@ -151,11 +186,17 @@ export const CreationCard = ({
               variant="ghost"
             />
             <Pressable
-              onPress={() =>
+              onPress={() => {
+                const commentType =
+                  type === 'article'
+                    ? 'article'
+                    : type === 'pin'
+                      ? 'pin'
+                      : 'answer';
                 router.push(
-                  `/comments/${item.id}?type=${type}&count=${item.comment_count || 0}`,
-                )
-              }
+                  `/comments/${item.id}?type=${commentType}&count=${item.comment_count || 0}`,
+                );
+              }}
               className="flex-row items-center ml-5 bg-transparent py-1"
             >
               <Ionicons name="chatbubble-outline" size={16} color="#888" />
@@ -171,27 +212,49 @@ export const CreationCard = ({
           >
             {type === 'question'
               ? `${item.answer_count || 0} 回答 · ${item.follower_count || 0} 关注`
-              : `${item.voteup_count || 0} 赞同 · ${item.comment_count || 0} 评论`}
+              : `${item.reaction?.statistics?.like_count || item.voteup_count || 0} 赞同 · ${item.comment_count || 0} 评论`}
           </Text>
         )}
 
-        <Text
-          type="secondary"
-          className="text-xs text-tertiary dark:text-tertiary-dark ml-auto"
-        >
-          {item.updated_time ||
-          item.updated ||
-          item.created_time ||
-          item.created
-            ? new Date(
-                (item.updated_time ||
-                  item.updated ||
-                  item.created_time ||
-                  item.created) * 1000,
-              ).toLocaleDateString()
-            : ''}
-        </Text>
+        <View className="flex-row items-center bg-transparent ml-auto">
+          <Text
+            type="secondary"
+            className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
+          >
+            {item.updated_time ||
+            item.updated ||
+            item.created_time ||
+            item.created
+              ? new Date(
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
+              : ''}
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={() => setMenuVisible(true)}
+            className="p-1 -mr-1 bg-transparent"
+          >
+            <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+
+      <ShareMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        type={displayTypeForShare as ShareContentType}
+        data={{
+          id: item.id,
+          title: getTitle(),
+          author: item.author?.name,
+          authorHeadline: item.author?.headline,
+          excerpt: getExcerpt(),
+        } as any}
+      />
+    </TouchableOpacity>
   );
 };

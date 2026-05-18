@@ -1,0 +1,115 @@
+export interface ZhihuAuthor {
+  id: string;
+  name: string;
+  avatar_url: string;
+  avatar_url_template?: string;
+  headline?: string;
+  url_token?: string;
+  user_type?: string;
+  type: string;
+  is_org?: boolean;
+  gender?: number;
+  url?: string;
+}
+
+export interface ZhihuQuestion {
+  id: string | number;
+  title: string;
+  created?: number;
+  updated_time?: number;
+  question_type?: string;
+  type: 'question';
+  url?: string;
+  answer_count?: number;
+  follower_count?: number;
+  author?: ZhihuAuthor;
+  relationship?: {
+    voting?: number;
+    is_following?: boolean;
+  };
+}
+
+export interface ZhihuReaction {
+  statistics: {
+    like_count: number;
+    favorites?: number;
+  };
+  relation?: {
+    faved?: boolean;
+    liked?: boolean;
+    vote?: 'UP' | 'DOWN' | 'NEUTRAL';
+  };
+}
+
+export interface ZhihuAnswer {
+  id: string | number;
+  content: string;
+  excerpt: string;
+  created_time: number;
+  updated_time: number;
+  comment_count: number;
+  voteup_count?: number;
+  reaction_count?: number;
+  reaction?: ZhihuReaction;
+  author: ZhihuAuthor;
+  question: {
+    id: string | number;
+    title: string;
+    type: 'question';
+  };
+  type: 'answer';
+  url?: string;
+  relationship?: {
+    voting?: number;
+    is_thanked?: boolean;
+  };
+}
+
+export interface ZhihuArticle {
+  id: string | number;
+  title: string;
+  content: string;
+  excerpt: string;
+  created: number;
+  updated: number;
+  comment_count: number;
+  voteup_count?: number;
+  author: ZhihuAuthor;
+  type: 'article';
+  url?: string;
+  relationship?: {
+    voting?: number;
+  };
+}
+
+export interface ZhihuPin {
+  id: string | number;
+  content: string;
+  excerpt?: string;
+  created: number;
+  comment_count: number;
+  reaction_count?: number;
+  author: ZhihuAuthor;
+  type: 'pin';
+  url?: string;
+  relationship?: {
+    voting?: number;
+  };
+}
+
+export interface ZhihuVideo {
+  id: string | number;
+  title: string;
+  excerpt?: string;
+  created?: number;
+  comment_count?: number;
+  voteup_count?: number;
+  author?: ZhihuAuthor;
+  type: 'zvideo' | 'video';
+  url?: string;
+  relationship?: {
+    voting?: number;
+  };
+}
+
+export type ZhihuMemberRelation = ZhihuAnswer | ZhihuQuestion | ZhihuArticle | ZhihuPin | ZhihuVideo;

@@ -649,7 +649,7 @@ const FeedList = React.forwardRef<
     <FlashList
       ref={ref}
       data={flattenedData}
-      keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+      keyExtractor={(item, index) => `feed-${item.id?.toString() || index}-${index}`}
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
       refreshControl={

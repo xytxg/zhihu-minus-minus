@@ -39,7 +39,10 @@ export function RecentMoments() {
           <Pressable
             key={item.actor.id}
             onPress={() =>
-              router.push(`/user/${item.actor.url_token || item.actor.id}`)
+              router.push({
+                pathname: `/user/${item.actor.url_token || item.actor.id}/stream`,
+                params: { type: 'answers' },
+              } as any)
             }
             className="items-center mr-4 w-[64px]"
           >
