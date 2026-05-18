@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Image, Pressable } from 'react-native';
 import Animated, { SharedTransition } from 'react-native-reanimated';
 import { LikeButton } from './LikeButton';
-import { ShareMenu, ShareContentType } from './ShareMenu';
+import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, View } from './Themed';
 
 const slowTransition = SharedTransition.duration(600);

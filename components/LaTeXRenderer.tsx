@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import type React from 'react';
+import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 interface LaTeXRendererProps {
@@ -74,10 +75,17 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
   `;
 
   return (
-    <View style={{ width, height, minHeight: height }} className="bg-transparent overflow-hidden">
+    <View
+      style={{ width, height, minHeight: height }}
+      className="bg-transparent overflow-hidden"
+    >
       <WebView
         source={{ html }}
-        style={{ backgroundColor: 'transparent', width: '100%', height: '100%' }}
+        style={{
+          backgroundColor: 'transparent',
+          width: '100%',
+          height: '100%',
+        }}
         scrollEnabled={false}
         onMessage={(event) => {
           try {
@@ -91,7 +99,10 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
         onLoadEnd={() => setLoading(false)}
       />
       {loading && (
-        <View style={StyleSheet.absoluteFill} className="justify-center items-center bg-transparent">
+        <View
+          style={StyleSheet.absoluteFill}
+          className="justify-center items-center bg-transparent"
+        >
           <ActivityIndicator size="small" color="#0084ff" />
         </View>
       )}

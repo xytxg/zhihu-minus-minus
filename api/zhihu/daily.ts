@@ -4,8 +4,8 @@ const dailyClient = axios.create({
   timeout: 10000,
   headers: {
     'User-Agent': 'ZhihuDaily/2.9.0 (Android; 10; Scale/2.0)',
-    'Referer': 'https://daily.zhihu.com/',
-  }
+    Referer: 'https://daily.zhihu.com/',
+  },
 });
 
 dailyClient.interceptors.response.use(
@@ -13,11 +13,13 @@ dailyClient.interceptors.response.use(
   (error) => {
     console.error('日报 API 错误:', error.response?.status, error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 export const getDailyLatest = async () => {
-  const res = await dailyClient.get('https://daily.zhihu.com/api/4/news/latest');
+  const res = await dailyClient.get(
+    'https://daily.zhihu.com/api/4/news/latest',
+  );
   return res.data;
 };
 

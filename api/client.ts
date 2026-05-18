@@ -1,9 +1,9 @@
+import CookieManager from '@react-native-cookies/cookies';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useVerificationStore } from '@/store/useVerificationStore';
 import { signRequest96, ZSE_VERSION } from './zse96/index';
-import CookieManager from '@react-native-cookies/cookies';
 
 const apiClient = axios.create({
   baseURL: 'https://www.zhihu.com/api/v4',
@@ -41,7 +41,7 @@ apiClient.interceptors.request.use(async (config) => {
     }
   }
 
-    if (cookie) {
+  if (cookie) {
     config.headers['Cookie'] = cookie;
     const dc0 = getDc0(cookie);
     if (dc0) {

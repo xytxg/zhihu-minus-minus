@@ -7,10 +7,15 @@
  *
  * New components can use plain RN <Text>/<View> with className directly.
  */
-import { Text as DefaultText, View as DefaultView, TextStyle, StyleSheet } from 'react-native';
+import {
+  Text as DefaultText,
+  View as DefaultView,
+  StyleSheet,
+  type TextStyle,
+} from 'react-native';
 import Colors from '@/constants/Colors';
-import { useColorScheme } from './useColorScheme';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { useColorScheme } from './useColorScheme';
 
 type ThemeProps = {
   lightColor?: string;

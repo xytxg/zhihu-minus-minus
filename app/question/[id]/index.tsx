@@ -3,7 +3,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ShareMenu } from '@/components/ShareMenu';
 import { StatusBar } from 'expo-status-bar';
 import React, {
   forwardRef,
@@ -20,17 +19,14 @@ import {
   Image,
   LayoutAnimation,
   Modal,
-  Platform,
   View as NativeView,
+  Platform,
   Pressable,
   Share,
-
   StyleSheet,
   UIManager,
   useWindowDimensions,
 } from 'react-native';
-import { copyToClipboard } from '@/utils/clipboard';
-
 import Reanimated, { SharedTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '@/api/client';
@@ -42,17 +38,18 @@ import {
   unfollowQuestion,
 } from '@/api/zhihu/question';
 import { LikeButton } from '@/components/LikeButton';
+import { MenuOption } from '@/components/MenuOption';
+import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
-import { MenuOption } from '@/components/MenuOption';
 import Colors from '@/constants/Colors';
-
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { useViewableItems } from '@/hooks/useViewableItems';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 import { useProgressStore } from '@/store/useProgressStore';
+import { copyToClipboard } from '@/utils/clipboard';
 import { showToast } from '@/utils/toast';
 
 const AnswerItem = forwardRef(
@@ -76,7 +73,6 @@ const AnswerItem = forwardRef(
     },
     ref,
   ) => {
-
     const colorScheme = useColorScheme();
     const router = useRouter();
     const textColor = Colors[colorScheme].text;
@@ -89,7 +85,10 @@ const AnswerItem = forwardRef(
     }));
 
     const rawText = item.content?.replace(/<[^>]+>/g, '') || '';
-    const isLongContent = rawText?.length > 120 || item.content?.includes('<img') || item.content?.includes('<figure');
+    const isLongContent =
+      rawText?.length > 120 ||
+      item.content?.includes('<img') ||
+      item.content?.includes('<figure');
     const excerpt = isLongContent ? rawText.substring(0, 100) + '...' : rawText;
 
     const followMutation = useOptimisticToggle({
@@ -231,10 +230,49 @@ const AnswerItem = forwardRef(
               />
               <View className="absolute inset-x-0 bottom-0 h-24 pointer-events-none">
                 {/* 4 layers of progressive opacity to emulate gradient */}
-                <View style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.2)` }} />
-                <View style={{ position: 'absolute', left: 0, right: 0, top: 16, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.5)` }} />
-                <View style={{ position: 'absolute', left: 0, right: 0, top: 32, height: 16, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.8)` }} />
-                <View style={{ position: 'absolute', left: 0, right: 0, top: 48, bottom: 0, backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 1.0)`, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 6 }} >
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.2)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 16,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.5)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 32,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 0.8)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 48,
+                    bottom: 0,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '26, 26, 26' : '255, 255, 255'}, 1.0)`,
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    paddingBottom: 6,
+                  }}
+                >
                   <Text
                     type="primary"
                     className="text-[13px] font-bold"
@@ -296,10 +334,7 @@ const AnswerItem = forwardRef(
               />
             </Pressable>
           )}
-          <Pressable
-            className="ml-auto p-1"
-            onPress={() => onShare?.(item)}
-          >
+          <Pressable className="ml-auto p-1" onPress={() => onShare?.(item)}>
             <Ionicons
               name="share-social-outline"
               size={18}
@@ -382,42 +417,45 @@ export default function QuestionDetail() {
     });
   }, [answersData]);
 
-  const handleToggleExpand = useCallback((id: string, expanded: boolean) => {
-    if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-      UIManager.setLayoutAnimationEnabledExperimental(true);
-    }
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  const handleToggleExpand = useCallback(
+    (id: string, expanded: boolean) => {
+      if (
+        Platform.OS === 'android' &&
+        UIManager.setLayoutAnimationEnabledExperimental
+      ) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+      }
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (expanded) next.add(id);
-      else next.delete(id);
-      return next;
-    });
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (expanded) next.add(id);
+        else next.delete(id);
+        return next;
+      });
 
-    if (!expanded) {
-      // Collapsing: scroll back to the item to prevent losing context
-      // Use setTimeout to ensure the list has updated its layout
-      setTimeout(() => {
-        const index = answers.findIndex(a => a.id.toString() === id);
-        if (index >= 0) {
-          flashListRef.current?.scrollToIndex({
-            index: index,
-            animated: true,
-            viewOffset: insets.top + 50, // Match header height exactly
-          });
-        }
-      }, 100);
-    }
-  }, [answers, insets.top]);
+      if (!expanded) {
+        // Collapsing: scroll back to the item to prevent losing context
+        // Use setTimeout to ensure the list has updated its layout
+        setTimeout(() => {
+          const index = answers.findIndex((a) => a.id.toString() === id);
+          if (index >= 0) {
+            flashListRef.current?.scrollToIndex({
+              index: index,
+              animated: true,
+              viewOffset: insets.top + 50, // Match header height exactly
+            });
+          }
+        }, 100);
+      }
+    },
+    [answers, insets.top],
+  );
 
   const getShareLink = (answer: any) => {
     const aid = answer?.id;
     return `https://www.zhihu.com/question/${id}/answer/${aid}`;
   };
-
-
-
 
   const lastCheckTime = useRef(0);
 
@@ -500,7 +538,6 @@ export default function QuestionDetail() {
     }),
     successMessage: (isActive) => (isActive ? '已取消关注' : '已关注问题'),
   });
-
 
   // 恢复进度逻辑已禁用
   React.useEffect(() => {
@@ -701,13 +738,17 @@ export default function QuestionDetail() {
           setSelectedAnswer(null);
         }}
         type="answer"
-        data={selectedAnswer ? {
-          id: selectedAnswer.id,
-          title: question?.title,
-          author: selectedAnswer.author?.name,
-          authorHeadline: selectedAnswer.author?.headline,
-          url: getShareLink(selectedAnswer)
-        } : null}
+        data={
+          selectedAnswer
+            ? {
+                id: selectedAnswer.id,
+                title: question?.title,
+                author: selectedAnswer.author?.name,
+                authorHeadline: selectedAnswer.author?.headline,
+                url: getShareLink(selectedAnswer),
+              }
+            : null
+        }
       />
 
       {/* 顶部标题栏 */}
@@ -780,9 +821,10 @@ export default function QuestionDetail() {
             questionTitle={question?.title}
             sortBy={sortBy}
           />
-
         )}
-        keyExtractor={(item: any) => item?.id?.toString() || Math.random().toString()}
+        keyExtractor={(item: any) =>
+          item?.id?.toString() || Math.random().toString()
+        }
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         onEndReached={() =>
@@ -872,7 +914,9 @@ export default function QuestionDetail() {
               {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
                 <Pressable
                   className="flex-row items-center ml-5 bg-transparent"
-                  onPress={() => handleToggleExpand(activeItem.id.toString(), false)}
+                  onPress={() =>
+                    handleToggleExpand(activeItem.id.toString(), false)
+                  }
                 >
                   <Ionicons
                     name="chevron-up-circle-outline"

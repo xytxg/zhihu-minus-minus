@@ -1,14 +1,21 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 const settingsStorage = {
   getItem: (name: string) => SecureStore.getItemAsync(name),
-  setItem: (name: string, value: string) => SecureStore.setItemAsync(name, value),
+  setItem: (name: string, value: string) =>
+    SecureStore.setItemAsync(name, value),
   removeItem: (name: string) => SecureStore.deleteItemAsync(name),
 };
 
-export type TabKey = 'following' | 'recommend' | 'hot' | 'daily' | 'publish' | 'profile';
+export type TabKey =
+  | 'following'
+  | 'recommend'
+  | 'hot'
+  | 'daily'
+  | 'publish'
+  | 'profile';
 
 export interface AppSettings {
   fontSizeScale: number;
@@ -39,19 +46,23 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       ...DEFAULT_SETTINGS,
-      updateSettings: (newSettings) => set((state) => {
-        const nextSettings = { ...state, ...newSettings };
-        // 兜底：确保“我的”页面始终可见
-        if (nextSettings.visibleTabs && !nextSettings.visibleTabs.includes('profile')) {
-          nextSettings.visibleTabs = [...nextSettings.visibleTabs, 'profile'];
-        }
-        return nextSettings;
-      }),
+      updateSettings: (newSettings) =>
+        set((state) => {
+          const nextSettings = { ...state, ...newSettings };
+          // 兜底：确保“我的”页面始终可见
+          if (
+            nextSettings.visibleTabs &&
+            !nextSettings.visibleTabs.includes('profile')
+          ) {
+            nextSettings.visibleTabs = [...nextSettings.visibleTabs, 'profile'];
+          }
+          return nextSettings;
+        }),
       resetSettings: () => set(DEFAULT_SETTINGS),
     }),
     {
       name: 'zhihu-settings-storage',
       storage: createJSONStorage(() => settingsStorage),
-    }
-  )
+    },
+  ),
 );

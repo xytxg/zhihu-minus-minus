@@ -5,20 +5,25 @@ import {
 } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, Redirect, useRootNavigationState } from 'expo-router';
+import Constants from 'expo-constants';
+import {
+  Redirect,
+  Stack,
+  useRootNavigationState,
+  useRouter,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { parseZhihuUrl } from '@/utils/url';
-import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import { UpdateChecker } from '@/components/UpdateChecker';
-import { VerificationModal } from '@/components/VerificationModal';
 import { useColorScheme } from '@/components/useColorScheme';
+import { VerificationModal } from '@/components/VerificationModal';
 import {
   useSyncThemeWithNativeWind,
   useThemeStore,
 } from '@/store/useThemeStore';
+import { parseZhihuUrl } from '@/utils/url';
 import '../global.css';
 import { Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -71,7 +76,10 @@ function RootLayout() {
     const handleUrl = (url: string | null) => {
       if (!url) return;
       // Skip internal Expo URLs
-      if (url.includes('expo-development-client') || url.includes('expo-auth-session')) {
+      if (
+        url.includes('expo-development-client') ||
+        url.includes('expo-auth-session')
+      ) {
         return;
       }
       setPendingUrl(url);
@@ -98,7 +106,7 @@ function RootLayout() {
     if (isReady && pendingUrl) {
       const url = pendingUrl;
       setPendingUrl(null); // Clear it
-      
+
       try {
         const finalPath = parseZhihuUrl(url);
         if (!finalPath) return;
@@ -184,19 +192,31 @@ function RootLayout() {
               {/* 发布相关页面：使用全屏 Modal */}
               <Stack.Screen
                 name="publish/answer"
-                options={{ presentation: 'fullScreenModal', headerShown: false }}
+                options={{
+                  presentation: 'fullScreenModal',
+                  headerShown: false,
+                }}
               />
               <Stack.Screen
                 name="publish/article"
-                options={{ presentation: 'fullScreenModal', headerShown: false }}
+                options={{
+                  presentation: 'fullScreenModal',
+                  headerShown: false,
+                }}
               />
               <Stack.Screen
                 name="publish/pin"
-                options={{ presentation: 'fullScreenModal', headerShown: false }}
+                options={{
+                  presentation: 'fullScreenModal',
+                  headerShown: false,
+                }}
               />
               <Stack.Screen
                 name="publish/question"
-                options={{ presentation: 'fullScreenModal', headerShown: false }}
+                options={{
+                  presentation: 'fullScreenModal',
+                  headerShown: false,
+                }}
               />
 
               {/* 问题详情页 */}

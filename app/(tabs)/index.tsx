@@ -1,9 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
+import CookieManager from '@react-native-cookies/cookies';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -22,20 +29,20 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import CookieManager from '@react-native-cookies/cookies';
 // 使用 @ 别名导入组件
 import { FEED_URLS, getFeed } from '@/api/zhihu';
 import { DailyList } from '@/components/DailyList';
 import { FeedCard } from '@/components/FeedCard';
 import { HotCard, HotItem } from '@/components/HotCard';
 import { RecentMoments } from '@/components/RecentMoments';
-import ProfileScreen from './profile';
-import PublishScreen from './publish';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useSettingsStore, TabKey } from '@/store/useSettingsStore';
+import { type TabKey, useSettingsStore } from '@/store/useSettingsStore';
+import ProfileScreen from './profile';
+import PublishScreen from './publish';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const tintColor = Colors.light.tint; // Fallback or use colorScheme logic inside component
 
@@ -60,8 +67,16 @@ export default function HomeScreen() {
 
   // 动态过滤 Tabs
   const currentTabs = useMemo(() => {
-    return (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[])
-      .filter(tab => visibleTabs.includes(tab));
+    return (
+      [
+        'following',
+        'recommend',
+        'hot',
+        'daily',
+        'publish',
+        'profile',
+      ] as TabKey[]
+    ).filter((tab) => visibleTabs.includes(tab));
   }, [visibleTabs]);
 
   // 计算初始页码
@@ -102,29 +117,37 @@ export default function HomeScreen() {
   const SCROLL_THRESHOLD_SHOW = 300;
   const SCROLL_THRESHOLD_HIDE = 200;
 
-  const handleScrollUpdate = useCallback((pageIndex: number, offset: number) => {
-    setScrolledTabs((prev) => {
-      const currentlyScrolled = prev[pageIndex] || false;
-      let nextScrolled = currentlyScrolled;
+  const handleScrollUpdate = useCallback(
+    (pageIndex: number, offset: number) => {
+      setScrolledTabs((prev) => {
+        const currentlyScrolled = prev[pageIndex] || false;
+        let nextScrolled = currentlyScrolled;
 
-      if (!currentlyScrolled && offset > SCROLL_THRESHOLD_SHOW) {
-        nextScrolled = true;
-      } else if (currentlyScrolled && offset < SCROLL_THRESHOLD_HIDE) {
-        nextScrolled = false;
-      }
+        if (!currentlyScrolled && offset > SCROLL_THRESHOLD_SHOW) {
+          nextScrolled = true;
+        } else if (currentlyScrolled && offset < SCROLL_THRESHOLD_HIDE) {
+          nextScrolled = false;
+        }
 
-      if (currentlyScrolled === nextScrolled) return prev;
-      return { ...prev, [pageIndex]: nextScrolled };
-    });
-  }, []);
+        if (currentlyScrolled === nextScrolled) return prev;
+        return { ...prev, [pageIndex]: nextScrolled };
+      });
+    },
+    [],
+  );
 
   const handleHomeTabPress = () => {
-    const homeTabs = currentTabs.filter(t => !['publish', 'profile'].includes(t));
+    const homeTabs = currentTabs.filter(
+      (t) => !['publish', 'profile'].includes(t),
+    );
     const isAtHome = currentPage < homeTabs.length;
 
     if (isAtHome && scrolledTabs[currentPage]) {
       // 如果已经在首页 Tab 且已滚动，则置顶
-      listRefs.current[currentPage]?.scrollToOffset({ offset: 0, animated: true });
+      listRefs.current[currentPage]?.scrollToOffset({
+        offset: 0,
+        animated: true,
+      });
     } else {
       // 否则切换到第一页
       pagerRef.current?.setPage(0);
@@ -168,12 +191,15 @@ export default function HomeScreen() {
   // 底部导航栏指示器动画
   const bottomIndicatorStyle = useAnimatedStyle(() => {
     // 家 (Home) 包含除了 publish 和 profile 以外的所有
-    const homeTabsCount = currentTabs.filter(t => !['publish', 'profile'].includes(t)).length;
+    const homeTabsCount = currentTabs.filter(
+      (t) => !['publish', 'profile'].includes(t),
+    ).length;
     const hasPublish = currentTabs.includes('publish');
     const hasProfile = currentTabs.includes('profile');
 
     // 底部导航栏总图标数 (首页算一个)
-    const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
+    const totalBottomIcons =
+      (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
     const iconWidth = (SCREEN_WIDTH - 40) / (totalBottomIcons || 1);
 
     // 计算平滑位移
@@ -211,7 +237,7 @@ export default function HomeScreen() {
       scrollX.value,
       inputRange.length > 1 ? inputRange : [0, 1],
       outputRange.length > 1 ? outputRange : [0, 0],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
 
     return {
@@ -223,11 +249,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {/* 1. 顶部 Tab 导航 (Home 专属) */}
       <Animated.View
-        style={[
-          styles.topNavContainer,
-          { top: insets.top },
-          topNavAnimStyle,
-        ]}
+        style={[styles.topNavContainer, { top: insets.top }, topNavAnimStyle]}
       >
         <BlurView
           intensity={100}
@@ -260,7 +282,7 @@ export default function HomeScreen() {
                 ]}
               />
               {currentTabs
-                .filter(t => !['publish', 'profile'].includes(t))
+                .filter((t) => !['publish', 'profile'].includes(t))
                 .map((tab, index) => {
                   const labels: Record<string, string> = {
                     following: '关注',
@@ -313,14 +335,23 @@ export default function HomeScreen() {
         }}
       >
         {currentTabs.map((tab, idx) => {
-          const globalIndex = (['following', 'recommend', 'hot', 'daily', 'publish', 'profile'] as TabKey[]).indexOf(tab);
+          const globalIndex = (
+            [
+              'following',
+              'recommend',
+              'hot',
+              'daily',
+              'publish',
+              'profile',
+            ] as TabKey[]
+          ).indexOf(tab);
           const isHomeTab = !['publish', 'profile'].includes(tab);
 
           return (
             <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
               {globalIndex === 3 ? (
                 <DailyList
-                  ref={el => listRefs.current[idx] = el}
+                  ref={(el) => (listRefs.current[idx] = el)}
                   insets={insets}
                   onScroll={(offset) => handleScrollUpdate(idx, offset)}
                 />
@@ -342,7 +373,7 @@ export default function HomeScreen() {
                 </View>
               ) : (
                 <FeedList
-                  ref={el => listRefs.current[idx] = el}
+                  ref={(el) => (listRefs.current[idx] = el)}
                   tab={tab as any}
                   insets={insets}
                   guestCookieReady={guestCookieReady}
@@ -376,28 +407,58 @@ export default function HomeScreen() {
                 styles.bottomIndicator,
                 {
                   backgroundColor: tintColor + '15',
-                  width: (SCREEN_WIDTH - 40) / ((currentTabs.filter(t => !['publish', 'profile'].includes(t)).length > 0 ? 1 : 0) + (currentTabs.includes('publish') ? 1 : 0) + (currentTabs.includes('profile') ? 1 : 0)) - 20
+                  width:
+                    (SCREEN_WIDTH - 40) /
+                      ((currentTabs.filter(
+                        (t) => !['publish', 'profile'].includes(t),
+                      ).length > 0
+                        ? 1
+                        : 0) +
+                        (currentTabs.includes('publish') ? 1 : 0) +
+                        (currentTabs.includes('profile') ? 1 : 0)) -
+                    20,
                 },
                 bottomIndicatorStyle,
               ]}
             />
 
-            {currentTabs.some(t => !['publish', 'profile'].includes(t)) && (
+            {currentTabs.some((t) => !['publish', 'profile'].includes(t)) && (
               <BottomTabIcon
                 // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
-                isScrollTop={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length && scrolledTabs[currentPage]}
-                icon={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? 'home' : 'home-outline'}
-                active={currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length}
+                isScrollTop={
+                  currentPage <
+                    currentTabs.filter(
+                      (t) => !['publish', 'profile'].includes(t),
+                    ).length && scrolledTabs[currentPage]
+                }
+                icon={
+                  currentPage <
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
+                    ? 'home'
+                    : 'home-outline'
+                }
+                active={
+                  currentPage <
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
+                }
                 onPress={handleHomeTabPress}
                 color={
-                  currentPage < currentTabs.filter(t => !['publish', 'profile'].includes(t)).length ? tintColor : Colors[colorScheme].textSecondary
+                  currentPage <
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
+                    ? tintColor
+                    : Colors[colorScheme].textSecondary
                 }
               />
             )}
 
             {currentTabs.includes('publish') && (
               <BottomTabIcon
-                icon={currentTabs[currentPage] === 'publish' ? 'add-circle' : 'add'}
+                icon={
+                  currentTabs[currentPage] === 'publish' ? 'add-circle' : 'add'
+                }
                 active={currentTabs[currentPage] === 'publish'}
                 onPress={() => handleTabPress(currentTabs.indexOf('publish'))}
                 color={
@@ -411,7 +472,11 @@ export default function HomeScreen() {
 
             {currentTabs.includes('profile') && (
               <BottomTabIcon
-                icon={currentTabs[currentPage] === 'profile' ? 'person' : 'person-outline'}
+                icon={
+                  currentTabs[currentPage] === 'profile'
+                    ? 'person'
+                    : 'person-outline'
+                }
                 active={currentTabs[currentPage] === 'profile'}
                 onPress={() => handleTabPress(currentTabs.indexOf('profile'))}
                 color={
@@ -425,7 +490,15 @@ export default function HomeScreen() {
         </BlurView>
       </View>
       {!cookies && !guestCookieReady && (
-        <View style={{ width: 1, height: 1, opacity: 0, position: 'absolute', pointerEvents: 'none' }}>
+        <View
+          style={{
+            width: 1,
+            height: 1,
+            opacity: 0,
+            position: 'absolute',
+            pointerEvents: 'none',
+          }}
+        >
           <WebView
             source={{ uri: 'https://www.zhihu.com/' }}
             sharedCookiesEnabled={true}
@@ -454,7 +527,14 @@ export default function HomeScreen() {
 
 const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
 
-function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }: any) {
+function BottomTabIcon({
+  icon,
+  active,
+  onPress,
+  color,
+  size = 24,
+  isScrollTop,
+}: any) {
   // 动画状态
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -463,7 +543,7 @@ function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }:
   React.useEffect(() => {
     scale.value = withSequence(
       withTiming(0.6, { duration: 150 }),
-      withTiming(1, { duration: 150 })
+      withTiming(1, { duration: 150 }),
     );
   }, [isScrollTop]);
 
@@ -488,7 +568,12 @@ function BottomTabIcon({ icon, active, onPress, color, size = 24, isScrollTop }:
 // FeedList 组件
 const FeedList = React.forwardRef<
   any,
-  { tab: TabType; insets: any; guestCookieReady: boolean; onScroll?: (offset: number) => void }
+  {
+    tab: TabType;
+    insets: any;
+    guestCookieReady: boolean;
+    onScroll?: (offset: number) => void;
+  }
 >(({ tab, insets, guestCookieReady, onScroll }, ref) => {
   const { cookies } = useAuthStore();
   const colorScheme = useColorScheme();
@@ -504,8 +589,7 @@ const FeedList = React.forwardRef<
   } = useInfiniteQuery({
     queryKey: ['zhihu-feed', tab],
     queryFn: async ({ pageParam = (FEED_URLS as any)[tab] }) => {
-      if (!cookies && tab === 'following')
-        return { items: [], nextUrl: null };
+      if (!cookies && tab === 'following') return { items: [], nextUrl: null };
       try {
         const data = await getFeed(pageParam as string);
         const rawItems = data.data || [];
@@ -567,7 +651,11 @@ const FeedList = React.forwardRef<
         paddingBottom: 120,
       }}
       renderItem={({ item }: { item: any }) =>
-        tab === 'hot' ? <HotCard item={item} /> : <FeedCard item={item} tab={tab} />
+        tab === 'hot' ? (
+          <HotCard item={item} />
+        ) : (
+          <FeedCard item={item} tab={tab} />
+        )
       }
       ListHeaderComponent={tab === 'following' ? <RecentMoments /> : null}
       ListFooterComponent={

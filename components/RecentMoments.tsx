@@ -3,9 +3,9 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import { fetchRecentMoments } from '@/api/zhihu';
+import Colors from '@/constants/Colors';
 import { Text, View } from './Themed';
 import { useColorScheme } from './useColorScheme';
-import Colors from '@/constants/Colors';
 
 /**
  * 最近更新的用户头像栏 (朋友圈/动态更新提示)
@@ -38,14 +38,21 @@ export function RecentMoments() {
         {data.data.map((item) => (
           <Pressable
             key={item.actor.id}
-            onPress={() => router.push(`/user/${item.actor.url_token || item.actor.id}`)}
+            onPress={() =>
+              router.push(`/user/${item.actor.url_token || item.actor.id}`)
+            }
             className="items-center mr-4 w-[64px]"
           >
             <View className="relative mb-1.5 bg-transparent">
               {/* 头像外圈，增加一点仪式感 */}
               <View
                 className="p-[2px] rounded-full border-[1.5px]"
-                style={{ borderColor: item.unread_count > 0 ? Colors[colorScheme].primary : 'transparent' }}
+                style={{
+                  borderColor:
+                    item.unread_count > 0
+                      ? Colors[colorScheme].primary
+                      : 'transparent',
+                }}
               >
                 <Image
                   source={{ uri: item.actor.avatar_url }}

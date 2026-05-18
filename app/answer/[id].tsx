@@ -1,29 +1,34 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Pressable,
   ActivityIndicator,
   Animated,
+  Pressable,
   StyleSheet,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
+import Reanimated, { SharedTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, Text } from '@/components/Themed';
-import { useColorScheme } from '@/components/useColorScheme';
+import client from '@/api/client';
+import { getAnswer } from '@/api/zhihu';
 import { AnswerDetailView } from '@/components/AnswerDetailView';
 import { ShareMenu } from '@/components/ShareMenu';
-import { getAnswer } from '@/api/zhihu';
-import client from '@/api/client';
-import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
+import { Text, View } from '@/components/Themed';
+import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import Reanimated, { SharedTransition } from 'react-native-reanimated';
+import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 
 const slowTransition = SharedTransition.duration(600);
 
 export default function AnswerDetailScreen() {
-  const { id, title: initialTitle, questionId: propQuestionId, sortBy = 'default' } = useLocalSearchParams();
+  const {
+    id,
+    title: initialTitle,
+    questionId: propQuestionId,
+    sortBy = 'default',
+  } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -63,7 +68,10 @@ export default function AnswerDetailScreen() {
 
   // 3. 构建 ID 列表
   const answerIds = useMemo(() => {
-    const listIds = answersData?.pages.flatMap((p: any) => p.data).map((i: any) => i.id.toString()) || [];
+    const listIds =
+      answersData?.pages
+        .flatMap((p: any) => p.data)
+        .map((i: any) => i.id.toString()) || [];
 
     let combined = listIds;
     // 确保初始 ID 在列表中
@@ -155,9 +163,12 @@ export default function AnswerDetailScreen() {
           style={[
             StyleSheet.absoluteFillObject,
             {
-              backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)',
+              backgroundColor:
+                colorScheme === 'dark'
+                  ? 'rgba(0,0,0,0.6)'
+                  : 'rgba(255,255,255,0.6)',
               opacity: headerBgOpacity,
-            }
+            },
           ]}
           pointerEvents="none"
         />
@@ -180,7 +191,9 @@ export default function AnswerDetailScreen() {
           <Pressable
             className="flex-1 mx-2"
             onPress={() =>
-              router.push(`/question/${initialAnswer?.question?.id || questionId}`)
+              router.push(
+                `/question/${initialAnswer?.question?.id || questionId}`,
+              )
             }
             style={{ paddingTop: 8 }}
           >
@@ -189,8 +202,13 @@ export default function AnswerDetailScreen() {
               sharedTransitionStyle={slowTransition}
               className="bg-transparent"
             >
-              <Text className="text-[18px] font-bold leading-6" numberOfLines={2}>
-                {initialAnswer?.question?.title || (initialTitle as string) || '加载中...'}
+              <Text
+                className="text-[18px] font-bold leading-6"
+                numberOfLines={2}
+              >
+                {initialAnswer?.question?.title ||
+                  (initialTitle as string) ||
+                  '加载中...'}
               </Text>
             </Reanimated.View>
           </Pressable>
@@ -216,18 +234,22 @@ export default function AnswerDetailScreen() {
           const newId = answerIds[newIndex];
           if (newId) {
             router.setParams({ id: newId });
-            
+
             // Sync scroll position
             const lastY = scrollPositions.current[newId] || 0;
             scrollYAnim.setValue(lastY);
-            
+
             const shouldCollapse = lastY > 80;
             isCollapsedRef.current = shouldCollapse;
             setIsHeaderCollapsed(shouldCollapse);
           }
 
           // 如果滑到了最后几个，预加载下一页 ID
-          if (newIndex >= answerIds.length - 3 && hasNextPage && !isFetchingNextPage) {
+          if (
+            newIndex >= answerIds.length - 3 &&
+            hasNextPage &&
+            !isFetchingNextPage
+          ) {
             fetchNextPage();
           }
         }}
@@ -244,7 +266,7 @@ export default function AnswerDetailScreen() {
                 scrollPositions.current[aid] = y;
                 if (index === currentPage) {
                   scrollYAnim.setValue(y);
-                  
+
                   const shouldCollapse = y > 80;
                   if (shouldCollapse !== isCollapsedRef.current) {
                     isCollapsedRef.current = shouldCollapse;
@@ -257,19 +279,21 @@ export default function AnswerDetailScreen() {
         ))}
       </PagerView>
 
-
-
       <ShareMenu
         visible={isSharing}
         onClose={() => setIsSharing(false)}
         type="answer"
-        data={currentAnswer ? {
-          id: currentAnswer.id,
-          title: currentAnswer.question?.title,
-          author: currentAnswer.author?.name,
-          authorHeadline: currentAnswer.author?.headline,
-          url: getShareLink()
-        } : null}
+        data={
+          currentAnswer
+            ? {
+                id: currentAnswer.id,
+                title: currentAnswer.question?.title,
+                author: currentAnswer.author?.name,
+                authorHeadline: currentAnswer.author?.headline,
+                url: getShareLink(),
+              }
+            : null
+        }
       />
     </View>
   );

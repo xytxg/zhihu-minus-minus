@@ -1,11 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { Modal, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
-import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from './Themed';
-import { useQueryClient } from '@tanstack/react-query';
 import { useVerificationStore } from '@/store/useVerificationStore';
+import { Text, View } from './Themed';
 
 export const VerificationModal = () => {
   const queryClient = useQueryClient();

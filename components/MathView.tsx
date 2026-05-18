@@ -1,7 +1,7 @@
 'use dom';
 
-import React from 'react';
 import katex from 'katex';
+import React from 'react';
 
 interface MathViewProps {
   formula: string;
@@ -9,7 +9,11 @@ interface MathViewProps {
   colorScheme?: 'light' | 'dark';
 }
 
-export default function MathView({ formula, displayMode = false, colorScheme = 'light' }: MathViewProps) {
+export default function MathView({
+  formula,
+  displayMode = false,
+  colorScheme = 'light',
+}: MathViewProps) {
   const html = katex.renderToString(formula, {
     displayMode: displayMode,
     throwOnError: false,
@@ -19,12 +23,17 @@ export default function MathView({ formula, displayMode = false, colorScheme = '
   const textColor = colorScheme === 'dark' ? '#ffffff' : '#1a1a1a';
 
   return (
-    <span style={{ 
-      display: displayMode ? 'block' : 'inline-block',
-      textAlign: displayMode ? 'center' : 'left',
-      backgroundColor: 'transparent'
-    }}>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <span
+      style={{
+        display: displayMode ? 'block' : 'inline-block',
+        textAlign: displayMode ? 'center' : 'left',
+        backgroundColor: 'transparent',
+      }}
+    >
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      />
       <style>{`
         body {
           margin: 0;
@@ -32,10 +41,10 @@ export default function MathView({ formula, displayMode = false, colorScheme = '
           background-color: transparent !important;
         }
       `}</style>
-      <span 
-        dangerouslySetInnerHTML={{ __html: html }} 
-        style={{ 
-          fontSize: '17px', 
+      <span
+        dangerouslySetInnerHTML={{ __html: html }}
+        style={{
+          fontSize: '17px',
           color: textColor,
         }}
       />

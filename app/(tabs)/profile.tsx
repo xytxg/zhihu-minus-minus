@@ -16,14 +16,13 @@ import {
   Switch,
 } from 'react-native';
 import { getMe, getMember } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useVerificationStore } from '@/store/useVerificationStore';
-import { useThemeStore } from '@/store/useThemeStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
-import { useThemeColor } from '@/components/Themed';
+import { useThemeStore } from '@/store/useThemeStore';
+import { useVerificationStore } from '@/store/useVerificationStore';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
@@ -477,7 +476,9 @@ export default function ProfileScreen() {
                   </View>
                   <View className="flex-1 ml-4 bg-transparent">
                     <View className="flex-row items-center bg-transparent">
-                      <Text className="text-base font-bold">游客模式 (未登录)</Text>
+                      <Text className="text-base font-bold">
+                        游客模式 (未登录)
+                      </Text>
                       {activeAccountIndex === -1 && (
                         <View className="ml-2 bg-[#0084ff20] px-1.5 py-0.5 rounded">
                           <Text className="text-[#0084ff] text-[10px] font-bold">
@@ -503,7 +504,11 @@ export default function ProfileScreen() {
                   )}
                 </Pressable>
                 <View className="pl-4 py-4">
-                  <Ionicons name="trash-outline" size={20} color="transparent" />
+                  <Ionicons
+                    name="trash-outline"
+                    size={20}
+                    color="transparent"
+                  />
                 </View>
               </View>
 

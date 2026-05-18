@@ -19,16 +19,16 @@ import RenderHtml, {
   defaultSystemFonts,
   useRendererProps,
 } from 'react-native-render-html';
+import { SvgUri } from 'react-native-svg';
 import { reactAnswerSegment, unreactAnswerSegment } from '@/api/zhihu/answer';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { showToast } from '@/utils/toast';
 import { parseZhihuUrl } from '@/utils/url';
 import MathView from './MathView';
 import { Text, View } from './Themed';
 import ZhihuDOMContent from './ZhihuDOMContent';
-import { useSettingsStore } from '@/store/useSettingsStore';
-import { SvgUri } from 'react-native-svg';
 
 interface SegmentInfo {
   pid: string;
@@ -218,7 +218,9 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
   } else if (isFormula) {
     // 默认高度估计
     displayHeight = isBlockFormula ? 60 : 22;
-    displayWidth = isBlockFormula ? contentWidth : Math.min(contentWidth, Math.max(40, alt.length * 8));
+    displayWidth = isBlockFormula
+      ? contentWidth
+      : Math.min(contentWidth, Math.max(40, alt.length * 8));
   }
 
   const imageStyle: any = {
@@ -238,7 +240,14 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
     return (
       <Text onPress={() => onPress(finalSrc)}>
         {svgError ? (
-          <Text style={{ color: colorScheme === 'dark' ? '#ffffff' : '#1a1a1a', fontSize: 16 }}>{alt || '公式'}</Text>
+          <Text
+            style={{
+              color: colorScheme === 'dark' ? '#ffffff' : '#1a1a1a',
+              fontSize: 16,
+            }}
+          >
+            {alt || '公式'}
+          </Text>
         ) : (
           <SvgUri
             uri={finalSrc}
@@ -263,7 +272,14 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
       <Pressable onPress={() => onPress(finalSrc)} className="bg-transparent">
         {isFormula ? (
           svgError ? (
-            <Text style={{ color: colorScheme === 'dark' ? '#ffffff' : '#1a1a1a', fontSize: 16 }}>{alt || '公式加载失败'}</Text>
+            <Text
+              style={{
+                color: colorScheme === 'dark' ? '#ffffff' : '#1a1a1a',
+                fontSize: 16,
+              }}
+            >
+              {alt || '公式加载失败'}
+            </Text>
           ) : (
             <SvgUri
               uri={finalSrc}
@@ -322,7 +338,15 @@ const renderers = {
 };
 
 export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
-  ({ content, contentArray, segmentInfos, objectId, type, onRefresh, useNative }) => {
+  ({
+    content,
+    contentArray,
+    segmentInfos,
+    objectId,
+    type,
+    onRefresh,
+    useNative,
+  }) => {
     const colorScheme = useColorScheme();
     const { width } = useWindowDimensions();
     const { useWebView, fontSizeScale, lineHeightScale } = useSettingsStore();
@@ -558,7 +582,12 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
 
     const tagsStyles = useMemo(
       () => ({
-        p: { color: textColor, fontSize: 18 * fontSizeScale, lineHeight: (30 * lineHeightScale) / 1.5, marginBottom: 20 },
+        p: {
+          color: textColor,
+          fontSize: 18 * fontSizeScale,
+          lineHeight: (30 * lineHeightScale) / 1.5,
+          marginBottom: 20,
+        },
         b: { color: Colors[colorScheme].primary, fontWeight: 'bold' },
         img: { borderRadius: 12, marginVertical: 10, display: 'inline' },
         blockquote: {
@@ -594,7 +623,12 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         },
         ul: { paddingLeft: 20, color: textColor, marginVertical: 10 },
         ol: { paddingLeft: 20, color: textColor, marginVertical: 10 },
-        li: { marginBottom: 8, color: textColor, fontSize: 17 * fontSizeScale, lineHeight: (28 * lineHeightScale) / 1.5 },
+        li: {
+          marginBottom: 8,
+          color: textColor,
+          fontSize: 17 * fontSizeScale,
+          lineHeight: (28 * lineHeightScale) / 1.5,
+        },
         hr: {
           height: 1,
           backgroundColor: 'rgba(150,150,150,0.2)',
@@ -715,7 +749,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       <View className="bg-transparent">
         {contentArray ? (
           renderPinContent()
-        ) : (!useWebView || useNativeFallback || useNative) ? (
+        ) : !useWebView || useNativeFallback || useNative ? (
           <View className="px-1">
             <RenderHtml
               contentWidth={width - 40}

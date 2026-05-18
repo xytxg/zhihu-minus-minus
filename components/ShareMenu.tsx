@@ -2,12 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Modal, Pressable, Share, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text, View } from './Themed';
-import { useColorScheme } from './useColorScheme';
 import Colors from '@/constants/Colors';
-import { MenuOption } from './MenuOption';
 import { copyToClipboard } from '@/utils/clipboard';
 import { showToast } from '@/utils/toast';
+import { MenuOption } from './MenuOption';
+import { Text, View } from './Themed';
+import { useColorScheme } from './useColorScheme';
 
 export type ShareContentType = 'answer' | 'question' | 'pin' | 'article';
 
@@ -39,7 +39,7 @@ export function ShareMenu({ visible, onClose, type, data }: ShareMenuProps) {
     if (data.url) return data.url;
     switch (type) {
       case 'answer':
-        // Note: For answers, we might need a questionId too. 
+        // Note: For answers, we might need a questionId too.
         // If not provided, we just use the answer ID.
         return `https://www.zhihu.com/answer/${data.id}`;
       case 'question':

@@ -14,6 +14,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
+import Reanimated, { SharedTransition } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deleteAnswer, getAnswer } from '@/api/zhihu';
 import {
@@ -24,17 +25,15 @@ import {
 import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
+import { MenuOption } from '@/components/MenuOption';
+import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
-import { MenuOption } from '@/components/MenuOption';
 import Colors from '@/constants/Colors';
-import { ShareMenu } from '@/components/ShareMenu';
-
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { showToast } from '@/utils/toast';
-import Reanimated, { SharedTransition } from 'react-native-reanimated';
 
 const slowTransition = SharedTransition.duration(600);
 
@@ -208,7 +207,10 @@ export const AnswerDetailView = ({
               style={{ maxWidth: '90%', paddingTop: 6 }}
               className="bg-transparent"
             >
-              <Text className="text-[14px] font-bold text-center" numberOfLines={1}>
+              <Text
+                className="text-[14px] font-bold text-center"
+                numberOfLines={1}
+              >
                 {answer?.question?.title || '加载中...'}
               </Text>
             </Pressable>
@@ -222,7 +224,10 @@ export const AnswerDetailView = ({
                 source={{ uri: answer?.author?.avatar_url }}
                 className="w-4 h-4 rounded-full mr-1"
               />
-              <Text className="text-[11px] font-medium opacity-60" numberOfLines={1}>
+              <Text
+                className="text-[11px] font-medium opacity-60"
+                numberOfLines={1}
+              >
                 {answer?.author?.name || '知乎用户'}
               </Text>
             </Pressable>
@@ -247,7 +252,6 @@ export const AnswerDetailView = ({
           paddingBottom: 100 + insets.bottom,
         }}
       >
-
         <View className="flex-row items-center p-5 justify-between bg-transparent">
           <Pressable
             onPress={goToProfile}
@@ -276,10 +280,10 @@ export const AnswerDetailView = ({
               !answer?.author?.is_following
                 ? { backgroundColor: '#0084ff15' }
                 : {
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: '#eee',
-                },
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: '#eee',
+                  },
             ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
@@ -317,7 +321,9 @@ export const AnswerDetailView = ({
             ) : (
               <View className="h-[500px] justify-center items-center bg-transparent">
                 <ActivityIndicator size="small" color="#0084ff" />
-                <Text type="secondary" className="mt-4 text-xs opacity-50">正在准备内容...</Text>
+                <Text type="secondary" className="mt-4 text-xs opacity-50">
+                  正在准备内容...
+                </Text>
               </View>
             )}
             <Text
@@ -397,13 +403,17 @@ export const AnswerDetailView = ({
         visible={isSharing}
         onClose={() => setIsSharing(false)}
         type="answer"
-        data={answer ? {
-          id: answer.id,
-          title: answer.question?.title,
-          author: answer.author?.name,
-          authorHeadline: answer.author?.headline,
-          url: getShareLink()
-        } : null}
+        data={
+          answer
+            ? {
+                id: answer.id,
+                title: answer.question?.title,
+                author: answer.author?.name,
+                authorHeadline: answer.author?.headline,
+                url: getShareLink(),
+              }
+            : null
+        }
       />
 
       {/* 操作菜单 */}

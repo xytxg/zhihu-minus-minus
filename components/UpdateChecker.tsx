@@ -1,28 +1,40 @@
 import Constants from 'expo-constants';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
-import { Paths, File, Directory } from 'expo-file-system';
-import { getContentUriAsync, createDownloadResumable } from 'expo-file-system/legacy';
+import {
+  createDownloadResumable,
+  getContentUriAsync,
+} from 'expo-file-system/legacy';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as SecureStore from 'expo-secure-store';
 import * as Sharing from 'expo-sharing';
 import * as WebBrowser from 'expo-web-browser';
 import type React from 'react';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, Platform, Modal, View, StyleSheet } from 'react-native';
-import { showToast } from '@/utils/toast';
+import {
+  Alert,
+  Linking,
+  Modal,
+  Platform,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { Text } from '@/components/Themed';
-import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { showToast } from '@/utils/toast';
 
 const GITHUB_RELEASE_API =
   'https://api.github.com/repos/huamurui/zhihu-minus-minus/releases/latest';
 const IGNORED_VERSION_KEY = 'ignored_version_tag';
 
-export const useCheckUpdate = (onUpdate?: (url: string, version: string) => void) => {
+export const useCheckUpdate = (
+  onUpdate?: (url: string, version: string) => void,
+) => {
   useEffect(() => {
     const checkUpdate = async () => {
       // 延迟检查，避免干扰首屏路由
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       try {
         const response = await fetch(GITHUB_RELEASE_API);
         const data = await response.json();
@@ -124,11 +136,14 @@ async function downloadAndInstallApk(
     const baseDir = cacheDir || docDir;
 
     if (!baseDir) {
-      console.error('[Update] Paths.cache.uri and Paths.document.uri are both empty');
+      console.error(
+        '[Update] Paths.cache.uri and Paths.document.uri are both empty',
+      );
       throw new Error('Storage directory not found');
     }
 
-    const fileUri = (baseDir.endsWith('/') ? baseDir : `${baseDir}/`) + filename;
+    const fileUri =
+      (baseDir.endsWith('/') ? baseDir : `${baseDir}/`) + filename;
     console.log('[Update] target path:', fileUri);
 
     // Modern API v55: Delete if exists to avoid "Destination already exists"
@@ -139,7 +154,7 @@ async function downloadAndInstallApk(
       } else {
         await (FileSystem as any).deleteAsync(fileUri, { idempotent: true });
       }
-    } catch (e) { }
+    } catch (e) {}
 
     showToast('开始下载更新...');
 
@@ -182,7 +197,10 @@ async function downloadAndInstallApk(
           // Delay closing the modal to ensure the intent has time to launch
           setTimeout(() => onStatusChange?.(false), 1000);
         } catch (intentError) {
-          console.error('[Update] Intent failed, trying fallback sharing:', intentError);
+          console.error(
+            '[Update] Intent failed, trying fallback sharing:',
+            intentError,
+          );
           onStatusChange?.(false);
           showToast('直接安装失败，尝试通过分享打开...');
           await Sharing.shareAsync(downloadedUri, {

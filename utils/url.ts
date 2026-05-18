@@ -15,7 +15,7 @@ export function parseZhihuUrl(url: string | null): string | null {
 
       if (url.startsWith('http')) {
         // 处理 http(s) 链接: https://www.zhihu.com/question/123 -> /question/123
-        const match = rest.match(/^[^\/]+(\/.*)$/);
+        const match = rest.match(/^[^/]+(\/.*)$/);
         path = match ? match[1] : '/';
       } else {
         // 处理自定义 scheme: zhihu://question/123 -> /question/123

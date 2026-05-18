@@ -15,10 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { getPin } from '@/api/zhihu/pin';
 import { LikeButton } from '@/components/LikeButton';
+import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import { ShareMenu } from '@/components/ShareMenu';
 
 export default function PinDetailScreen() {
   const colorScheme = useColorScheme();
@@ -71,12 +71,16 @@ export default function PinDetailScreen() {
         visible={isSharing}
         onClose={() => setIsSharing(false)}
         type="pin"
-        data={pin ? {
-          id: pin.id,
-          author: pin.author?.name,
-          authorHeadline: pin.author?.headline,
-          url: `https://www.zhihu.com/pin/${id}`
-        } : null}
+        data={
+          pin
+            ? {
+                id: pin.id,
+                author: pin.author?.name,
+                authorHeadline: pin.author?.headline,
+                url: `https://www.zhihu.com/pin/${id}`,
+              }
+            : null
+        }
       />
 
       {/* Header */}
@@ -211,7 +215,7 @@ export default function PinDetailScreen() {
               {pin?.comment_count}
             </Text>
           </Pressable>
-          <Pressable 
+          <Pressable
             className="items-center ml-[22px] flex-row"
             onPress={() => setIsSharing(true)}
           >
