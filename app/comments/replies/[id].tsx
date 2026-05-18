@@ -3,7 +3,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,26 +15,52 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { createCommentReply, getChildComments } from '@/api/zhihu';
+import {
+  type CommentItem,
+  createCommentReply,
+  getChildComments,
+  getComment,
+} from '@/api/zhihu';
 import { LikeButton } from '@/components/LikeButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
 export default function ReplyDetailScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, parent } = useLocalSearchParams<{
+    id: string;
+    parent?: string;
+  }>();
   const [inputText, setInputText] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(
     null,
   );
   const inputRef = useRef<TextInput>(null);
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
+  const _queryClient = useQueryClient();
+  const _insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const borderColor = Colors[colorScheme].border;
   const textColor = Colors[colorScheme].text;
   const tintColor = Colors[colorScheme].tint;
+
+  const initialParentComment = useMemo<CommentItem | null>(() => {
+    if (!parent) return null;
+    try {
+      return JSON.parse(decodeURIComponent(parent));
+    } catch (e) {
+      console.error('Failed to parse parent comment:', e);
+      return null;
+    }
+  }, [parent]);
+
+  const { data: parentCommentFromApi } = useQuery({
+    queryKey: ['parent-comment', id],
+    queryFn: () => getComment(id as string),
+    enabled: !initialParentComment && !!id,
+  });
+
+  const parentComment = initialParentComment || parentCommentFromApi;
 
   const {
     data: replies,
@@ -70,7 +96,7 @@ export default function ReplyDetailScreen() {
     if (urlToken) router.push(`/user/${urlToken}`);
   };
 
-  const renderReply = ({ item }: { item: any }) => {
+  const renderReply = ({ item }: { item: CommentItem }) => {
     const cleanContent = item.content?.replace(/<[^>]+>/g, '').trim() || '';
     return (
       <View
@@ -110,12 +136,13 @@ export default function ReplyDetailScreen() {
                   type="primary"
                   onPress={() =>
                     goToProfile(
-                      item.reply_to_author.member.url_token ||
-                        item.reply_to_author.member.id,
+                      item.reply_to_author?.member.url_token ||
+                        item.reply_to_author?.member.id ||
+                        0,
                     )
                   }
                 >
-                  {item.reply_to_author.member.name}
+                  {item.reply_to_author?.member.name}
                 </Text>
               </Text>
             )}
@@ -143,7 +170,10 @@ export default function ReplyDetailScreen() {
               />
               <Pressable
                 onPress={() => {
-                  setReplyTo({ id: item.id, name: item.author.member.name });
+                  setReplyTo({
+                    id: item.id as string,
+                    name: item.author.member.name,
+                  });
                   inputRef.current?.focus();
                 }}
                 className="ml-[15px]"
@@ -159,6 +189,111 @@ export default function ReplyDetailScreen() {
     );
   };
 
+  const renderHeader = () => {
+    if (!parentComment) return null;
+    const cleanContent =
+      parentComment.content?.replace(/<[^>]+>/g, '').trim() || '';
+    return (
+      <View
+        style={{
+          borderBottomWidth: 8,
+          borderBottomColor: colorScheme === 'dark' ? '#1A1A1A' : '#F5F5F5',
+        }}
+      >
+        <View className="flex-row p-[15px] bg-transparent">
+          <Pressable
+            onPress={() =>
+              goToProfile(
+                parentComment.author.member.url_token ||
+                  parentComment.author.member.id,
+              )
+            }
+          >
+            <Image
+              source={{ uri: parentComment.author.member.avatar_url }}
+              className="w-9 h-9 rounded-full"
+            />
+          </Pressable>
+          <View className="flex-1 ml-3 bg-transparent">
+            <View className="flex-row items-center mb-1">
+              <Text
+                className="font-bold text-sm mr-2"
+                onPress={() =>
+                  goToProfile(
+                    parentComment.author.member.url_token ||
+                      parentComment.author.member.id,
+                  )
+                }
+              >
+                {parentComment.author.member.name}
+              </Text>
+              {parentComment.author.member.headline && (
+                <Text
+                  type="secondary"
+                  className="text-xs flex-1"
+                  numberOfLines={1}
+                >
+                  {parentComment.author.member.headline}
+                </Text>
+              )}
+            </View>
+            <Text
+              className="text-[16px] leading-[24px] mt-1 mb-2"
+              style={{ color: textColor }}
+            >
+              {cleanContent}
+            </Text>
+
+            <View className="flex-row justify-between items-center mt-1">
+              <Text type="secondary" className="text-xs">
+                {parentComment.created_time
+                  ? new Date(
+                      parentComment.created_time * 1000,
+                    ).toLocaleDateString()
+                  : ''}
+              </Text>
+              <View className="flex-row items-center">
+                <LikeButton
+                  id={parentComment.id}
+                  count={parentComment.vote_count || 0}
+                  voted={parentComment.relationship?.voting || 0}
+                  type="comments"
+                  variant="ghost"
+                />
+                <Pressable
+                  onPress={() => {
+                    setReplyTo({
+                      id: parentComment.id as string,
+                      name: parentComment.author.member.name,
+                    });
+                    inputRef.current?.focus();
+                  }}
+                  className="ml-[15px]"
+                >
+                  <Text type="secondary" className="text-xs py-1">
+                    回复
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          className="px-[15px] py-2.5 bg-transparent"
+          style={{
+            borderTopWidth: StyleSheet.hairlineWidth,
+            borderTopColor: borderColor,
+          }}
+        >
+          <Text className="text-xs font-bold" style={{ color: tintColor }}>
+            共 {replies?.length || parentComment.child_comment_count || 0}{' '}
+            条回复
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <View type="secondary" className="flex-1">
       <Stack.Screen options={{ title: '所有回复' }} />
@@ -166,7 +301,8 @@ export default function ReplyDetailScreen() {
         <FlashList
           data={replies}
           renderItem={renderReply}
-          keyExtractor={(item: any) => item.id.toString()}
+          keyExtractor={(item: CommentItem) => item.id.toString()}
+          ListHeaderComponent={renderHeader}
           {...({ estimatedItemSize: 100 } as any)}
           contentContainerStyle={{ paddingBottom: 160 }}
           onRefresh={refetch}

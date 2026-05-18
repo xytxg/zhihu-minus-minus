@@ -1,10 +1,111 @@
 import apiClient from '../client';
 
+export interface CommentVipIcon {
+  url?: string;
+  night_mode_url?: string;
+}
+
+export interface CommentVipInfo {
+  is_vip: boolean;
+  vip_icon?: CommentVipIcon;
+}
+
+export interface CommentBadge {
+  type: string;
+  description: string;
+}
+
+export interface CommentMember {
+  id: string;
+  url_token: string;
+  name: string;
+  avatar_url: string;
+  avatar_url_template?: string;
+  is_org?: boolean;
+  type?: string;
+  url?: string;
+  user_type?: string;
+  headline?: string;
+  badge?: CommentBadge[];
+  gender?: number;
+  is_advertiser?: boolean;
+  vip_info?: CommentVipInfo;
+}
+
+export interface CommentAuthor {
+  role?: string;
+  member: CommentMember;
+}
+
+export interface CommentItem {
+  id: number | string;
+  type: 'comment';
+  url?: string;
+  content: string;
+  featured?: boolean;
+  top?: boolean;
+  collapsed?: boolean;
+  is_author?: boolean;
+  is_delete?: boolean;
+  created_time: number;
+  resource_type?: string;
+  reviewing?: boolean;
+  allow_like?: boolean;
+  allow_delete?: boolean;
+  allow_reply?: boolean;
+  allow_vote?: boolean;
+  can_recommend?: boolean;
+  can_collapse?: boolean;
+  attached_info?: string;
+  author: CommentAuthor;
+  vote_count: number;
+  reply_to_author?: CommentAuthor | null;
+  voting?: boolean;
+  liked?: boolean;
+  disliked?: boolean;
+  censor_status?: number;
+  address_text?: string;
+  child_comment_count: number;
+  child_comments: CommentItem[];
+  relationship?: {
+    voting: number;
+  };
+}
+
+export interface CommentStatus {
+  can_comment: boolean;
+  can_reply: boolean;
+  toast?: string;
+}
+
+export interface CommentPaging {
+  is_end: boolean;
+  is_start: boolean;
+  next: string;
+  previous: string;
+  totals: number;
+}
+
+export interface ZhihuCommentResponse {
+  featured_counts?: number;
+  common_counts?: number;
+  collapsed_counts?: number;
+  reviewing_counts?: number;
+  comment_status?: CommentStatus;
+  paging: CommentPaging;
+  data: CommentItem[];
+}
+
+export const getComment = async (id: string | number): Promise<CommentItem> => {
+  const res = await apiClient.get(`/comments/${id}`);
+  return normalizeComment(res.data);
+};
+
 export const getAnswerComments = async (
   id: string | number,
   limit = 20,
   offset = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const include =
     'data[*].author,content,child_comment_count,child_comments,vote_count,created_time';
   const res = await apiClient.get(
@@ -19,7 +120,7 @@ export const getAnswerComments = async (
 export const createAnswerComment = async (
   id: string | number,
   content: string,
-) => {
+): Promise<any> => {
   const res = await apiClient.post(`/answers/${id}/comments`, {
     content,
     type: 'comment',
@@ -31,7 +132,7 @@ export const getChildComments = async (
   id: string | number,
   limit = 20,
   offset = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const include =
     'data[*].author,vote_count,content,created_time,reply_to_author';
   const res = await apiClient.get(
@@ -47,7 +148,7 @@ export const getCommentReplies = async (
   id: string | number,
   limit = 20,
   offset = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const include =
     'data[*].author,content,vote_count,created_time,reply_to_comment';
   const res = await apiClient.get(
@@ -63,7 +164,7 @@ export const createCommentReply = async (
   id: string | number,
   content: string,
   extra?: Record<string, any>,
-) => {
+): Promise<any> => {
   const res = await apiClient.post(`/comments/${id}/replies`, {
     content,
     type: 'comment',
@@ -75,7 +176,7 @@ export const createCommentReply = async (
 export const voteComment = async (
   id: string | number,
   type: 'up' | 'neutral',
-) => {
+): Promise<any> => {
   if (type === 'up') {
     const res = await apiClient.post(`/comments/${id}/like`);
     return res.data;
@@ -84,11 +185,12 @@ export const voteComment = async (
     return res.data;
   }
 };
+
 export const getQuestionComments = async (
   id: string | number,
   limit = 20,
   offset = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const include =
     'data[*].author,content,child_comment_count,child_comments,vote_count,created_time';
   const res = await apiClient.get(
@@ -103,7 +205,7 @@ export const getQuestionComments = async (
 export const createQuestionComment = async (
   id: string | number,
   content: string,
-) => {
+): Promise<any> => {
   const res = await apiClient.post(`/questions/${id}/comments`, {
     content,
     type: 'comment',
@@ -119,7 +221,7 @@ export const getAnswerCommentsV5 = async (
   id: string | number,
   limit = 20,
   offset: string | number = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
     `/comment_v5/answers/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
   );
@@ -131,7 +233,7 @@ export const getQuestionCommentsV5 = async (
   id: string | number,
   limit = 20,
   offset: string | number = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
     `/comment_v5/questions/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
   );
@@ -143,7 +245,7 @@ export const getArticleCommentsV5 = async (
   id: string | number,
   limit = 20,
   offset: string | number = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
     `/comment_v5/articles/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
   );
@@ -154,7 +256,7 @@ export const getArticleCommentsV5 = async (
 export const createArticleComment = async (
   id: string | number,
   content: string,
-) => {
+): Promise<any> => {
   const res = await apiClient.post(`/articles/${id}/comments`, {
     content,
     type: 'comment',
@@ -166,7 +268,7 @@ export const getChildCommentsV5 = async (
   id: string | number,
   limit = 20,
   offset: string | number = 0,
-) => {
+): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
     `/comment_v5/comments/${id}/child_comment?limit=${limit}&offset=${offset}`,
   );
@@ -177,7 +279,7 @@ export const getChildCommentsV5 = async (
 /**
  * 格式化评论数据，兼容 v4 和 v5 结构
  */
-const normalizeComment = (comment: any) => {
+const normalizeComment = (comment: any): CommentItem => {
   if (!comment) return comment;
 
   // 1. 处理作者结构 (V5 扁平化了)

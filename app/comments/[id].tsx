@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  type CommentItem,
   createAnswerComment,
   createArticleComment,
   createCommentReply,
@@ -42,8 +43,8 @@ export default function CommentScreen() {
     null,
   );
   const inputRef = React.useRef<TextInput>(null);
-  const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
+  const _queryClient = useQueryClient();
+  const _insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const borderColor = Colors[colorScheme].border;
   const surfaceColor = Colors[colorScheme].surface;
@@ -88,7 +89,7 @@ export default function CommentScreen() {
     if (urlToken) router.push(`/user/${urlToken}`);
   };
 
-  const renderComment = ({ item }: { item: any }) => {
+  const renderComment = ({ item }: { item: CommentItem }) => {
     const cleanContent = item.content?.replace(/<[^>]+>/g, '').trim() || '';
     return (
       <View
@@ -136,43 +137,6 @@ export default function CommentScreen() {
               {cleanContent}
             </Text>
 
-            {item.child_comment_count > 0 && (
-              <Pressable
-                className="mt-2.5 p-2.5 rounded-lg"
-                style={{ backgroundColor: surfaceColor }}
-                onPress={() => router.push(`/comments/replies/${item.id}`)}
-              >
-                {(item.child_comments || []).slice(0, 2).map((child: any) => (
-                  <View
-                    key={child.id}
-                    className="flex-row items-start mb-2 mr-2.5 bg-transparent"
-                  >
-                    <Image
-                      source={{ uri: child.author?.member?.avatar_url }}
-                      className="w-[18px] h-[18px] rounded-full mr-2"
-                    />
-                    <Text
-                      className="text-sm leading-5 flex-1"
-                      numberOfLines={2}
-                    >
-                      <Text type="secondary" className="font-bold">
-                        {child.author?.member?.name}：
-                      </Text>
-                      {child.content?.replace(/<[^>]+>/g, '').trim()}
-                    </Text>
-                  </View>
-                ))}
-                <View
-                  className="py-1 px-3 rounded-[14px] mt-2 self-start"
-                  style={{ backgroundColor: borderColor }}
-                >
-                  <Text type="secondary" className="text-xs font-medium">
-                    查看全部 {item.child_comment_count} 条回复 {'>'}
-                  </Text>
-                </View>
-              </Pressable>
-            )}
-
             <View className="flex-row justify-between items-center mt-2">
               <Text type="secondary" className="text-xs">
                 {item.created_time
@@ -189,7 +153,10 @@ export default function CommentScreen() {
                 />
                 <Pressable
                   onPress={() => {
-                    setReplyTo({ id: item.id, name: item.author.member.name });
+                    setReplyTo({
+                      id: item.id as string,
+                      name: item.author.member.name,
+                    });
                     inputRef.current?.focus();
                   }}
                   className="ml-[15px]"
@@ -200,6 +167,51 @@ export default function CommentScreen() {
                 </Pressable>
               </View>
             </View>
+
+            {item.child_comment_count > 0 && (
+              <Pressable
+                className="mt-2.5 p-2.5 rounded-lg"
+                style={{ backgroundColor: surfaceColor }}
+                onPress={() =>
+                  router.push(
+                    `/comments/replies/${item.id}?parent=${encodeURIComponent(
+                      JSON.stringify(item),
+                    )}`,
+                  )
+                }
+              >
+                {(item.child_comments || [])
+                  .slice(0, 2)
+                  .map((child: CommentItem) => (
+                    <View
+                      key={child.id}
+                      className="flex-row items-start mb-2 mr-2.5 bg-transparent"
+                    >
+                      <Image
+                        source={{ uri: child.author?.member?.avatar_url }}
+                        className="w-[18px] h-[18px] rounded-full mr-2"
+                      />
+                      <Text
+                        className="text-sm leading-5 flex-1"
+                        numberOfLines={2}
+                      >
+                        <Text type="secondary" className="font-bold">
+                          {child.author?.member?.name}：
+                        </Text>
+                        {child.content?.replace(/<[^>]+>/g, '').trim()}
+                      </Text>
+                    </View>
+                  ))}
+                <View
+                  className="py-1 px-3 rounded-[14px] mt-2 self-start"
+                  style={{ backgroundColor: borderColor }}
+                >
+                  <Text type="secondary" className="text-xs font-medium">
+                    查看全部 {item.child_comment_count} 条回复 {'>'}
+                  </Text>
+                </View>
+              </Pressable>
+            )}
           </View>
         </View>
       </View>
@@ -214,7 +226,7 @@ export default function CommentScreen() {
         <FlashList
           data={comments}
           renderItem={renderComment}
-          keyExtractor={(item: any) => item.id.toString()}
+          keyExtractor={(item: CommentItem) => item.id.toString()}
           {...({ estimatedItemSize: 120 } as any)}
           onRefresh={refetch}
           refreshing={isFetching && !isLoading}
