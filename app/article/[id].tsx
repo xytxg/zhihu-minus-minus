@@ -1,30 +1,51 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Image,
+  Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
-  useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getArticle, getDailyDetail } from '@/api/zhihu';
+import {
+  fastCollectArticle,
+  getArticleCollectionStatus,
+  removeArticleFromCollection,
+} from '@/api/zhihu/collection';
+import { followMember, unfollowMember } from '@/api/zhihu/member';
+import { DownvoteButton } from '@/components/DownvoteButton';
+import { LikeButton } from '@/components/LikeButton';
+import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
+import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
+import { showToast } from '@/utils/toast';
 
 export default function ArticleDetail() {
   const colorScheme = useColorScheme();
   const { id, source } = useLocalSearchParams();
-  const { width } = useWindowDimensions();
-  const surfaceColor = Colors[colorScheme].surface;
+  const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const [isSharing, setIsSharing] = React.useState(false);
+  const isDaily = source === 'daily';
+  const surfaceColor = Colors[colorScheme].surface;
+  const textColor = Colors[colorScheme].text;
+  const isDark = colorScheme === 'dark';
+
+  const [isSharing, setIsSharing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [isLiked, setIsLiked] = useState(false); // Local liked menu state (optional)
+
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // 1. 获取日报详情
   const { data: dailyData, isLoading: dailyLoading } = useQuery({
@@ -40,46 +61,335 @@ export default function ArticleDetail() {
     enabled: source !== 'daily',
   });
 
-  const isLoading = source === 'daily' ? dailyLoading : zhihuLoading;
-  const data = source === 'daily' ? dailyData : zhihuData;
+  const isLoading = isDaily ? dailyLoading : zhihuLoading;
+  const data = isDaily ? dailyData : zhihuData;
 
-  if (isLoading)
+  // 3. 获取文章被收藏状态
+  const { data: collectionStatus, refetch: refetchCollectionStatus } = useQuery(
+    {
+      queryKey: ['article-collection-status', id],
+      queryFn: () => getArticleCollectionStatus(id as string),
+      enabled: !!id && !isDaily && !isLoading,
+      staleTime: 60 * 1000, // 1 minute
+    },
+  );
+
+  const isCollected = collectionStatus?.data?.some(
+    (item: any) => item.is_favorited,
+  );
+  const favoritedCollection = collectionStatus?.data?.find(
+    (item: any) => item.is_favorited,
+  );
+
+  const collectMutation = useMutation({
+    mutationFn: async () => {
+      if (isCollected && favoritedCollection) {
+        return removeArticleFromCollection(
+          favoritedCollection.id,
+          id as string,
+        );
+      }
+      return fastCollectArticle(id as string);
+    },
+    onSuccess: (res) => {
+      refetchCollectionStatus();
+      if (!isCollected) {
+        showToast(`已收藏到「${res?.collection?.title || '我的收藏'}」`);
+      } else {
+        showToast('已取消收藏');
+      }
+    },
+    onError: (err: any) =>
+      showToast(err.response?.data?.error?.message || '无法处理请求'),
+  });
+
+  // 4. 关注作者逻辑
+  const followMutation = useOptimisticToggle({
+    mutationFn: async () => {
+      if (data?.author?.is_following) {
+        return unfollowMember(data.author.url_token || data.author.id);
+      }
+      return followMember(data.author.url_token || data.author.id);
+    },
+    isActive: data?.author?.is_following,
+    successMessage: (isActive) => (isActive ? '已取消关注' : '已关注'),
+    invalidateQueries: [['zhihu-article', id]],
+  });
+
+  const goToProfile = () => {
+    const token = data?.author?.url_token || data?.author?.id;
+    if (token) router.push(`/user/${token}`);
+  };
+
+  // Header Animation values
+  const headerBgOpacity = scrollY.interpolate({
+    inputRange: [0, 80],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const headerTitleOpacity = scrollY.interpolate({
+    inputRange: [80, 140],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color={Colors[colorScheme].primary} />
         <Text className="mt-3">正赶往知识的荒原...喵</Text>
       </View>
     );
+  }
 
-  if (!data)
+  if (!data) {
     return (
       <View className="flex-1 justify-center items-center">
         <Text>加载失败喵</Text>
       </View>
     );
-
-  const isDaily = source === 'daily';
+  }
 
   return (
-    <ScrollView className="flex-1">
-      <Stack.Screen
-        options={{
-          title: isDaily ? '知乎日报' : '文章',
-          headerRight: () => (
-            <Pressable
-              onPress={() => setIsSharing(true)}
-              style={{ marginRight: 10 }}
-            >
-              <Ionicons
-                name="share-outline"
-                size={24}
-                color={Colors[colorScheme].text}
-              />
-            </Pressable>
-          ),
-        }}
-      />
+    <View className="flex-1">
+      {/* Hide native header */}
+      <Stack.Screen options={{ headerShown: false }} />
 
+      {/* Floating Header Bar */}
+      <View
+        className="flex-row items-center justify-between px-2.5 absolute left-0 right-0 z-50"
+        style={{
+          top: 0,
+          paddingTop: insets.top,
+          height: 56 + insets.top,
+          backgroundColor: 'transparent',
+        }}
+        pointerEvents="box-none"
+      >
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+              opacity: headerBgOpacity,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: isDark
+                ? 'rgba(255,255,255,0.1)'
+                : 'rgba(0,0,0,0.1)',
+            },
+          ]}
+          pointerEvents="none"
+        />
+
+        <Pressable
+          onPress={() => router.back()}
+          className="w-10 h-10 justify-center items-center z-50"
+        >
+          <Ionicons name="chevron-back" size={28} color={textColor} />
+        </Pressable>
+
+        <Animated.View
+          className="flex-1 mx-4"
+          style={{ opacity: headerTitleOpacity }}
+          pointerEvents="none"
+        >
+          <Text
+            className="text-[16px] font-bold text-center"
+            numberOfLines={1}
+            style={{ color: textColor }}
+          >
+            {data.title}
+          </Text>
+        </Animated.View>
+
+        <Pressable
+          onPress={() => setIsSharing(true)}
+          className="w-10 h-10 justify-center items-center z-50"
+        >
+          <Ionicons name="share-outline" size={24} color={textColor} />
+        </Pressable>
+      </View>
+
+      <Animated.ScrollView
+        className="flex-1"
+        style={{
+          backgroundColor: isDark
+            ? 'rgba(34, 34, 34, 0.85)'
+            : 'rgba(255, 255, 255, 0.9)',
+        }}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true },
+        )}
+        contentContainerStyle={{
+          paddingTop: isDaily ? 0 : insets.top + 60,
+          paddingBottom: isDaily ? 100 + insets.bottom : 120 + insets.bottom,
+        }}
+      >
+        {isDaily ? (
+          <View className="w-full h-[300px] relative">
+            <Image source={{ uri: data.image }} className="w-full h-full" />
+            <View
+              className="absolute bottom-0 p-5 w-full"
+              style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            >
+              <Text className="text-white text-[22px] font-bold">
+                {data.title}
+              </Text>
+              {data.image_source && (
+                <Text
+                  className="text-right mt-2 text-[10px]"
+                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                >
+                  {data.image_source}
+                </Text>
+              )}
+            </View>
+          </View>
+        ) : (
+          <View className="p-5 pt-[10px]">
+            <Text className="text-2xl font-bold leading-8 mb-5">
+              {data.title}
+            </Text>
+            <View className="flex-row items-center justify-between bg-transparent mt-2">
+              <Pressable
+                onPress={goToProfile}
+                className="flex-row items-center flex-1 bg-transparent"
+              >
+                <Image
+                  source={{ uri: data.author?.avatar_url }}
+                  className="w-11 h-11 rounded-full"
+                />
+                <View className="ml-3 flex-1 bg-transparent">
+                  <Text className="text-base font-bold">
+                    {data.author?.name}
+                  </Text>
+                  <Text
+                    type="secondary"
+                    className="text-[13px] text-[#999] mt-0.5"
+                    numberOfLines={1}
+                  >
+                    {data.author?.headline}
+                  </Text>
+                </View>
+              </Pressable>
+              <Pressable
+                className="px-[15px] py-1.5 rounded-[20px]"
+                style={[
+                  !data.author?.is_following
+                    ? { backgroundColor: '#0084ff15' }
+                    : {
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: '#eee',
+                      },
+                ]}
+                onPress={() => followMutation.mutate()}
+                disabled={followMutation.isPending}
+              >
+                <Text
+                  className="text-sm font-bold"
+                  style={[
+                    data.author?.is_following
+                      ? { color: '#999' }
+                      : { color: '#0084ff' },
+                  ]}
+                >
+                  {data.author?.is_following ? '已关注' : '关注'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        {/* Content Render */}
+        <View className="px-[15px] bg-transparent mt-3">
+          <ZhihuContent
+            content={isDaily ? data.body : data.content}
+            objectId={id as string}
+            type="article"
+          />
+        </View>
+
+        {/* Publish time and copyright notice for standard articles */}
+        {!isDaily && data.created && (
+          <View className="px-5">
+            <Text
+              type="secondary"
+              className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
+            >
+              发布于 {new Date(data.created * 1000).toLocaleDateString()} ·
+              著作权归作者所有
+            </Text>
+          </View>
+        )}
+      </Animated.ScrollView>
+
+      {/* Floating Footer Actions for Standard Articles */}
+      {!isDaily && (
+        <View
+          className="absolute left-5 right-5 z-[1000] shadow-black/10 shadow-[0_10px_20px] elevation-10"
+          style={{ bottom: insets.bottom + 10 }}
+        >
+          <BlurView
+            intensity={130}
+            tint={isDark ? 'dark' : 'light'}
+            className="rounded-[32px] overflow-hidden h-16"
+            style={{
+              backgroundColor: isDark
+                ? 'rgba(26,26,26,0.8)'
+                : 'rgba(255,255,255,0.85)',
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: 'rgba(150,150,150,0.1)',
+            }}
+          >
+            <View className="flex-row items-center px-5 h-full bg-transparent">
+              <View className="flex-row items-center bg-transparent">
+                <LikeButton
+                  id={id as string}
+                  count={data.voteup_count || 0}
+                  voted={data.relationship?.voting === 1 ? 1 : 0}
+                  type="articles"
+                  variant="minimal"
+                />
+                <View className="w-2.5 bg-transparent" />
+                <DownvoteButton
+                  id={id as string}
+                  voted={data.relationship?.voting}
+                  type="articles"
+                  variant="minimal"
+                />
+              </View>
+              <View className="flex-1 flex-row justify-end items-center bg-transparent">
+                <Pressable
+                  className="items-center ml-5 flex-row bg-transparent"
+                  onPress={() => router.push(`/comments/${id}?type=article`)}
+                >
+                  <Ionicons name="chatbubble-outline" size={24} color="#888" />
+                  {data.comment_count > 0 && (
+                    <Text
+                      type="secondary"
+                      className="ml-1 text-[13px] font-medium text-[#888]"
+                    >
+                      {data.comment_count}
+                    </Text>
+                  )}
+                </Pressable>
+                <Pressable
+                  className="items-center ml-5 flex-row bg-transparent"
+                  onPress={() => setMenuVisible(true)}
+                >
+                  <Ionicons name="ellipsis-horizontal" size={24} color="#888" />
+                </Pressable>
+              </View>
+            </View>
+          </BlurView>
+        </View>
+      )}
+
+      {/* Share Menu */}
       <ShareMenu
         visible={isSharing}
         onClose={() => setIsSharing(false)}
@@ -97,87 +407,67 @@ export default function ArticleDetail() {
         }
       />
 
-      {/* 顶部展示模块 */}
-      {isDaily ? (
-        <View className="w-full h-[300px] relative">
-          <Image source={{ uri: data.image }} className="w-full h-full" />
-          <View
-            className="absolute bottom-0 p-5 w-full"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-          >
-            <Text className="text-white text-[22px] font-bold">
-              {data.title}
-            </Text>
-            {data.image_source && (
-              <Text
-                className="text-right mt-2 text-[10px]"
-                style={{ color: 'rgba(255,255,255,0.7)' }}
-              >
-                {data.image_source}
-              </Text>
-            )}
-          </View>
-        </View>
-      ) : (
-        <View className="p-5 pt-[30px]">
-          <Text className="text-2xl font-bold leading-8 mb-5">
-            {data.title}
-          </Text>
-          <View className="flex-row items-center">
-            <Image
-              source={{ uri: data.author?.avatar_url }}
-              className="w-11 h-11 rounded-full"
-            />
-            <View className="ml-3 flex-1">
-              <Text className="text-base font-bold">{data.author?.name}</Text>
-              <Text
-                type="secondary"
-                className="text-[13px] mt-0.5"
-                numberOfLines={1}
-              >
-                {data.author?.headline}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* 内容渲染 */}
-      <View className="px-[15px] bg-transparent">
-        <ZhihuContent
-          content={isDaily ? data.body : data.content}
-          objectId={id as string}
-          type="article"
-        />
-      </View>
-
-      {/* 底部信息 (针对普通文章) */}
-      {!isDaily && (
-        <View
-          className="p-5 mt-5"
-          style={{ borderTopWidth: StyleSheet.hairlineWidth }}
+      {/* Options Menu Modal */}
+      {menuVisible && !isSharing && (
+        <Modal
+          visible={menuVisible && !isSharing}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
         >
-          <Text type="secondary" className="text-sm mb-[15px]">
-            {data.voteup_count || 0} 赞同 · {data.comment_count || 0} 评论
-          </Text>
           <Pressable
-            className="flex-row items-center justify-center p-[15px] rounded-xl"
-            style={{ backgroundColor: surfaceColor }}
-            onPress={() => router.push(`/comments/${id}?type=article`)}
+            className="flex-1 justify-end bg-black/40"
+            onPress={() => setMenuVisible(false)}
           >
-            <Ionicons
-              name="chatbubble-outline"
-              size={18}
-              color={Colors[colorScheme].primary}
-            />
-            <Text type="primary" className="font-bold ml-2 text-[15px]">
-              查看全部 {data.comment_count || 0} 条评论
-            </Text>
-          </Pressable>
-        </View>
-      )}
+            <View
+              className="rounded-t-[24px] px-5 pt-2.5"
+              style={{
+                backgroundColor: surfaceColor,
+                paddingBottom: insets.bottom + 20,
+              }}
+            >
+              <View className="items-center py-2.5 bg-transparent">
+                <View className="w-10 h-1.5 rounded-[3px] bg-[#ddd]" />
+              </View>
 
-      <View className="h-[100px] bg-transparent" />
-    </ScrollView>
+              <View className="py-2.5 bg-transparent">
+                <MenuOption
+                  icon={isLiked ? 'heart' : 'heart-outline'}
+                  label={isLiked ? '取消喜欢' : '加入喜欢'}
+                  color={isLiked ? '#ff4d4f' : undefined}
+                  onPress={() => {
+                    setIsLiked(!isLiked);
+                    setMenuVisible(false);
+                  }}
+                />
+                <MenuOption
+                  icon={isCollected ? 'star' : 'star-outline'}
+                  label={isCollected ? '取消收藏' : '移至收藏'}
+                  color={isCollected ? '#ffb400' : undefined}
+                  onPress={() => {
+                    collectMutation.mutate();
+                    setMenuVisible(false);
+                  }}
+                />
+                <MenuOption
+                  icon="share-social-outline"
+                  label="分享文章"
+                  onPress={() => {
+                    setIsSharing(true);
+                    setMenuVisible(false);
+                  }}
+                />
+              </View>
+              <Pressable
+                className="py-[18px] mt-2.5 items-center"
+                onPress={() => setMenuVisible(false)}
+              >
+                <Text className="text-base font-bold">取消</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
+    </View>
   );
 }

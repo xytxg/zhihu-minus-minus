@@ -28,10 +28,12 @@ export function parseZhihuUrl(url: string | null): string | null {
 
     // 2. 规范化路径：移除 oia (移动端优化页前缀), 统一单复数
     path = path.replace(/^\/oia\//, '/');
-    path = path.replace(/^\/questions\//, '/question/');
-    path = path.replace(/^\/answers\//, '/answer/');
+    path = path.replace(/^\/questions?\//, '/question/');
+    path = path.replace(/^\/answers?\//, '/answer/');
     path = path.replace(/^\/people\//, '/user/');
+    path = path.replace(/^\/articles?\//, '/article/');
     path = path.replace(/^\/p\//, '/article/');
+    path = path.replace(/^\/pins?\//, '/pin/');
 
     // 3. 清理查询参数
     const cleanPath = path.split('?')[0];

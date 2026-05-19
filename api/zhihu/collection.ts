@@ -126,3 +126,72 @@ export const fastCollectAnswer = async (answerId: string | number) => {
   const res = await apiClient.post(`/collections/contents/answer/${answerId}`);
   return res.data;
 };
+
+/**
+ * 获取文章被收藏的状态及所属收藏夹列表
+ * GET /collections/contents/article/{article_id}
+ */
+export const getArticleCollectionStatus = async (
+  articleId: string | number,
+  limit = 5,
+  offset = 0,
+) => {
+  const res = await apiClient.get(
+    `/collections/contents/article/${articleId}`,
+    {
+      params: { limit, offset },
+    },
+  );
+  return res.data;
+};
+
+/**
+ * 添加文章到收藏夹
+ * POST /collections/{collection_id}/contents?content_id={article_id}&content_type=article
+ */
+export const addArticleToCollection = async (
+  collectionId: string | number,
+  articleId: string | number,
+) => {
+  const res = await apiClient.post(
+    `/collections/${collectionId}/contents`,
+    null,
+    {
+      params: {
+        content_id: articleId,
+        content_type: 'article',
+      },
+    },
+  );
+  return res.data;
+};
+
+/**
+ * 从收藏夹中删除文章
+ * DELETE /collections/{collection_id}/contents/{article_id}?content_type=article
+ */
+export const removeArticleFromCollection = async (
+  collectionId: string | number,
+  articleId: string | number,
+) => {
+  const res = await apiClient.delete(
+    `/collections/${collectionId}/contents/${articleId}`,
+    {
+      params: {
+        content_type: 'article',
+      },
+    },
+  );
+  return res.data;
+};
+
+/**
+ * 快速收藏文章到默认收藏夹
+ * POST /collections/contents/article/{article_id}
+ */
+export const fastCollectArticle = async (articleId: string | number) => {
+  const res = await apiClient.post(
+    `/collections/contents/article/${articleId}`,
+  );
+  return res.data;
+};
