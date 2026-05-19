@@ -3,7 +3,6 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { Stack, useRootNavigationState, useRouter } from 'expo-router';
@@ -26,14 +25,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
-
-if (!__DEV__) {
-  Sentry.init({
-    dsn: Constants.expoConfig?.extra?.sentryDsn,
-    debug: false,
-    enableAutoSessionTracking: true,
-  });
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -274,4 +265,4 @@ function RootLayout() {
     </QueryClientProvider>
   );
 }
-export default __DEV__ ? RootLayout : Sentry.wrap(RootLayout);
+export default RootLayout;
