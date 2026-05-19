@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from '@tanstack/react-query';
 
 /**
  * Custom refresh handler for TanStack useInfiniteQuery.
@@ -13,7 +13,7 @@ import { QueryClient } from '@tanstack/react-query';
 export async function refreshInfiniteQuery(
   queryClient: QueryClient,
   queryKey: any[],
-  refetch: () => Promise<any>
+  refetch: () => Promise<any>,
 ) {
   queryClient.setQueryData(queryKey, (oldData: any) => {
     if (!oldData) return oldData;

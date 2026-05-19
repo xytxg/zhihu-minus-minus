@@ -3,7 +3,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
-import { refreshInfiniteQuery } from '@/utils/query';
 import {
   ActivityIndicator,
   Image,
@@ -27,6 +26,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
+import { refreshInfiniteQuery } from '@/utils/query';
 
 export default function TopicDetail() {
   const queryClient = useQueryClient();
@@ -80,7 +80,11 @@ export default function TopicDetail() {
   });
 
   const handleRefresh = useCallback(() => {
-    return refreshInfiniteQuery(queryClient, ['topic-feed', id, activeTab], refetch);
+    return refreshInfiniteQuery(
+      queryClient,
+      ['topic-feed', id, activeTab],
+      refetch,
+    );
   }, [queryClient, id, activeTab, refetch]);
 
   const { data: parentsData, isLoading: parentsLoading } = useQuery({

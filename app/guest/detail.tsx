@@ -195,49 +195,49 @@ export default function GuestDetailScreen() {
           {/* 2.5 获赞与评论数据展示栏 (在游客详情页展示当前卡片已缓存的数据) */}
           {((item.voteCount !== undefined && item.voteCount > 0) ||
             (item.commentCount !== undefined && item.commentCount > 0)) && (
-              <View className="flex-row px-5 py-1 mb-2 bg-transparent gap-3 items-center">
-                {item.voteCount !== undefined && item.voteCount > 0 && (
-                  <View
-                    className="flex-row items-center px-3 py-1.5 rounded-full"
-                    style={{ backgroundColor: `${tintColor}08` }}
+            <View className="flex-row px-5 py-1 mb-2 bg-transparent gap-3 items-center">
+              {item.voteCount !== undefined && item.voteCount > 0 && (
+                <View
+                  className="flex-row items-center px-3 py-1.5 rounded-full"
+                  style={{ backgroundColor: `${tintColor}08` }}
+                >
+                  <Ionicons
+                    name="caret-up-circle-outline"
+                    size={15}
+                    color={tintColor}
+                  />
+                  <Text
+                    className="text-xs font-semibold ml-1"
+                    style={{ color: tintColor }}
                   >
-                    <Ionicons
-                      name="caret-up-circle-outline"
-                      size={15}
-                      color={tintColor}
-                    />
-                    <Text
-                      className="text-xs font-semibold ml-1"
-                      style={{ color: tintColor }}
-                    >
-                      {item.voteCount} 赞同
-                    </Text>
-                  </View>
-                )}
-                {item.commentCount !== undefined && item.commentCount > 0 && (
-                  <Pressable
-                    onPress={navigateToComments}
-                    className="flex-row items-center px-3 py-1.5 rounded-full"
-                    style={({ pressed }) => [
-                      { backgroundColor: `${secondaryTextColor}08` },
-                      pressed && { opacity: 0.7 },
-                    ]}
+                    {item.voteCount} 赞同
+                  </Text>
+                </View>
+              )}
+              {item.commentCount !== undefined && item.commentCount > 0 && (
+                <Pressable
+                  onPress={navigateToComments}
+                  className="flex-row items-center px-3 py-1.5 rounded-full"
+                  style={({ pressed }) => [
+                    { backgroundColor: `${secondaryTextColor}08` },
+                    pressed && { opacity: 0.7 },
+                  ]}
+                >
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={14}
+                    color={secondaryTextColor}
+                  />
+                  <Text
+                    className="text-xs font-semibold ml-1"
+                    style={{ color: secondaryTextColor }}
                   >
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={14}
-                      color={secondaryTextColor}
-                    />
-                    <Text
-                      className="text-xs font-semibold ml-1"
-                      style={{ color: secondaryTextColor }}
-                    >
-                      {item.commentCount} 评论
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            )}
+                    {item.commentCount} 评论
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          )}
 
           {/* 3. 卡片横幅图片 (如果有) */}
           {item.image && (

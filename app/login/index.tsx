@@ -25,7 +25,7 @@ export default function LoginScreen() {
     // 关键：只有当包含 z_c0 (登录 Token) 时才认为是有效的登录 Cookie
     // 获取 httpOnly cookie，webview 注入 js 是不行的，需要原生支持
     try {
-      const cookies = await CookieManager.get('https://www.zhihu.com');
+      const cookies = await CookieManager.get('https://www.zhihu.com', true);
 
       // 合并 web_cookie (来自 document.cookie) 和 CookieManager 的结果
       const mergedCookies: Record<string, string> = {};
@@ -139,7 +139,7 @@ export default function LoginScreen() {
         ref={webViewRef}
         source={{ uri: 'https://www.zhihu.com/signin' }}
         sharedCookiesEnabled={true}
-        incognito={true}
+        incognito={false}
         onMessage={(event) => {
           handleCookies(event.nativeEvent.data);
         }}

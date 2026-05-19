@@ -4,9 +4,9 @@ import React from 'react';
 import { Pressable, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Text, View } from '@/components/Themed';
-import { LikeButton } from './LikeButton';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
 
@@ -131,13 +131,20 @@ export const CreationCard = ({
       </Animated.View>
 
       <View className="bg-transparent mt-1">
-        {expanded && (type === 'answer' || type === 'article' || type === 'pin') ? (
+        {expanded &&
+        (type === 'answer' || type === 'article' || type === 'pin') ? (
           <View className="flex-1 bg-transparent mt-1">
             <ZhihuContent
               objectId={item.id?.toString()}
               type={type === 'pin' ? 'pin' : type}
-              content={typeof item.content === 'string' ? item.content : undefined}
-              contentArray={type === 'pin' && Array.isArray(item.content) ? item.content : undefined}
+              content={
+                typeof item.content === 'string' ? item.content : undefined
+              }
+              contentArray={
+                type === 'pin' && Array.isArray(item.content)
+                  ? item.content
+                  : undefined
+              }
               useNative={true}
             />
             <Pressable
@@ -145,9 +152,18 @@ export const CreationCard = ({
               className="mt-3 py-2.5 flex-row items-center justify-center border-t border-gray-100 dark:border-gray-800"
             >
               <Text className="text-sm text-primary font-bold mr-1">
-                收起{type === 'answer' ? '回答' : type === 'article' ? '文章' : '想法'}
+                收起
+                {type === 'answer'
+                  ? '回答'
+                  : type === 'article'
+                    ? '文章'
+                    : '想法'}
               </Text>
-              <Ionicons name="chevron-up" size={14} color={Colors[colorScheme].primary} />
+              <Ionicons
+                name="chevron-up"
+                size={14}
+                color={Colors[colorScheme].primary}
+              />
             </Pressable>
           </View>
         ) : (
@@ -161,7 +177,10 @@ export const CreationCard = ({
               {getExcerpt()}
             </Text>
             {showExpandButton && (
-              <Pressable onPress={() => setExpanded(true)} className="mt-2 py-1">
+              <Pressable
+                onPress={() => setExpanded(true)}
+                className="mt-2 py-1"
+              >
                 <Text className="text-sm text-primary font-bold">展开全文</Text>
               </Pressable>
             )}
@@ -174,7 +193,12 @@ export const CreationCard = ({
           <View className="flex-row items-center bg-transparent">
             <LikeButton
               id={item.id}
-              count={item.reaction?.statistics?.like_count || item.voteup_count || item.reaction_count || 0}
+              count={
+                item.reaction?.statistics?.like_count ||
+                item.voteup_count ||
+                item.reaction_count ||
+                0
+              }
               voted={item.relationship?.voting || 0}
               type={
                 type === 'article'
@@ -247,13 +271,15 @@ export const CreationCard = ({
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         type={displayTypeForShare as ShareContentType}
-        data={{
-          id: item.id,
-          title: getTitle(),
-          author: item.author?.name,
-          authorHeadline: item.author?.headline,
-          excerpt: getExcerpt(),
-        } as any}
+        data={
+          {
+            id: item.id,
+            title: getTitle(),
+            author: item.author?.name,
+            authorHeadline: item.author?.headline,
+            excerpt: getExcerpt(),
+          } as any
+        }
       />
     </TouchableOpacity>
   );

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -11,8 +11,8 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
-import Reanimated from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
+import Reanimated from 'react-native-reanimated';
 import {
   followMember,
   getMe,
@@ -23,10 +23,10 @@ import {
   unfollowMember,
 } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
-import { ZhihuMemberRelation } from '@/types/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import type { ZhihuMemberRelation } from '@/types/zhihu';
 
 const subTabKeys: ('answers' | 'articles' | 'questions' | 'pins')[] = [
   'answers',
@@ -253,10 +253,10 @@ export default function UserDetailScreen() {
               style={[
                 user?.is_following
                   ? {
-                    backgroundColor: 'transparent',
-                    borderColor: borderColor,
-                    borderWidth: 1,
-                  }
+                      backgroundColor: 'transparent',
+                      borderColor: borderColor,
+                      borderWidth: 1,
+                    }
                   : { backgroundColor: Colors[colorScheme].primary },
               ]}
               onPress={handleFollow}
@@ -462,8 +462,13 @@ export default function UserDetailScreen() {
             style={[
               isActive
                 ? { backgroundColor: primaryColor }
-                : { backgroundColor: colorScheme === 'light' ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)' },
-              { minWidth: 68 }
+                : {
+                    backgroundColor:
+                      colorScheme === 'light'
+                        ? 'rgba(0,0,0,0.04)'
+                        : 'rgba(255,255,255,0.06)',
+                  },
+              { minWidth: 68 },
             ]}
           >
             <Text
@@ -599,11 +604,16 @@ export default function UserDetailScreen() {
 
   // Dynamic Height calculation
   const itemHeight = 220;
-  const creationsCount = activeTab !== 'activities' ? currentListItems.length : 4;
-  const activitiesCount = activeTab === 'activities' ? currentListItems.length : 4;
+  const creationsCount =
+    activeTab !== 'activities' ? currentListItems.length : 4;
+  const activitiesCount =
+    activeTab === 'activities' ? currentListItems.length : 4;
 
   const creationsHeaderHeight = activeTab === 'answers' ? 85 : 45;
-  const creationsHeight = Math.max(400, creationsCount * itemHeight + creationsHeaderHeight + 100);
+  const creationsHeight = Math.max(
+    400,
+    creationsCount * itemHeight + creationsHeaderHeight + 100,
+  );
   const activitiesHeight = Math.max(400, activitiesCount * itemHeight + 100);
 
   const currentPagerHeight =

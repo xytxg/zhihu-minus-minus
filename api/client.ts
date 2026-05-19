@@ -29,7 +29,10 @@ apiClient.interceptors.request.use(async (config) => {
 
   if (!cookie) {
     try {
-      const nativeCookies = await CookieManager.get('https://www.zhihu.com');
+      const nativeCookies = await CookieManager.get(
+        'https://www.zhihu.com',
+        true,
+      );
       if (nativeCookies) {
         cookie = Object.entries(nativeCookies)
           .map(([name, c]) => `${name}=${c.value}`)

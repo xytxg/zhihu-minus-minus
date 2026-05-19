@@ -74,7 +74,11 @@ export default function NotificationScreen() {
   });
 
   const handleRefresh = useCallback(() => {
-    return refreshInfiniteQuery(queryClient, ['notifications', selectedType], refetch);
+    return refreshInfiniteQuery(
+      queryClient,
+      ['notifications', selectedType],
+      refetch,
+    );
   }, [queryClient, selectedType, refetch]);
 
   const notifications = data?.pages.flatMap((page) => page.data) || [];

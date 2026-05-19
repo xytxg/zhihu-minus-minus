@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { refreshInfiniteQuery } from '@/utils/query';
 import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, {
@@ -45,6 +44,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { type TabKey, useSettingsStore } from '@/store/useSettingsStore';
+import { refreshInfiniteQuery } from '@/utils/query';
 import ProfileScreen from './profile';
 import PublishScreen from './publish';
 
@@ -609,8 +609,8 @@ const FeedList = React.forwardRef<
         let items: Array<FeedItem | HotItem>;
         if (tab === 'following')
           items = rawItems
-             .map((item: RawFeedItem) => parseFollowingData(item))
-             .filter(Boolean) as FeedItem[];
+            .map((item: RawFeedItem) => parseFollowingData(item))
+            .filter(Boolean) as FeedItem[];
         else if (tab === 'recommend')
           items = rawItems.map((item: RawFeedItem) => parseRecommendData(item));
         else
@@ -649,7 +649,9 @@ const FeedList = React.forwardRef<
     <FlashList
       ref={ref}
       data={flattenedData}
-      keyExtractor={(item, index) => `feed-${item.id?.toString() || index}-${index}`}
+      keyExtractor={(item, index) =>
+        `feed-${item.id?.toString() || index}-${index}`
+      }
       onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
       onEndReachedThreshold={0.5}
       refreshControl={

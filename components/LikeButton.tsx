@@ -155,7 +155,11 @@ export const LikeButton = ({
                 : '#888',
           }}
         >
-          {count !== undefined && count > 0 ? count : variant === 'default' ? '0 赞同' : '0'}
+          {count !== undefined && count > 0
+            ? count
+            : variant === 'default'
+              ? '0 赞同'
+              : '0'}
         </Text>
       )}
     </Pressable>

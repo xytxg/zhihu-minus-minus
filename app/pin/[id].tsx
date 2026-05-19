@@ -35,7 +35,11 @@ export default function PinDetailScreen() {
 
   const [isSharing, setIsSharing] = React.useState(false);
 
-  const { data: pin, isLoading, refetch } = useQuery({
+  const {
+    data: pin,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['pin-detail', id],
     queryFn: () => getPin(id as string),
   });

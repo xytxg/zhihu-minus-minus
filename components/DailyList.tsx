@@ -3,7 +3,6 @@ import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useMemo } from 'react';
-import { refreshInfiniteQuery } from '@/utils/query';
 import { Dimensions, Image, Pressable } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -16,6 +15,7 @@ import { getDailyBefore, getDailyLatest } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { refreshInfiniteQuery } from '@/utils/query';
 
 const { width } = Dimensions.get('window');
 

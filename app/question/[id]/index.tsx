@@ -50,8 +50,8 @@ import { useViewableItems } from '@/hooks/useViewableItems';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
-import { showToast } from '@/utils/toast';
 import { refreshInfiniteQuery } from '@/utils/query';
+import { showToast } from '@/utils/toast';
 
 const AnswerItem = forwardRef(
   (
@@ -326,11 +326,7 @@ const AnswerItem = forwardRef(
               } as any)
             }
           >
-            <Ionicons
-              name="chatbubble-outline"
-              size={16}
-              color="#888"
-            />
+            <Ionicons name="chatbubble-outline" size={16} color="#888" />
             <Text className="text-[#888] ml-1 text-xs font-semibold">
               {item.comment_count > 0 ? item.comment_count : '评论'}
             </Text>
@@ -417,7 +413,11 @@ export default function QuestionDetail() {
   });
 
   const handleRefresh = useCallback(() => {
-    return refreshInfiniteQuery(queryClient, ['question-answers', id, sortBy], refetch);
+    return refreshInfiniteQuery(
+      queryClient,
+      ['question-answers', id, sortBy],
+      refetch,
+    );
   }, [queryClient, id, sortBy, refetch]);
 
   const answers = useMemo(() => {

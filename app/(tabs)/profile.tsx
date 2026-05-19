@@ -94,7 +94,7 @@ export default function ProfileScreen() {
       } catch (e) {
         console.warn('⚠️ 无法同步 Cookie 到 SecureStore:', e);
       }
-      await CookieManager.clearAll();
+      await CookieManager.clearAll(true);
       const cookiePairs = cookieString.split(';');
       for (const pair of cookiePairs) {
         const trimmedPair = pair.trim();
@@ -104,18 +104,22 @@ export default function ProfileScreen() {
           const name = trimmedPair.substring(0, equalIndex);
           const value = trimmedPair.substring(equalIndex + 1);
           if (name && value) {
-            await CookieManager.set('https://www.zhihu.com', {
-              name,
-              value,
-              domain: '.zhihu.com',
-              path: '/',
-            });
+            await CookieManager.set(
+              'https://www.zhihu.com',
+              {
+                name,
+                value,
+                domain: '.zhihu.com',
+                path: '/',
+              },
+              true,
+            );
           }
         }
       }
     } else {
       await SecureStore.deleteItemAsync('user_cookies');
-      await CookieManager.clearAll();
+      await CookieManager.clearAll(true);
     }
   };
 
@@ -191,7 +195,7 @@ export default function ProfileScreen() {
     setAccountModalVisible(false);
     // When adding account, we don't clear current store yet,
     // just navigate to login. Login will overwrite cookies.
-    await CookieManager.clearAll();
+    await CookieManager.clearAll(true);
     router.push('/login');
   };
 

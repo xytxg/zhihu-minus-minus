@@ -11,17 +11,17 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getMember,
   getMemberActivities,
   getMemberRelations,
 } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
-import { ZhihuMemberRelation } from '@/types/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ZhihuMemberRelation } from '@/types/zhihu';
 
 export default function UserStreamScreen() {
   const { id, type, initialId } = useLocalSearchParams<{
@@ -101,13 +101,15 @@ export default function UserStreamScreen() {
     },
   });
 
-  const streamItems = streamData?.pages.flatMap((page) => page.data || []) || [];
+  const streamItems =
+    streamData?.pages.flatMap((page) => page.data || []) || [];
 
   // Scroll to clicked/initial item if found in loaded stream
   useEffect(() => {
     if (initialId && streamItems.length > 0 && !hasScrolledToInitial) {
       const index = streamItems.findIndex((item) => {
-        const displayItem = activeTab === 'activities' ? item.target || item : item;
+        const displayItem =
+          activeTab === 'activities' ? item.target || item : item;
         return displayItem?.id?.toString() === initialId?.toString();
       });
       if (index !== -1) {
@@ -128,22 +130,26 @@ export default function UserStreamScreen() {
     if (activeTab === 'activities') displayItem = item.target || item;
     if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
 
-    let itemType: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
+    let itemType: 'answer' | 'article' | 'question' | 'pin' | 'video' =
+      'answer';
     const typeStr = displayItem.type;
     if (typeStr === 'article') itemType = 'article';
     else if (typeStr === 'question') itemType = 'question';
     else if (typeStr === 'pin') itemType = 'pin';
     else if (typeStr === 'zvideo' || typeStr === 'video') itemType = 'video';
 
-    const isHighlighted = initialId && displayItem.id?.toString() === initialId?.toString();
+    const isHighlighted =
+      initialId && displayItem.id?.toString() === initialId?.toString();
 
     return (
       <View
         className="px-4 py-1.5 bg-transparent"
-        style={isHighlighted && {
-          borderLeftWidth: 3,
-          borderLeftColor: '#0084ff',
-        }}
+        style={
+          isHighlighted && {
+            borderLeftWidth: 3,
+            borderLeftColor: '#0084ff',
+          }
+        }
       >
         <CreationCard item={displayItem} type={itemType} />
       </View>
@@ -184,9 +190,7 @@ export default function UserStreamScreen() {
 
         {/* User Mini Profile */}
         <Pressable
-          onPress={() =>
-            router.push(`/user/${user?.url_token || id}`)
-          }
+          onPress={() => router.push(`/user/${user?.url_token || id}`)}
           className="flex-row items-center ml-2 flex-1 bg-transparent"
         >
           <Image

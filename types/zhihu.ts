@@ -112,4 +112,9 @@ export interface ZhihuVideo {
   };
 }
 
-export type ZhihuMemberRelation = ZhihuAnswer | ZhihuQuestion | ZhihuArticle | ZhihuPin | ZhihuVideo;
+export type ZhihuMemberRelation =
+  | ZhihuAnswer
+  | ZhihuQuestion
+  | ZhihuArticle
+  | ZhihuPin
+  | ZhihuVideo;
