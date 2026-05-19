@@ -75,7 +75,7 @@
 
 `npm run prebuild`
 
-`SENTRY_DISABLE_AUTO_UPLOAD=true eas build --platform android --profile preview --local`
+`eas build --platform android --profile preview --local`
 
 这个还没试过：
 
@@ -89,7 +89,9 @@
 2. 安装环境（参考下方的 **快速开始**）。
 3. 使用自己的 Apple ID 在 Xcode 中进行签名并编译到真机。
 
-`SENTRY_DISABLE_AUTO_UPLOAD=true npx expo run:ios --configuration Release --device`
+`cd ios && pod install`
+
+`npx expo run:ios --configuration Release --device`
 
 ⬆️ 这个在 ios26 也不好用了，建议 Xcode 里 build。
 
