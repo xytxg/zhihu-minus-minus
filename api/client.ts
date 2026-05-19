@@ -21,6 +21,10 @@ function getXsrf(cookie: string) {
 }
 
 apiClient.interceptors.request.use(async (config) => {
+  console.log(
+    `🌐 [API Request] ${config.method?.toUpperCase()} ${config.url}`,
+    config.params ? JSON.stringify(config.params) : '',
+  );
   // 优先从 AuthStore 获取，如果没有再尝试从 SecureStore (向下兼容)
   let cookie =
     useAuthStore.getState().cookies ||
@@ -73,7 +77,12 @@ apiClient.interceptors.request.use(async (config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(
+      `✅ [API Response] ${response.config.method?.toUpperCase()} ${response.config.url} Status: ${response.status}`,
+    );
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       console.warn('请登陆后再尝试');

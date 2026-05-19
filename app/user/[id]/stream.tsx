@@ -1,27 +1,417 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Image,
+  LayoutAnimation,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
+  UIManager,
+  View as NativeView,
+  useWindowDimensions,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   getMember,
   getMemberActivities,
   getMemberRelations,
 } from '@/api/zhihu';
-import { CreationCard } from '@/components/CreationCard';
+import { LikeButton } from '@/components/LikeButton';
+import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
+import { ZhihuContent } from '@/components/ZhihuContent';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { ZhihuMemberRelation } from '@/types/zhihu';
+
+const StreamItem = forwardRef(
+  (
+    {
+      item,
+      type,
+      isExpanded,
+      onToggle,
+      onShare,
+      isHighlighted,
+      isCollapsedHighlighted,
+    }: {
+      item: any;
+      type: 'answer' | 'article' | 'question' | 'pin' | 'video';
+      isExpanded: boolean;
+      onToggle: (id: string, expanded: boolean) => void;
+      onShare: (item: any) => void;
+      isHighlighted: boolean;
+      isCollapsedHighlighted?: boolean;
+    },
+    ref,
+  ) => {
+    const colorScheme = useColorScheme();
+    const router = useRouter();
+    const footerRef = useRef<NativeView>(null);
+
+    useImperativeHandle(ref, () => ({
+      measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
+      id: item?.id?.toString() || Math.random().toString(),
+    }));
+
+    const getFullContent = () => {
+      if (!item) return '';
+      if (type === 'pin' && Array.isArray(item.content)) {
+        return item.content
+          .map((c: any) => {
+            if (c.type === 'text') return c.content;
+            if (c.type === 'link_card')
+              return `[链接: ${c.data_draft_title || '查看详情'}]`;
+            return '';
+          })
+          .join('\n')
+          .replace(/<[^>]+>/g, '');
+      }
+      const content = item.content || item.excerpt || '';
+      if (typeof content === 'string') {
+        return content.replace(/<[^>]+>/g, '');
+      }
+      return '';
+    };
+
+    const getExcerpt = () => {
+      if (!item) return '';
+
+      if (type === 'pin') {
+        if (Array.isArray(item.content)) {
+          return item.content
+            .filter((c: any) => c.type === 'text')
+            .map((c: any) => c.content)
+            .join('')
+            .replace(/<[^>]+>/g, '')
+            .substring(0, 100);
+        }
+        if (typeof item.content === 'string') {
+          return item.content.replace(/<[^>]+>/g, '').substring(0, 100);
+        }
+      }
+
+      const content = item.excerpt || item.content || '';
+      if (typeof content === 'string') {
+        return content.replace(/<[^>]+>/g, '').substring(0, 100);
+      }
+      return '';
+    };
+
+    const getTitle = () => {
+      if (type === 'pin') return '发布了想法';
+      if (type === 'video') return item.title || '发布了视频';
+      return item.title || item.question?.title || '未知内容';
+    };
+
+    const handlePress = () => {
+      if (type === 'answer' || type === 'article' || type === 'pin') {
+        onToggle(item.id.toString(), !isExpanded);
+        return;
+      }
+      if (type === 'video') {
+        router.push({
+          pathname: '/video/[id]',
+          params: { id: item.id, title: item.title },
+        } as any);
+      } else {
+        router.push({
+          pathname: `/${type}/[id]`,
+          params: {
+            id: item.id,
+            title: item.title || item.question?.title,
+            questionId: item.question?.id,
+          },
+        } as any);
+      }
+    };
+
+    const fullText = getFullContent();
+    const isLongContent =
+      (type === 'answer' || type === 'article' || type === 'pin') &&
+      (fullText.length > 120 ||
+        (typeof item.content === 'string' &&
+          (item.content.includes('<img') || item.content.includes('<figure'))));
+
+    const displayTypeForShare =
+      type === 'answer' ? 'answer' : type === 'article' ? 'article' : 'pin';
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.82}
+        onPress={handlePress}
+        style={[
+          {
+            backgroundColor: Colors[colorScheme].backgroundSecondary,
+            borderRadius: 12,
+            borderWidth: 1.5,
+            borderColor: isCollapsedHighlighted ? '#0084ff' : 'transparent',
+          },
+          isCollapsedHighlighted && {
+            shadowColor: '#0084ff',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 5,
+          }
+        ]}
+        className="p-4 mb-2.5 shadow-sm"
+      >
+        <Reanimated.View
+          sharedTransitionTag={`title-${item.question?.id || item.id}`}
+        >
+          <Text
+            className="text-lg font-bold mb-1.5 leading-6 text-foreground dark:text-foreground-dark"
+            numberOfLines={isExpanded ? undefined : 2}
+          >
+            {getTitle()}
+          </Text>
+        </Reanimated.View>
+
+        <View className="bg-transparent mt-1">
+          {!isLongContent ? (
+            <View className="flex-1 bg-transparent">
+              {type === 'answer' || type === 'article' || type === 'pin' ? (
+                <ZhihuContent
+                  objectId={item.id?.toString()}
+                  type={type === 'pin' ? 'pin' : type}
+                  content={
+                    typeof item.content === 'string' ? item.content : undefined
+                  }
+                  contentArray={
+                    type === 'pin' && Array.isArray(item.content)
+                      ? item.content
+                      : undefined
+                  }
+                  useNative={true}
+                />
+              ) : (
+                <Text
+                  type="secondary"
+                  className="text-[17px]"
+                  style={{ lineHeight: 27 }}
+                  numberOfLines={3}
+                >
+                  {getExcerpt()}
+                </Text>
+              )}
+            </View>
+          ) : isExpanded ? (
+            <View className="flex-1 bg-transparent">
+              <ZhihuContent
+                objectId={item.id?.toString()}
+                type={type === 'pin' ? 'pin' : type}
+                content={
+                  typeof item.content === 'string' ? item.content : undefined
+                }
+                contentArray={
+                  type === 'pin' && Array.isArray(item.content)
+                    ? item.content
+                    : undefined
+                }
+                useNative={true}
+              />
+              <Pressable
+                onPress={() => item?.id && onToggle(item.id.toString(), false)}
+                className="flex-row items-center justify-center py-2.5 mt-1 bg-transparent"
+              >
+                <Text
+                  type="primary"
+                  className="text-[13px] font-bold mr-1"
+                  style={{ color: '#0084ff' }}
+                >
+                  收起{type === 'answer' ? '回答' : type === 'article' ? '文章' : '想法'}
+                </Text>
+                <Ionicons
+                  name="chevron-up"
+                  size={14}
+                  color={Colors[colorScheme].primary}
+                />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => item?.id && onToggle(item.id.toString(), true)}
+              style={{ maxHeight: 150, overflow: 'hidden' }}
+              className="flex-1"
+            >
+              <ZhihuContent
+                objectId={item.id?.toString()}
+                type={type === 'pin' ? 'pin' : type}
+                content={
+                  typeof item.content === 'string' ? item.content : undefined
+                }
+                contentArray={
+                  type === 'pin' && Array.isArray(item.content)
+                    ? item.content
+                    : undefined
+                }
+                useNative={true}
+              />
+              <Pressable
+                onPress={() => item?.id && onToggle(item.id.toString(), true)}
+                className="absolute inset-x-0 bottom-0 h-24 z-[100]"
+              >
+                {/* 4 layers of progressive opacity to emulate gradient */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 16,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 32,
+                    height: 16,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 48,
+                    bottom: 0,
+                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    paddingBottom: 6,
+                  }}
+                >
+                  <Text
+                    type="primary"
+                    className="text-[13px] font-bold"
+                    style={{ color: '#0084ff' }}
+                  >
+                    展开全文
+                  </Text>
+                </View>
+              </Pressable>
+            </Pressable>
+          )}
+        </View>
+
+        <NativeView
+          ref={footerRef}
+          className="flex-row justify-between mt-4 items-center bg-transparent"
+        >
+          {type !== 'question' && type !== 'video' ? (
+            <View className="flex-row items-center bg-transparent">
+              <LikeButton
+                id={item.id}
+                count={
+                  item.reaction?.statistics?.like_count ||
+                  item.voteup_count ||
+                  item.reaction_count ||
+                  0
+                }
+                voted={item.relationship?.voting || 0}
+                type={
+                  type === 'article'
+                    ? 'articles'
+                    : type === 'pin'
+                      ? 'pins'
+                      : 'answers'
+                }
+                variant="ghost"
+              />
+              <Pressable
+                onPress={() => {
+                  const commentType =
+                    type === 'article'
+                      ? 'article'
+                      : type === 'pin'
+                        ? 'pin'
+                        : 'answer';
+                  router.push(
+                    `/comments/${item.id}?type=${commentType}&count=${item.comment_count || 0}`,
+                  );
+                }}
+                className="flex-row items-center ml-5 bg-transparent py-1"
+              >
+                <Ionicons name="chatbubble-outline" size={16} color="#888" />
+                <Text className="text-[#888] ml-1 text-xs font-semibold">
+                  {item.comment_count > 0 ? item.comment_count : '评论'}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Text
+              type="secondary"
+              className="text-xs text-tertiary dark:text-tertiary-dark"
+            >
+              {type === 'question'
+                ? `${item.answer_count || 0} 回答 · ${item.follower_count || 0} 关注`
+                : `${item.reaction?.statistics?.like_count || item.voteup_count || 0} 赞同 · ${item.comment_count || 0} 评论`}
+            </Text>
+          )}
+
+          <View className="flex-row items-center bg-transparent ml-auto">
+            <Text
+              type="secondary"
+              className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
+            >
+              {item.updated_time ||
+              item.updated ||
+              item.created_time ||
+              item.created
+                ? new Date(
+                    (item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created) * 1000,
+                  ).toLocaleDateString()
+                : ''}
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => onShare(item)}
+              className="p-1 -mr-1 bg-transparent"
+            >
+              <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
+            </TouchableOpacity>
+          </View>
+        </NativeView>
+      </TouchableOpacity>
+    );
+  },
+);
+
 
 export default function UserStreamScreen() {
   const { id, type, initialId } = useLocalSearchParams<{
@@ -36,6 +426,90 @@ export default function UserStreamScreen() {
   const [hasScrolledToInitial, setHasScrolledToInitial] = useState(false);
 
   const activeTab = type || 'answers';
+
+  const { height: screenHeight } = useWindowDimensions();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [isSharing, setIsSharing] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
+
+  const footerAnim = useRef(new Animated.Value(0)).current;
+  const isFloatingShown = useRef(false);
+  const lastCheckTime = useRef(0);
+  const itemRefs = useRef(new Map<string, any>());
+  const itemLayouts = useRef(new Map<string, { y: number; height: number }>());
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  const [activeItem, setActiveItem] = useState<any>(null);
+  const viewableIdsRef = useRef<string[]>([]);
+  const viewabilityConfig = useRef({
+    viewAreaCoveragePercentThreshold: 20,
+  }).current;
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    const ids: string[] = [];
+    let firstActive: any = null;
+
+    viewableItems.forEach((v: any) => {
+      if (v.item) {
+        let displayItem = v.item;
+        if (activeTab === 'activities') displayItem = v.item.target || v.item;
+        if (displayItem && displayItem.id) {
+          const idStr = displayItem.id.toString();
+          ids.push(idStr);
+          if (!firstActive) {
+            firstActive = displayItem;
+          }
+        }
+      }
+    });
+
+    viewableIdsRef.current = ids;
+    if (firstActive) {
+      setActiveItem(firstActive);
+    }
+  }).current;
+
+  const handleScroll = (event: any) => {
+    const currentY = event.nativeEvent.contentOffset.y;
+    const now = Date.now();
+
+    if (now - lastCheckTime.current > 50) {
+      lastCheckTime.current = now;
+      
+      if (activeItem && activeItem.id && expandedIds.has(activeItem.id.toString())) {
+        const layout = itemLayouts.current.get(activeItem.id.toString());
+        if (layout) {
+          const headerHeight = 56;
+          const viewportHeight = screenHeight - headerHeight - insets.top - insets.bottom;
+          const footerRelY = (layout.y + layout.height) - currentY;
+          
+          // Footer is visible if its relative Y is within the viewport
+          const isFooterVisible = footerRelY > 50 && footerRelY < viewportHeight - 20;
+          const shouldShow = !isFooterVisible && currentY > 300;
+
+          if (shouldShow !== isFloatingShown.current) {
+            isFloatingShown.current = shouldShow;
+            Animated.spring(footerAnim, {
+              toValue: shouldShow ? 1 : 0,
+              useNativeDriver: true,
+              friction: 10,
+              tension: 50,
+            }).start();
+          }
+        }
+      } else {
+        if (isFloatingShown.current) {
+          isFloatingShown.current = false;
+          Animated.spring(footerAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            friction: 10,
+            tension: 50,
+          }).start();
+        }
+      }
+    }
+  };
 
   // 1. Fetch User Profile Details
   const { data: user } = useQuery({
@@ -67,7 +541,7 @@ export default function UserStreamScreen() {
       try {
         const targetId = user?.url_token || id;
         if (activeTab === 'activities')
-          return await getMemberActivities(targetId, 20, pageParam as number);
+          return await getMemberActivities(targetId, 10, pageParam as number);
 
         let include = '';
         if (activeTab === 'answers')
@@ -84,7 +558,7 @@ export default function UserStreamScreen() {
             'data[*].content,data[*].reaction_count,data[*].comment_count,data[*].created,data[*].relationship.voting';
 
         return await getMemberRelations(targetId, activeTab as any, {
-          limit: 20,
+          limit: 10,
           offset: pageParam as number,
           include,
         });
@@ -99,6 +573,7 @@ export default function UserStreamScreen() {
       const match = lastPage.paging?.next?.match(/offset=(\d+)/);
       return match ? match[1] : undefined;
     },
+    enabled: user !== undefined,
   });
 
   const streamItems =
@@ -125,6 +600,49 @@ export default function UserStreamScreen() {
     }
   }, [streamItems, initialId, hasScrolledToInitial, activeTab]);
 
+  const handleToggleExpand = useCallback(
+    (id: string, expanded: boolean) => {
+      if (
+        Platform.OS === 'android' &&
+        UIManager.setLayoutAnimationEnabledExperimental
+      ) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+      }
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (expanded) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+
+      if (!expanded) {
+        setHighlightedId(id);
+        setTimeout(() => {
+          setHighlightedId((current) => (current === id ? null : current));
+        }, 1500);
+
+        // Collapsing: scroll back to the item to prevent losing context
+        setTimeout(() => {
+          const index = streamItems.findIndex((item: any) => {
+            let displayItem = item;
+            if (activeTab === 'activities') displayItem = item.target || item;
+            return displayItem?.id?.toString() === id;
+          });
+          if (index >= 0) {
+            flatListRef.current?.scrollToIndex({
+              index: index,
+              animated: true,
+              viewOffset: insets.top + 56,
+            });
+          }
+        }, 100);
+      }
+    },
+    [streamItems, activeTab, insets.top],
+  );
+
   const renderItemContent = ({ item, index }: { item: any; index: number }) => {
     let displayItem = item as any;
     if (activeTab === 'activities') displayItem = item.target || item;
@@ -143,15 +661,37 @@ export default function UserStreamScreen() {
 
     return (
       <View
-        className="px-4 py-1.5 bg-transparent"
+        className="py-0.5 bg-transparent"
         style={
           isHighlighted && {
             borderLeftWidth: 3,
             borderLeftColor: '#0084ff',
           }
         }
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          if (displayItem?.id) {
+            itemLayouts.current.set(displayItem.id.toString(), { y, height });
+          }
+        }}
       >
-        <CreationCard item={displayItem} type={itemType} />
+        <StreamItem
+          ref={(r) => {
+            displayItem?.id
+              ? itemRefs.current.set(displayItem.id.toString(), r)
+              : itemRefs.current.delete(displayItem.id?.toString() || '');
+          }}
+          item={displayItem}
+          type={itemType}
+          isExpanded={displayItem?.id ? expandedIds.has(displayItem.id.toString()) : false}
+          onToggle={handleToggleExpand}
+          onShare={(ans) => {
+            setSelectedAnswer(ans);
+            setIsSharing(true);
+          }}
+          isHighlighted={!!isHighlighted}
+          isCollapsedHighlighted={displayItem?.id ? highlightedId === displayItem.id.toString() : false}
+        />
       </View>
     );
   };
@@ -165,17 +705,18 @@ export default function UserStreamScreen() {
   };
 
   return (
-    <SafeAreaView
+    <View
+      type="default"
       className="flex-1"
       style={{
         backgroundColor: Colors[colorScheme].background,
-        paddingTop: insets.top,
       }}
     >
+      <Stack.Screen options={{ headerShown: false }} />
       {/* 1. Header Bar */}
       <View
         className="flex-row items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800"
-        style={{ backgroundColor: Colors[colorScheme].background }}
+        style={{ paddingTop: insets.top, backgroundColor: Colors[colorScheme].background }}
       >
         <TouchableOpacity
           onPress={() => router.back()}
@@ -225,9 +766,12 @@ export default function UserStreamScreen() {
       {/* 2. Content Stream List */}
       <FlatList
         ref={flatListRef}
+        onScroll={handleScroll}
         data={streamItems}
         keyExtractor={(item, index) => `stream-${item.id || ''}-${index}`}
         renderItem={renderItemContent}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
@@ -264,6 +808,147 @@ export default function UserStreamScreen() {
           });
         }}
       />
-    </SafeAreaView>
+
+      <ShareMenu
+        visible={isSharing}
+        onClose={() => {
+          setIsSharing(false);
+          setSelectedAnswer(null);
+        }}
+        type={
+          selectedAnswer?.type === 'article'
+            ? 'article'
+            : selectedAnswer?.type === 'pin'
+              ? 'pin'
+              : 'answer'
+        }
+        data={
+          selectedAnswer
+            ? {
+                id: selectedAnswer.id,
+                title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
+                author: selectedAnswer.author?.name || user?.name,
+                authorHeadline: selectedAnswer.author?.headline || user?.headline,
+                content: selectedAnswer.excerpt || selectedAnswer.content || '',
+              }
+            : null
+        }
+      />
+
+      <Animated.View
+        className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
+        style={[
+          {
+            bottom: insets.bottom,
+            transform: [
+              {
+                translateY: footerAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0],
+                }),
+              },
+            ],
+            opacity: footerAnim,
+          },
+        ]}
+      >
+        <BlurView
+          intensity={95}
+          tint={colorScheme}
+          className="flex-1"
+          style={{
+            backgroundColor:
+              colorScheme === 'dark'
+                ? 'rgba(26,26,26,0.8)'
+                : 'rgba(255,255,255,0.85)',
+          }}
+        >
+          <View className="flex-1 flex-row items-center px-5 justify-between bg-transparent">
+            <View className="flex-row items-center bg-transparent">
+              <LikeButton
+                id={activeItem?.id}
+                count={
+                  activeItem?.reaction?.statistics?.like_count ||
+                  activeItem?.voteup_count ||
+                  activeItem?.reaction_count ||
+                  0
+                }
+                voted={activeItem?.relationship?.voting || 0}
+                type={
+                  activeItem?.type === 'article'
+                    ? 'articles'
+                    : activeItem?.type === 'pin'
+                      ? 'pins'
+                      : 'answers'
+                }
+                variant="ghost"
+              />
+              <Pressable
+                className="flex-row items-center ml-5 bg-transparent"
+                onPress={() => {
+                  const commentType =
+                    activeItem?.type === 'article'
+                      ? 'article'
+                      : activeItem?.type === 'pin'
+                        ? 'pin'
+                        : 'answer';
+                  router.push(
+                    `/comments/${activeItem?.id}?type=${commentType}&count=${activeItem?.comment_count || 0}`,
+                  );
+                }}
+              >
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={20}
+                  color={Colors[colorScheme].primary}
+                />
+                <Text
+                  type="primary"
+                  className="ml-1.5 text-sm font-bold"
+                  style={{ color: Colors[colorScheme].primary }}
+                >
+                  {activeItem?.comment_count || 0}
+                </Text>
+              </Pressable>
+
+              {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
+                <Pressable
+                  className="flex-row items-center ml-5 bg-transparent"
+                  onPress={() =>
+                    handleToggleExpand(activeItem.id.toString(), false)
+                  }
+                >
+                  <Ionicons
+                    name="chevron-up-circle-outline"
+                    size={20}
+                    color={Colors[colorScheme].primary}
+                  />
+                  <Text
+                    type="primary"
+                    className="ml-1.5 text-sm font-bold"
+                    style={{ color: Colors[colorScheme].primary }}
+                  >
+                    收起
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+            <Pressable
+              className="flex-row items-center bg-transparent"
+              onPress={() => {
+                setSelectedAnswer(activeItem);
+                setIsSharing(true);
+              }}
+            >
+              <Ionicons
+                name="share-outline"
+                size={22}
+                color={Colors[colorScheme].primary}
+              />
+            </Pressable>
+          </View>
+        </BlurView>
+      </Animated.View>
+    </View>
   );
 }

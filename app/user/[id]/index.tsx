@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,8 +10,14 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  Animated,
+  TouchableOpacity,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { LikeButton } from '@/components/LikeButton';
+import { ShareMenu } from '@/components/ShareMenu';
 import Reanimated from 'react-native-reanimated';
 import {
   followMember,
@@ -37,6 +43,7 @@ const subTabKeys: ('answers' | 'articles' | 'questions' | 'pins')[] = [
 
 export default function UserDetailScreen() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const { id, avatar: initialAvatar } = useLocalSearchParams();
   const router = useRouter();
   const navigation = useNavigation();
@@ -48,6 +55,26 @@ export default function UserDetailScreen() {
   const [followLoading, setFollowLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  // Dynamic Height measurement states
+  const [creationsHeight, setCreationsHeight] = useState(600);
+  const [activitiesHeight, setActivitiesHeight] = useState(600);
+
+  // States for expanding card behavior
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  
+  // Floating Actions States
+  const [activeItem, setActiveItem] = useState<any>(null);
+  const [footerVisible, setFooterVisible] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
+  
+  // Layout and view measurement refs
+  const itemLayouts = useRef<Map<string, { y: number; height: number }>>(new Map());
+  const itemRefs = useRef<Map<string, any>>(new Map());
+  const pagerOffsetY = useRef(0);
+  const footerAnim = useRef(new Animated.Value(0)).current;
 
   const pagerRef = useRef<PagerView>(null);
   const nestedPagerRef = useRef<PagerView>(null);
@@ -131,6 +158,7 @@ export default function UserDetailScreen() {
       const match = lastPage.paging?.next?.match(/offset=(\d+)/);
       return match ? match[1] : undefined;
     },
+    enabled: user !== undefined,
   });
 
   const listItems = listData?.pages.flatMap((page) => page.data || []) || [];
@@ -163,6 +191,45 @@ export default function UserDetailScreen() {
   const currentListItems = isSearching
     ? searchResults?.pages.flatMap((page) => page.data || []) || []
     : listItems;
+
+  const handleToggleExpand = useCallback(
+    (targetIdStr: string, forceExpand: boolean) => {
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        if (forceExpand) {
+          next.add(targetIdStr);
+          const matchedItem = currentListItems.find(
+            (it) => (it.target || it)?.id?.toString() === targetIdStr,
+          );
+          if (matchedItem) {
+            setActiveItem(matchedItem.target || matchedItem);
+          }
+        } else {
+          next.delete(targetIdStr);
+          setActiveItem((prevActive: any) =>
+            prevActive?.id?.toString() === targetIdStr ? null : prevActive,
+          );
+          setHighlightedId(targetIdStr);
+          setTimeout(() => {
+            setHighlightedId((curr) =>
+              curr === targetIdStr ? null : curr,
+            );
+          }, 1500);
+        }
+        return next;
+      });
+    },
+    [currentListItems],
+  );
+
+  useEffect(() => {
+    Animated.spring(footerAnim, {
+      toValue: footerVisible ? 0 : 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 8,
+    }).start();
+  }, [footerVisible, footerAnim]);
 
   const getSubTabIndex = (tab: string) => {
     const index = subTabKeys.indexOf(tab as any);
@@ -218,8 +285,11 @@ export default function UserDetailScreen() {
 
   const handleScroll = (event: any) => {
     const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const currentY = contentOffset.y;
+    const viewportHeight = layoutMeasurement.height;
+
     const isCloseToBottom =
-      layoutMeasurement.height + contentOffset.y >= contentSize.height - 400;
+      viewportHeight + currentY >= contentSize.height - 400;
     if (isCloseToBottom) {
       if (isSearching) {
         if (hasNextSearchPage && !isFetchingNextSearchPage)
@@ -227,6 +297,27 @@ export default function UserDetailScreen() {
       } else {
         if (hasNextPage && !isFetchingNextPage) fetchNextPage();
       }
+    }
+
+    // JS-based synchronous active card footer check
+    if (!activeItem) {
+      if (!footerVisible) setFooterVisible(true);
+      return;
+    }
+
+    const layout = itemLayouts.current.get(activeItem.id.toString());
+    if (layout) {
+      // Calculate active card's absolute footer position in ScrollView
+      const footerAbsY = layout.y + pagerOffsetY.current + layout.height;
+      const footerRelY = footerAbsY - currentY;
+
+      // If footer is scrolled above or below screen, it is invisible -> show overlay
+      const isVisible = footerRelY > 50 && footerRelY < viewportHeight + 100;
+      if (isVisible !== footerVisible) {
+        setFooterVisible(isVisible);
+      }
+    } else {
+      if (!footerVisible) setFooterVisible(true);
     }
   };
 
@@ -523,98 +614,66 @@ export default function UserDetailScreen() {
   };
 
   const renderItemContent = (item: any, index: number) => {
+    let displayItem = item;
+    let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
+    let isSearchItem = false;
+    let excerptVal: string | undefined = undefined;
+
     if (isSearching) {
+      isSearchItem = true;
       const obj = item.object;
       const highlight = item.highlight || {};
       if (!obj) return null;
-      let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
       if (obj.type === 'article') type = 'article';
       else if (obj.type === 'question') type = 'question';
       else if (obj.type === 'pin') type = 'pin';
       else if (obj.type === 'zvideo') type = 'video';
-      const displayItem = {
+      displayItem = {
         ...obj,
         title: highlight.title
           ? highlight.title.replace(/<[^>]+>/g, '')
           : obj.title,
       };
-      return (
-        <View key={`search-${obj.id || ''}-${index}`}>
-          <CreationCard
-            item={displayItem}
-            type={type}
-            excerpt={
-              highlight.description
-                ? (HighlightText(highlight.description) as any)
-                : undefined
-            }
-            onPress={() => {
-              const streamType =
-                type === 'answer'
-                  ? 'answers'
-                  : type === 'article'
-                    ? 'articles'
-                    : type === 'question'
-                      ? 'questions'
-                      : type === 'pin'
-                        ? 'pins'
-                        : 'activities';
-              router.push({
-                pathname: `/user/${user?.url_token || id}/stream`,
-                params: {
-                  type: streamType,
-                  initialId: displayItem.id,
-                },
-              } as any);
-            }}
-          />
-        </View>
-      );
+      excerptVal = highlight.description
+        ? (HighlightText(highlight.description) as any)
+        : undefined;
+    } else {
+      displayItem = item as ZhihuMemberRelation;
+      if (activeTab === 'activities') displayItem = item.target || item;
+      if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
+
+      const itemType = displayItem.type;
+      if (itemType === 'article') type = 'article';
+      else if (itemType === 'question') type = 'question';
+      else if (itemType === 'pin') type = 'pin';
+      else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
     }
 
-    let displayItem = item as ZhihuMemberRelation;
-    if (activeTab === 'activities') displayItem = item.target || item;
-    if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
-
-    let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
-    const itemType = displayItem.type;
-    if (itemType === 'article') type = 'article';
-    else if (itemType === 'question') type = 'question';
-    else if (itemType === 'pin') type = 'pin';
-    else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
+    const itemIdStr = displayItem.id?.toString() || '';
+    const isExpanded = itemIdStr ? expandedIds.has(itemIdStr) : false;
+    const isCollapsedHighlighted = itemIdStr ? highlightedId === itemIdStr : false;
 
     return (
-      <View key={`item-${displayItem.id || ''}-${index}`}>
+      <View
+        key={isSearchItem ? `search-${displayItem.id || ''}-${index}` : `item-${displayItem.id || ''}-${index}`}
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          if (displayItem?.id) {
+            itemLayouts.current.set(displayItem.id.toString(), { y, height });
+          }
+        }}
+      >
         <CreationCard
           item={displayItem}
           type={type}
-          onPress={() => {
-            router.push({
-              pathname: `/user/${user?.url_token || id}/stream`,
-              params: {
-                type: activeTab,
-                initialId: displayItem.id,
-              },
-            } as any);
-          }}
+          excerpt={excerptVal}
+          isExpanded={isExpanded}
+          onToggle={handleToggleExpand}
+          isCollapsedHighlighted={isCollapsedHighlighted}
         />
       </View>
     );
   };
-
-  // Dynamic Height calculation
-  const itemHeight = 220;
-  const creationsCount =
-    activeTab !== 'activities' ? currentListItems.length : 4;
-  const activitiesCount =
-    activeTab === 'activities' ? currentListItems.length : 4;
-
-  const creationsHeaderHeight = activeTab === 'answers' ? 85 : 45;
-  const creationsHeight = Math.max(
-    400,
-    creationsCount * itemHeight + creationsHeaderHeight + 100,
-  );
-  const activitiesHeight = Math.max(400, activitiesCount * itemHeight + 100);
 
   const currentPagerHeight =
     activeMainTab === 0 ? creationsHeight : activitiesHeight;
@@ -635,6 +694,9 @@ export default function UserDetailScreen() {
 
         <PagerView
           ref={pagerRef}
+          onLayout={(e) => {
+            pagerOffsetY.current = e.nativeEvent.layout.y;
+          }}
           style={{ height: currentPagerHeight }}
           initialPage={0} // 默认创作放左边打开
           onPageSelected={(e) => {
@@ -651,59 +713,32 @@ export default function UserDetailScreen() {
         >
           {/* Page 0: 创作 */}
           <View key="creations" className="bg-transparent">
-            {renderCreationsSubTabs()}
-            {renderAnswersSortSelector()}
-            <PagerView
-              ref={nestedPagerRef}
-              style={{ flex: 1 }}
-              scrollEnabled={false} // 不需要手势
-              initialPage={0}
-              onPageSelected={(e) => {
-                nestedSubTabIndexRef.current = e.nativeEvent.position;
+            <View
+              className="bg-transparent"
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0) setCreationsHeight(h);
               }}
             >
-              <View key="answers" className="bg-transparent">
-                {activeTab === 'answers' && (
-                  <View className="bg-transparent">
-                    {currentListItems.map((item, index) =>
-                      renderItemContent(item, index),
-                    )}
-                  </View>
+              {renderCreationsSubTabs()}
+              {renderAnswersSortSelector()}
+              <View className="bg-transparent">
+                {currentListItems.map((item, index) =>
+                  renderItemContent(item, index),
                 )}
               </View>
-              <View key="articles" className="bg-transparent">
-                {activeTab === 'articles' && (
-                  <View className="bg-transparent">
-                    {currentListItems.map((item, index) =>
-                      renderItemContent(item, index),
-                    )}
-                  </View>
-                )}
-              </View>
-              <View key="questions" className="bg-transparent">
-                {activeTab === 'questions' && (
-                  <View className="bg-transparent">
-                    {currentListItems.map((item, index) =>
-                      renderItemContent(item, index),
-                    )}
-                  </View>
-                )}
-              </View>
-              <View key="pins" className="bg-transparent">
-                {activeTab === 'pins' && (
-                  <View className="bg-transparent">
-                    {currentListItems.map((item, index) =>
-                      renderItemContent(item, index),
-                    )}
-                  </View>
-                )}
-              </View>
-            </PagerView>
+            </View>
           </View>
 
           {/* Page 1: 动态 */}
           <View key="activities" className="bg-transparent">
-            <View className="bg-transparent">
+            <View
+              className="bg-transparent"
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0) setActivitiesHeight(h);
+              }}
+            >
               {currentListItems.map((item, index) =>
                 renderItemContent(item, index),
               )}
@@ -726,6 +761,123 @@ export default function UserDetailScreen() {
           ) : null}
         </View>
       </ScrollView>
+
+      <ShareMenu
+        visible={isSharing}
+        onClose={() => {
+          setIsSharing(false);
+          setSelectedAnswer(null);
+        }}
+        type={
+          selectedAnswer?.type === 'article'
+            ? 'article'
+            : selectedAnswer?.type === 'pin'
+              ? 'pin'
+              : 'answer'
+        }
+        data={
+          selectedAnswer
+            ? {
+                id: selectedAnswer.id,
+                title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
+                author: selectedAnswer.author?.name || user?.name,
+                authorHeadline: selectedAnswer.author?.headline || user?.headline,
+                content: selectedAnswer.excerpt || selectedAnswer.content || '',
+              }
+            : null
+        }
+      />
+
+      <Animated.View
+        className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
+        style={[
+          {
+            bottom: insets.bottom || 16,
+            transform: [
+              {
+                translateY: footerAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [100, 0],
+                }),
+              },
+            ],
+            opacity: footerAnim,
+          },
+        ]}
+      >
+        <BlurView
+          intensity={95}
+          tint={colorScheme}
+          className="flex-1"
+          style={{
+            backgroundColor:
+              colorScheme === 'dark'
+                ? 'rgba(26,26,26,0.8)'
+                : 'rgba(255,255,255,0.85)',
+          }}
+        >
+          <View className="flex-1 flex-row items-center px-5 justify-between bg-transparent">
+            <View className="flex-row items-center bg-transparent">
+              <LikeButton
+                id={activeItem?.id}
+                count={
+                  activeItem?.reaction?.statistics?.like_count ||
+                  activeItem?.voteup_count ||
+                  activeItem?.reaction_count ||
+                  0
+                }
+                voted={activeItem?.relationship?.voting || 0}
+                type={
+                  activeItem?.type === 'article'
+                    ? 'articles'
+                    : activeItem?.type === 'pin'
+                      ? 'pins'
+                      : 'answers'
+                }
+              />
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  setSelectedAnswer(activeItem);
+                  setIsSharing(true);
+                }}
+                className="flex-row items-center justify-center h-10 w-10 ml-3.5 bg-transparent"
+              >
+                <Ionicons
+                  name="share-social-outline"
+                  size={20}
+                  color={Colors[colorScheme].textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                if (activeItem?.id) {
+                  handleToggleExpand(activeItem.id.toString(), false);
+                }
+              }}
+              className="flex-row items-center px-4 py-2 rounded-full"
+              style={{
+                backgroundColor:
+                  colorScheme === 'dark'
+                    ? 'rgba(255,255,255,0.1)'
+                    : 'rgba(0,0,0,0.05)',
+              }}
+            >
+              <Text className="text-[13px] font-bold mr-1" style={{ color: '#0084ff' }}>
+                收起回答
+              </Text>
+              <Ionicons
+                name="chevron-up"
+                size={14}
+                color={Colors[colorScheme].primary}
+              />
+            </TouchableOpacity>
+          </View>
+        </BlurView>
+      </Animated.View>
     </View>
   );
 }

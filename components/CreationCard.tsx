@@ -15,24 +15,39 @@ export const CreationCard = ({
   type,
   onPress,
   excerpt,
+  isExpanded,
+  onToggle,
+  isCollapsedHighlighted,
 }: {
   item: any;
   type: 'answer' | 'article' | 'question' | 'pin' | 'video';
   onPress?: () => void;
   excerpt?: string;
+  isExpanded?: boolean;
+  onToggle?: (id: string, expanded: boolean) => void;
+  isCollapsedHighlighted?: boolean;
 }) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const [expanded, setExpanded] = React.useState(false);
+  const [localExpanded, setLocalExpanded] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
 
+  const expanded = isExpanded !== undefined ? isExpanded : localExpanded;
+  const setExpanded = (val: boolean) => {
+    if (onToggle && item?.id) {
+      onToggle(item.id.toString(), val);
+    } else {
+      setLocalExpanded(val);
+    }
+  };
+
   const handlePress = () => {
-    if (onPress) {
-      onPress();
+    if (type === 'answer' || type === 'article' || type === 'pin') {
+      setExpanded(!expanded);
       return;
     }
-    if (type === 'pin') {
-      setExpanded(!expanded);
+    if (onPress) {
+      onPress();
       return;
     }
     if (type === 'video') {
@@ -103,8 +118,12 @@ export const CreationCard = ({
     return item.title || item.question?.title || '未知内容';
   };
 
-  const content = expanded ? getFullContent() : getExcerpt();
-  const showExpandButton = !expanded && getFullContent().length > 100;
+  const fullText = getFullContent();
+  const isLongContent =
+    (type === 'answer' || type === 'article' || type === 'pin') &&
+    (fullText.length > 120 ||
+      (typeof item.content === 'string' &&
+        (item.content.includes('<img') || item.content.includes('<figure'))));
 
   const displayTypeForShare =
     type === 'answer' ? 'answer' : type === 'article' ? 'article' : 'pin';
@@ -113,10 +132,21 @@ export const CreationCard = ({
     <TouchableOpacity
       activeOpacity={0.82}
       onPress={handlePress}
-      style={{
-        backgroundColor: Colors[colorScheme].backgroundSecondary,
-        borderRadius: 12,
-      }}
+      style={[
+        {
+          backgroundColor: Colors[colorScheme].backgroundSecondary,
+          borderRadius: 12,
+          borderWidth: 1.5,
+          borderColor: isCollapsedHighlighted ? '#0084ff' : 'transparent',
+        },
+        isCollapsedHighlighted && {
+          shadowColor: '#0084ff',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 5,
+        }
+      ]}
       className="p-4 mb-2.5 shadow-sm"
     >
       <Animated.View
@@ -166,6 +196,116 @@ export const CreationCard = ({
               />
             </Pressable>
           </View>
+        ) : (type === 'answer' || type === 'article' || type === 'pin') ? (
+          isLongContent ? (
+            <Pressable
+              onPress={() => setExpanded(true)}
+              style={{ maxHeight: 150, overflow: 'hidden' }}
+              className="flex-1"
+            >
+              <ZhihuContent
+                objectId={item.id?.toString()}
+                type={type === 'pin' ? 'pin' : type}
+                content={
+                  typeof item.content === 'string' ? item.content : undefined
+                }
+                contentArray={
+                  type === 'pin' && Array.isArray(item.content)
+                    ? item.content
+                    : undefined
+                }
+                useNative={true}
+              />
+              <Pressable
+                onPress={() => setExpanded(true)}
+                className="absolute inset-x-0 bottom-0 h-24 z-[100]"
+              >
+                {/* 4 layers of progressive opacity to emulate gradient */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 24,
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? 'rgba(26,26,26,0.95)'
+                        : 'rgba(255,255,255,0.95)',
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 24,
+                    left: 0,
+                    right: 0,
+                    height: 24,
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? 'rgba(26,26,26,0.7)'
+                        : 'rgba(255,255,255,0.7)',
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 48,
+                    left: 0,
+                    right: 0,
+                    height: 24,
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? 'rgba(26,26,26,0.45)'
+                        : 'rgba(255,255,255,0.45)',
+                  }}
+                />
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 72,
+                    left: 0,
+                    right: 0,
+                    height: 24,
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? 'rgba(26,26,26,0.15)'
+                        : 'rgba(255,255,255,0.15)',
+                  }}
+                />
+                <View className="absolute inset-x-0 bottom-0 py-2.5 flex-row items-center justify-center">
+                  <Text
+                    type="primary"
+                    className="text-[13px] font-bold mr-1"
+                    style={{ color: '#0084ff' }}
+                  >
+                    展开全文
+                  </Text>
+                  <Ionicons
+                    name="chevron-down"
+                    size={14}
+                    color={Colors[colorScheme].primary}
+                  />
+                </View>
+              </Pressable>
+            </Pressable>
+          ) : (
+            <View className="flex-1 bg-transparent">
+              <ZhihuContent
+                objectId={item.id?.toString()}
+                type={type === 'pin' ? 'pin' : type}
+                content={
+                  typeof item.content === 'string' ? item.content : undefined
+                }
+                contentArray={
+                  type === 'pin' && Array.isArray(item.content)
+                    ? item.content
+                    : undefined
+                }
+                useNative={true}
+              />
+            </View>
+          )
         ) : (
           <View className="bg-transparent">
             <Text
@@ -176,14 +316,6 @@ export const CreationCard = ({
             >
               {getExcerpt()}
             </Text>
-            {showExpandButton && (
-              <Pressable
-                onPress={() => setExpanded(true)}
-                className="mt-2 py-1"
-              >
-                <Text className="text-sm text-primary font-bold">展开全文</Text>
-              </Pressable>
-            )}
           </View>
         )}
       </View>
