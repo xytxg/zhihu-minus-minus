@@ -25,6 +25,7 @@ export interface FeedItem {
   image: string | null;
   voteCount: number;
   commentCount: number;
+  favlistsCount?: number;
   voted: number;
   type: 'answers' | 'articles' | 'pins' | 'questions';
   topics: FeedTopic[];
@@ -44,6 +45,18 @@ export interface RawFeedTarget {
   voteup_count?: number;
   like_count?: number;
   comment_count?: number;
+  favlists_count?: number;
+  favorite_count?: number;
+  reaction?: {
+    relation?: {
+      liked?: boolean;
+      faved?: boolean;
+    };
+    statistics?: {
+      like_count?: number;
+      favorites?: number;
+    };
+  };
   relationship?: {
     voting?: number;
   };

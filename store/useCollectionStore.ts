@@ -11,12 +11,14 @@ interface CollectionState {
   selectorContentType: 'answer' | 'article' | null;
 
   collectedStatusMap: Record<string, boolean>; // id -> isCollected
+  collectedCountOffsetMap: Record<string, number>; // id -> offset delta
 
   showToast: (contentId: string | number, contentType: 'answer' | 'article', message: string) => void;
   hideToast: () => void;
   openSelector: (contentId: string | number, contentType: 'answer' | 'article') => void;
   closeSelector: () => void;
   setCollectedStatus: (id: string | number, status: boolean) => void;
+  updateCollectedCountOffset: (id: string | number, delta: number) => void;
 }
 
 export const useCollectionStore = create<CollectionState>((set) => ({
@@ -30,6 +32,7 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   selectorContentType: null,
 
   collectedStatusMap: {},
+  collectedCountOffsetMap: {},
 
   showToast: (contentId, contentType, message) => set({
     toastVisible: true,
@@ -55,4 +58,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       [id.toString()]: status,
     }
   })),
+  updateCollectedCountOffset: (id, delta) => set((state) => {
+    const idStr = id.toString();
+    const currentOffset = state.collectedCountOffsetMap[idStr] || 0;
+    return {
+      collectedCountOffsetMap: {
+        ...state.collectedCountOffsetMap,
+        [idStr]: currentOffset + delta,
+      }
+    };
+  }),
 }));

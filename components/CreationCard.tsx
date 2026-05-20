@@ -47,6 +47,10 @@ export const CreationCard = React.forwardRef(
       item?.id ? state.collectedStatusMap[item.id.toString()] : false
     );
     const isCollected = storeCollected !== undefined ? storeCollected : false;
+    const storeOffset = useCollectionStore((state) => 
+      item?.id ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0
+    );
+    const displayCount = ((item?.favlists_count || item?.favlistsCount) || 0) + storeOffset;
     const { toggleCollect } = useCollectionAction();
 
     React.useImperativeHandle(ref, () => ({
@@ -405,12 +409,14 @@ export const CreationCard = React.forwardRef(
                   size={16}
                   color={isCollected ? '#ffb400' : '#888'}
                 />
-                <Text
-                  className="ml-1 text-xs font-semibold"
-                  style={{ color: isCollected ? '#ffb400' : '#888' }}
-                >
-                  {isCollected ? '已收藏' : '收藏'}
-                </Text>
+                {displayCount > 0 && (
+                  <Text
+                    className="ml-1 text-xs font-semibold"
+                    style={{ color: isCollected ? '#ffb400' : '#888' }}
+                  >
+                    {displayCount}
+                  </Text>
+                )}
               </Pressable>
             )}
           </View>

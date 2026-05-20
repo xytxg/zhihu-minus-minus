@@ -421,13 +421,13 @@ export default function HomeScreen() {
                   backgroundColor: `${tintColor}15`,
                   width:
                     containerWidth /
-                      ((currentTabs.filter(
-                        (t) => !['publish', 'profile'].includes(t),
-                      ).length > 0
-                        ? 1
-                        : 0) +
-                        (currentTabs.includes('publish') ? 1 : 0) +
-                        (currentTabs.includes('profile') ? 1 : 0)) -
+                    ((currentTabs.filter(
+                      (t) => !['publish', 'profile'].includes(t),
+                    ).length > 0
+                      ? 1
+                      : 0) +
+                      (currentTabs.includes('publish') ? 1 : 0) +
+                      (currentTabs.includes('profile') ? 1 : 0)) -
                     20,
                 },
                 bottomIndicatorStyle,
@@ -439,14 +439,14 @@ export default function HomeScreen() {
                 // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
                 isScrollTop={
                   currentPage <
-                    currentTabs.filter(
-                      (t) => !['publish', 'profile'].includes(t),
-                    ).length && scrolledTabs[currentPage]
+                  currentTabs.filter(
+                    (t) => !['publish', 'profile'].includes(t),
+                  ).length && scrolledTabs[currentPage]
                 }
                 icon={
                   currentPage <
-                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                    .length
+                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                      .length
                     ? 'home'
                     : 'home-outline'
                 }
@@ -458,8 +458,8 @@ export default function HomeScreen() {
                 onPress={handleHomeTabPress}
                 color={
                   currentPage <
-                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                    .length
+                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                      .length
                     ? tintColor
                     : Colors[colorScheme].textSecondary
                 }
@@ -730,6 +730,7 @@ function parseFollowingData(item: RawFeedItem): FeedItem | null {
         : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
+    favlistsCount: target.favorite_count || target.reaction?.statistics?.favorites || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
     topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
@@ -768,6 +769,7 @@ function parseRecommendData(item: RawFeedItem): FeedItem {
         : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
+    favlistsCount: target.favlists_count || target.favorite_count || target.reaction?.statistics?.favorites || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
     topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],

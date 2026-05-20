@@ -17,6 +17,7 @@ export function useCollectionAction() {
   const { cookies } = useAuthStore();
   const showToast = useCollectionStore((state) => state.showToast);
   const setCollectedStatus = useCollectionStore((state) => state.setCollectedStatus);
+  const updateCollectedCountOffset = useCollectionStore((state) => state.updateCollectedCountOffset);
   const queryClient = useQueryClient();
 
   const collectMutation = useMutation({
@@ -36,6 +37,7 @@ export function useCollectionAction() {
     onSuccess: (res, variables) => {
       const idStr = variables.id.toString();
       setCollectedStatus(idStr, true);
+      updateCollectedCountOffset(idStr, 1);
       
       // Invalidate queries so detail views sync
       queryClient.invalidateQueries({ queryKey: ['answer-collection-status', idStr] });
@@ -79,6 +81,7 @@ export function useCollectionAction() {
     onSuccess: (removedFolders, variables) => {
       const idStr = variables.id.toString();
       setCollectedStatus(idStr, false);
+      updateCollectedCountOffset(idStr, -1);
 
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['answer-collection-status', idStr] });

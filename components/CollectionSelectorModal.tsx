@@ -92,8 +92,15 @@ export function CollectionSelectorModal() {
       refetch().then((updated) => {
         const idStr = selectorContentId?.toString();
         if (idStr) {
+          const prevCollected = useCollectionStore.getState().collectedStatusMap[idStr] || false;
           // If the item is in at least one folder now, set collected = true
           const hasCollections = updated.data?.data?.some((item: any) => item.is_favorited) || false;
+          
+          if (prevCollected !== hasCollections) {
+            const delta = hasCollections ? 1 : -1;
+            useCollectionStore.getState().updateCollectedCountOffset(idStr, delta);
+          }
+          
           setCollectedStatus(idStr, hasCollections);
           
           // Invalidate key queries so detail views update

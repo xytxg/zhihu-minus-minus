@@ -28,6 +28,10 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
     state.collectedStatusMap[item.id.toString()]
   );
   const isCollected = storeCollected !== undefined ? storeCollected : false;
+  const storeOffset = useCollectionStore((state) => 
+    state.collectedCountOffsetMap[item.id.toString()] || 0
+  );
+  const displayCount = (item.favlistsCount || 0) + storeOffset;
   const { toggleCollect } = useCollectionAction();
 
   return (
@@ -202,12 +206,14 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                 size={16}
                 color={isCollected ? '#ffb400' : '#888'}
               />
-              <Text
-                className="ml-1 text-xs font-semibold"
-                style={{ color: isCollected ? '#ffb400' : '#888' }}
-              >
-                {isCollected ? '已收藏' : '收藏'}
-              </Text>
+              {displayCount > 0 && (
+                <Text
+                  className="ml-1 text-xs font-semibold"
+                  style={{ color: isCollected ? '#ffb400' : '#888' }}
+                >
+                  {displayCount}
+                </Text>
+              )}
             </TouchableOpacity>
           )}
 

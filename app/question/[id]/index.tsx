@@ -52,6 +52,8 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
+import { useCollectionStore } from '@/store/useCollectionStore';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 const AnswerItem = forwardRef(
   (
@@ -79,6 +81,16 @@ const AnswerItem = forwardRef(
     const textColor = Colors[colorScheme].text;
     const queryClient = useQueryClient();
     const footerRef = useRef<NativeView>(null);
+
+    const storeCollected = useCollectionStore((state) => 
+      item?.id ? state.collectedStatusMap[item.id.toString()] : false
+    );
+    const isCollected = storeCollected !== undefined ? storeCollected : false;
+    const storeOffset = useCollectionStore((state) => 
+      item?.id ? state.collectedStatusMap[item.id.toString()] !== undefined ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0 : 0
+    );
+    const displayCount = (item.favlists_count || 0) + storeOffset;
+    const { toggleCollect } = useCollectionAction();
 
     useImperativeHandle(ref, () => ({
       measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
@@ -331,6 +343,24 @@ const AnswerItem = forwardRef(
               {item.comment_count > 0 ? item.comment_count : '评论'}
             </Text>
           </Pressable>
+          <Pressable
+            className="flex-row items-center ml-5 bg-transparent py-1"
+            onPress={() => toggleCollect(item.id, 'answer', isCollected)}
+          >
+            <Ionicons
+              name={isCollected ? 'star' : 'star-outline'}
+              size={16}
+              color={isCollected ? '#ffb400' : '#888'}
+            />
+            {displayCount > 0 && (
+              <Text
+                className="ml-1 text-xs font-semibold"
+                style={{ color: isCollected ? '#ffb400' : '#888' }}
+              >
+                {displayCount}
+              </Text>
+            )}
+          </Pressable>
           {item.relationship?.is_author && (
             <Pressable className="ml-5 p-1" onPress={handleDelete}>
               <Ionicons
@@ -376,13 +406,6 @@ export default function QuestionDetail() {
   const [isSharing, setIsSharing] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
 
-  const footerAnim = useRef(new Animated.Value(0)).current;
-
-  const isFloatingShown = useRef(false);
-  const flashListRef = useRef<any>(null);
-  const { headerVisible, handleScroll: baseHandleScroll } =
-    useScrollHeaderAnim(400);
-
   const itemRefs = useRef(new Map<string, any>());
   const {
     activeItem,
@@ -390,6 +413,23 @@ export default function QuestionDetail() {
     viewabilityConfig,
     onViewableItemsChanged,
   } = useViewableItems<any>();
+
+  const storeFloatingCollected = useCollectionStore((state) => 
+    activeItem?.id ? state.collectedStatusMap[activeItem.id.toString()] : false
+  );
+  const isFloatingCollected = storeFloatingCollected !== undefined ? storeFloatingCollected : false;
+  const storeFloatingOffset = useCollectionStore((state) => 
+    activeItem?.id ? state.collectedStatusMap[activeItem.id.toString()] !== undefined ? state.collectedCountOffsetMap[activeItem.id.toString()] || 0 : 0 : 0
+  );
+  const displayFloatingCount = (activeItem?.favlists_count || 0) + storeFloatingOffset;
+  const { toggleCollect: toggleFloatingCollect } = useCollectionAction();
+
+  const footerAnim = useRef(new Animated.Value(0)).current;
+
+  const isFloatingShown = useRef(false);
+  const flashListRef = useRef<any>(null);
+  const { headerVisible, handleScroll: baseHandleScroll } =
+    useScrollHeaderAnim(400);
 
   const {
     data: answersData,
@@ -403,7 +443,7 @@ export default function QuestionDetail() {
     queryKey: ['question-answers', id, sortBy],
     queryFn: async ({ pageParam = 0 }) => {
       const include =
-        'data[*].content,voteup_count,comment_count,author.name,author.avatar_url,author.headline,author.is_following,relationship.voting,relationship.is_author,created_time,segment_infos';
+        'data[*].content,voteup_count,comment_count,favlists_count,author.name,author.avatar_url,author.headline,author.is_following,relationship.voting,relationship.is_author,created_time,segment_infos';
       const res = await client.get(
         `/questions/${id}/answers?include=${include}&limit=20&offset=${pageParam}&sort_by=${sortBy}`,
       );
@@ -923,6 +963,26 @@ export default function QuestionDetail() {
                 >
                   {activeItem?.comment_count || 0}
                 </Text>
+              </Pressable>
+
+              <Pressable
+                className="flex-row items-center ml-5 bg-transparent"
+                onPress={() => activeItem?.id && toggleFloatingCollect(activeItem.id, 'answer', isFloatingCollected)}
+              >
+                <Ionicons
+                  name={isFloatingCollected ? 'star' : 'star-outline'}
+                  size={20}
+                  color={isFloatingCollected ? '#ffb400' : Colors[colorScheme].primary}
+                />
+                {displayFloatingCount > 0 && (
+                  <Text
+                    type="primary"
+                    className="ml-1.5 text-sm font-bold"
+                    style={{ color: isFloatingCollected ? '#ffb400' : Colors[colorScheme].primary }}
+                  >
+                    {displayFloatingCount}
+                  </Text>
+                )}
               </Pressable>
 
               {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
