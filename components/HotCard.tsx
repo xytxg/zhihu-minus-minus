@@ -1,7 +1,13 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image, Pressable } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
+import Animated, { SharedTransition } from 'react-native-reanimated';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Text, View } from './Themed';
+
+const slowTransition = SharedTransition.duration(600);
 
 export interface HotItem {
   id: string;
@@ -11,16 +17,39 @@ export interface HotItem {
   image: string | null;
   hotValue: string;
   rank: number;
+  answerCount?: number;
+  labelArea?: {
+    type: string;
+    trend?: number;
+    text?: string;
+    night_color?: string;
+    normal_color?: string;
+  } | null;
 }
 
 export const HotCard = ({ item }: { item: HotItem }) => {
   const router = useRouter();
   const { cookies } = useAuthStore();
+  const colorScheme = useColorScheme();
   const isGuest = !cookies;
 
+  const isTop3 = item.rank <= 3;
+
+  // Custom Rank Colors
+  const rankBgColor = item.rank === 1 ? '#e73828' :
+    item.rank === 2 ? '#f65324' :
+      item.rank === 3 ? '#ff8b1f' :
+        Colors[colorScheme].backgroundTertiary || '#e0e0e0';
+  const rankTextColor = item.rank <= 3 ? '#ffffff' : Colors[colorScheme].textSecondary;
+
+  // Dynamic Label Style
+  const labelColor = colorScheme === 'dark'
+    ? (item.labelArea?.night_color || '#ff9607')
+    : (item.labelArea?.normal_color || '#ff9607');
+
   return (
-    <Pressable
-      className="flex-row py-3 px-4 border-b border-border dark:border-border-dark bg-surface dark:bg-surface-dark"
+    <TouchableOpacity
+      activeOpacity={0.82}
       onPress={() => {
         if (isGuest) {
           router.push({
@@ -41,42 +70,94 @@ export const HotCard = ({ item }: { item: HotItem }) => {
           router.push(`/question/${item.questionId}`);
         }
       }}
-      style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+      style={{
+        backgroundColor: Colors[colorScheme].backgroundSecondary,
+        borderRadius: 14,
+        shadowColor: colorScheme === 'dark' ? '#000' : 'rgba(0,0,0,0.1)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 10,
+        elevation: 3,
+      }}
+      className='p-4 mb-3 mx-4 '
     >
-      <View className="w-[30px] items-start pt-0.5 bg-transparent">
-        <Text
-          className={`text-lg font-bold ${item.rank <= 3 ? 'text-[#ff9607]' : 'text-tertiary dark:text-tertiary-dark'}`}
-        >
-          {item.rank}
-        </Text>
-      </View>
+      <View className='flex-col'>
+        <View className="flex-row">
+          <View className="flex-1 bg-transparent pr-4">
+            {/* Title & Rank Badge */}
+            <View className="flex-row bg-transparent mb-1">
+              <View
+                className="w-[20px] h-[20px] rounded-[4px] items-center justify-center mr-2 mt-0.5"
+                style={{ backgroundColor: rankBgColor }}
+              >
+                <Text className="font-extrabold text-[11px]" style={{ color: rankTextColor }}>
+                  {item.rank}
+                </Text>
+              </View>
+              <Text
+                className="text-[17px] font-bold leading-[25px] text-foreground dark:text-foreground-dark flex-1"
+                numberOfLines={4}
+              >
+                {item.title}
+              </Text>
+            </View>
 
-      <View className="flex-1 flex-row bg-transparent">
-        <View className="flex-1 pr-2.5 bg-transparent">
-          <Text
-            className="text-base font-bold leading-[22px] mb-1 text-foreground dark:text-foreground-dark"
-            numberOfLines={2}
-          >
-            {item.title}
-          </Text>
-          <Text
-            className="text-sm leading-5 mb-1 text-secondary dark:text-secondary-dark"
-            numberOfLines={2}
-          >
-            {item.excerpt}
-          </Text>
-          <Text className="text-xs text-tertiary dark:text-tertiary-dark">
-            {item.hotValue}
-          </Text>
+          </View>
+
+          {/* Image Area */}
+          {item.image && (
+            <View className="justify-center bg-transparent ml-auto">
+              <Animated.Image
+                source={{ uri: item.image }}
+                className="w-[100px] h-[90px] rounded-[10px]"
+                sharedTransitionTag={`image-${item.id}`}
+                style={{
+                  borderWidth: 0.5,
+                  borderColor: 'rgba(0,0,0,0.05)',
+                }}
+              />
+            </View>
+          )}
+
         </View>
+        {/* Bottom Info Bar */}
+        <View className="flex-row items-center mt-auto pt-2 bg-transparent flex-wrap">
+          {item.labelArea && item.labelArea.type === 'text' && item.labelArea.text && (
+            <View
+              className="px-1.5 py-[2px] rounded mr-2"
+              style={{ backgroundColor: `${labelColor}15` }}
+            >
+              <Text className="text-[11px] font-bold" style={{ color: labelColor }}>
+                {item.labelArea.text}
+              </Text>
+            </View>
+          )}
+          {item.labelArea && item.labelArea.type === 'trend' && (
+            <View
+              className="flex-row items-center px-1.5 py-[2px] rounded mr-2"
+              style={{ backgroundColor: `${labelColor}15` }}
+            >
+              <Ionicons name="trending-up" size={12} color={labelColor} />
+            </View>
+          )}
 
-        {item.image && (
-          <Image
-            source={{ uri: item.image }}
-            className="w-[100px] h-[68px] rounded bg-surface-tertiary dark:bg-surface-tertiary-dark"
-          />
-        )}
+          {/* 热和新都没有的时候占位 */}
+          {(!item.labelArea || !item.labelArea.type && !item.labelArea.text && !item.labelArea.trend) && <View className="flex-row items-center mt-auto pt-2 bg-transparent flex-wrap" style={{ marginRight: 32 }}>
+          </View>}
+
+          {item.hotValue ? (
+            <Text className="text-[12px] text-[#ff9607] font-medium mr-2">
+              {item.hotValue}
+            </Text>
+          ) : null}
+
+          {item.answerCount ? (
+            <Text className="text-[12px] text-secondary dark:text-secondary-dark font-medium">
+              {item.answerCount} 个回答
+            </Text>
+          ) : null}
+        </View>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   );
 };

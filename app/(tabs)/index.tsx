@@ -776,17 +776,34 @@ function parseRecommendData(item: RawFeedItem): FeedItem {
   };
 }
 
-function parseHotData(item: RawFeedItem, index: number): HotItem {
+function parseHotData(item: any, index: number): HotItem {
   const target = (item.target || item) as any;
-  const questionId = target.url?.split('/').pop() || '';
+  const questionId = target.link?.url?.split('/').pop() || target.url?.split('/').pop() || '';
+  
+  // Handle fallback fields for both JSON structures
+  const hotValue = target.metrics_area?.text || item.detail_text || target.detail_text || '';
+  const answerCount = item.feed_specific?.answer_count || target.answer_count || 0;
+  
+  // Reconstruct labelArea if it's missing but we have card_label
+  let labelArea = target.label_area || null;
+  if (!labelArea) {
+    if (item.card_label?.type === 'new' || item.debut) {
+      labelArea = { type: 'text', text: '新', normal_color: '#ff9607' };
+    } else if (item.card_label?.type === 'hot') {
+      labelArea = { type: 'text', text: '热', normal_color: '#f65324' };
+    }
+  }
+
   return {
-    id: target.id?.toString() || Math.random().toString(),
+    id: item.id?.toString() || target.id?.toString() || Math.random().toString(),
     questionId: questionId,
     rank: index + 1,
-    title: target.title || '无标题',
-    excerpt: target.excerpt || '',
-    image: item.children?.[0]?.thumbnail || item.image_url || null,
-    hotValue: target.detail_text || '',
+    title: target.title_area?.text || target.title || '无标题',
+    excerpt: target.excerpt_area?.text || target.excerpt || '',
+    image: target.image_area?.url || item.children?.[0]?.thumbnail || item.image_url || null,
+    hotValue,
+    answerCount,
+    labelArea,
   };
 }
 

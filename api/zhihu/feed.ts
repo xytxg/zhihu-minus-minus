@@ -77,6 +77,32 @@ export interface RawFeedTarget {
   }>;
   url?: string;
   detail_text?: string;
+  // Hot List specific fields:
+  title_area?: {
+    text: string;
+  };
+  excerpt_area?: {
+    text: string;
+  };
+  image_area?: {
+    url: string;
+  };
+  metrics_area?: {
+    text: string;
+    font_color?: string;
+    background?: string;
+    weight?: string;
+  };
+  label_area?: {
+    type: string;
+    trend?: number;
+    text?: string;
+    night_color?: string;
+    normal_color?: string;
+  };
+  link?: {
+    url: string;
+  };
 }
 
 export interface RawFeedItem {
@@ -88,6 +114,16 @@ export interface RawFeedItem {
     thumbnail?: string;
   }>;
   image_url?: string;
+  // Hot List specific fields
+  card_id?: string;
+  card_label?: {
+    type: string;
+    icon: string;
+    night_icon: string;
+  };
+  feed_specific?: {
+    answer_count: number;
+  };
 }
 
 export interface ZhihuFeedResponse {
