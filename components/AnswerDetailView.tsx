@@ -34,6 +34,7 @@ import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { showToast } from '@/utils/toast';
+import { useCollectionStore } from '@/store/useCollectionStore';
 
 const _slowTransition = SharedTransition.duration(600);
 
@@ -141,12 +142,21 @@ export const AnswerDetailView = ({
     },
   );
 
+  const setCollectedStatus = useCollectionStore((state) => state.setCollectedStatus);
+
   const isCollected = collectionStatus?.data?.some(
     (item: any) => item.is_favorited,
   );
   const favoritedCollection = collectionStatus?.data?.find(
     (item: any) => item.is_favorited,
   );
+
+  React.useEffect(() => {
+    if (collectionStatus) {
+      const activeCollected = collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
+      setCollectedStatus(id, activeCollected);
+    }
+  }, [collectionStatus, id, setCollectedStatus]);
 
   const collectMutation = useMutation({
     mutationFn: async () => {
@@ -156,9 +166,12 @@ export const AnswerDetailView = ({
     },
     onSuccess: (res) => {
       refetchCollectionStatus();
-      if (!isCollected)
-        showToast(`已收藏到「${res?.collection?.title || '我的收藏'}」`);
-      else showToast('已取消收藏');
+      if (!isCollected) {
+        const folderName = res?.collection?.title || '默认收藏夹';
+        useCollectionStore.getState().showToast(id, 'answer', `已收藏到「${folderName}」`);
+      } else {
+        showToast('已取消收藏');
+      }
     },
     onError: (err: any) =>
       showToast(err.response?.data?.error?.message || '无法处理请求'),

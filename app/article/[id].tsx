@@ -29,6 +29,8 @@ import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { showToast } from '@/utils/toast';
+import { useCollectionStore } from '@/store/useCollectionStore';
+import React, { useEffect } from 'react';
 
 export default function ArticleDetail() {
   const colorScheme = useColorScheme();
@@ -74,12 +76,21 @@ export default function ArticleDetail() {
     },
   );
 
+  const setCollectedStatus = useCollectionStore((state) => state.setCollectedStatus);
+
   const isCollected = collectionStatus?.data?.some(
     (item: any) => item.is_favorited,
   );
   const favoritedCollection = collectionStatus?.data?.find(
     (item: any) => item.is_favorited,
   );
+
+  useEffect(() => {
+    if (collectionStatus && id) {
+      const activeCollected = collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
+      setCollectedStatus(id as string, activeCollected);
+    }
+  }, [collectionStatus, id, setCollectedStatus]);
 
   const collectMutation = useMutation({
     mutationFn: async () => {
@@ -94,7 +105,8 @@ export default function ArticleDetail() {
     onSuccess: (res) => {
       refetchCollectionStatus();
       if (!isCollected) {
-        showToast(`已收藏到「${res?.collection?.title || '我的收藏'}」`);
+        const folderName = res?.collection?.title || '默认收藏夹';
+        useCollectionStore.getState().showToast(id as string, 'article', `已收藏到「${folderName}」`);
       } else {
         showToast('已取消收藏');
       }

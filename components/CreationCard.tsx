@@ -10,6 +10,8 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
+import { useCollectionStore } from '@/store/useCollectionStore';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 export const CreationCard = React.forwardRef(
   (
@@ -39,6 +41,13 @@ export const CreationCard = React.forwardRef(
     const [localExpanded, setLocalExpanded] = React.useState(false);
     const [menuVisible, setMenuVisible] = React.useState(false);
     const footerRef = React.useRef<NativeView>(null);
+
+    const isCollectable = type === 'answer' || type === 'article';
+    const storeCollected = useCollectionStore((state) => 
+      item?.id ? state.collectedStatusMap[item.id.toString()] : false
+    );
+    const isCollected = storeCollected !== undefined ? storeCollected : false;
+    const { toggleCollect } = useCollectionAction();
 
     React.useImperativeHandle(ref, () => ({
       measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
@@ -386,6 +395,24 @@ export const CreationCard = React.forwardRef(
                 {item.comment_count > 0 ? item.comment_count : '评论'}
               </Text>
             </Pressable>
+            {isCollectable && (
+              <Pressable
+                onPress={() => toggleCollect(item.id, type, isCollected)}
+                className="flex-row items-center ml-5 bg-transparent py-1"
+              >
+                <Ionicons
+                  name={isCollected ? 'star' : 'star-outline'}
+                  size={16}
+                  color={isCollected ? '#ffb400' : '#888'}
+                />
+                <Text
+                  className="ml-1 text-xs font-semibold"
+                  style={{ color: isCollected ? '#ffb400' : '#888' }}
+                >
+                  {isCollected ? '已收藏' : '收藏'}
+                </Text>
+              </Pressable>
+            )}
           </View>
         ) : (
           <Text

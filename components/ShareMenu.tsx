@@ -8,6 +8,8 @@ import { showToast } from '@/utils/toast';
 import { MenuOption } from './MenuOption';
 import { Text, View } from './Themed';
 import { useColorScheme } from './useColorScheme';
+import { useCollectionStore } from '@/store/useCollectionStore';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 export type ShareContentType = 'answer' | 'question' | 'pin' | 'article';
 
@@ -33,6 +35,11 @@ export function ShareMenu({ visible, onClose, type, data }: ShareMenuProps) {
   const colorScheme = useColorScheme();
   const surfaceColor = Colors[colorScheme].surface;
   const textColor = Colors[colorScheme].text;
+
+  const isCollected = useCollectionStore((state) => 
+    data ? !!state.collectedStatusMap[data.id.toString()] : false
+  );
+  const { toggleCollect } = useCollectionAction();
 
   if (!data) return null;
 
@@ -140,6 +147,17 @@ export function ShareMenu({ visible, onClose, type, data }: ShareMenuProps) {
                   label="系统分享"
                   onPress={onNativeShare}
                 />
+                {(type === 'answer' || type === 'article') && (
+                  <MenuOption
+                    icon={isCollected ? 'star' : 'star-outline'}
+                    label={isCollected ? '取消收藏' : '移至收藏'}
+                    color={isCollected ? '#ffb400' : undefined}
+                    onPress={() => {
+                      toggleCollect(data.id, type, isCollected);
+                      onClose();
+                    }}
+                  />
+                )}
                 <MenuOption
                   icon="link-outline"
                   label="仅复制链接"

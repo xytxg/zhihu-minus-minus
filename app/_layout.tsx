@@ -14,6 +14,8 @@ import { RootSiblingParent } from 'react-native-root-siblings';
 import { UpdateChecker } from '@/components/UpdateChecker';
 import { useColorScheme } from '@/components/useColorScheme';
 import { VerificationModal } from '@/components/VerificationModal';
+import { CollectionToastOverlay } from '@/components/CollectionToastOverlay';
+import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
 import {
   useSyncThemeWithNativeWind,
   useThemeStore,
@@ -259,6 +261,10 @@ function RootLayout() {
 
             {/* 人机验证弹窗 */}
             <VerificationModal />
+
+            {/* 全局收藏提醒和弹窗 */}
+            <CollectionToastOverlay />
+            <CollectionSelectorModal />
           </ThemeProvider>
         </RootSiblingParent>
       </SafeAreaProvider>

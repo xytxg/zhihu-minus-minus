@@ -10,6 +10,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, View } from './Themed';
+import { useCollectionStore } from '@/store/useCollectionStore';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 const slowTransition = SharedTransition.duration(600);
 
@@ -20,6 +22,13 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const isQuestionType = item.type === 'questions';
   const isGuest = !cookies;
   const colorScheme = useColorScheme();
+
+  const isCollectable = item.type === 'answers' || item.type === 'articles';
+  const storeCollected = useCollectionStore((state) => 
+    state.collectedStatusMap[item.id.toString()]
+  );
+  const isCollected = storeCollected !== undefined ? storeCollected : false;
+  const { toggleCollect } = useCollectionAction();
 
   return (
     <TouchableOpacity
@@ -178,6 +187,29 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
               {item.commentCount > 0 ? item.commentCount : '评论'}
             </Text>
           </TouchableOpacity>
+
+          {isCollectable && (
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => {
+                const typeStr = item.type === 'answers' ? 'answer' : 'article';
+                toggleCollect(item.id, typeStr, isCollected);
+              }}
+              className="flex-row items-center ml-5 bg-transparent py-1"
+            >
+              <Ionicons
+                name={isCollected ? 'star' : 'star-outline'}
+                size={16}
+                color={isCollected ? '#ffb400' : '#888'}
+              />
+              <Text
+                className="ml-1 text-xs font-semibold"
+                style={{ color: isCollected ? '#ffb400' : '#888' }}
+              >
+                {isCollected ? '已收藏' : '收藏'}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             activeOpacity={0.6}
