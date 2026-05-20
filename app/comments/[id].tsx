@@ -147,7 +147,7 @@ export default function CommentScreen() {
                 {item.created_time
                   ? new Date(item.created_time * 1000).toLocaleDateString()
                   : ''}
-                {item.address_text ? ` · IP 属地${item.address_text}` : ''}
+                {item.address_text ? ` · ${item.address_text}` : ''}
               </Text>
               <View className="flex-row items-center">
                 <LikeButton
