@@ -6,7 +6,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Text, View } from './Themed';
-
+import { BouncyButton } from './BouncyButton';
 const slowTransition = SharedTransition.duration(600);
 
 export interface HotItem {
@@ -48,8 +48,7 @@ export const HotCard = ({ item }: { item: HotItem }) => {
     : (item.labelArea?.normal_color || '#ff9607');
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.82}
+    <BouncyButton
       onPress={() => {
         if (isGuest) {
           router.push({
@@ -158,6 +157,6 @@ export const HotCard = ({ item }: { item: HotItem }) => {
           ) : null}
         </View>
       </View>
-    </TouchableOpacity>
+    </BouncyButton>
   );
 };
