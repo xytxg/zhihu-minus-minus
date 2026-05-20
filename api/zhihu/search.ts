@@ -1,3 +1,4 @@
+import { ZhihuSearchResponse } from '../../types/zhihu';
 import apiClient from '../client';
 
 export const getSearchSuggest = async (query: string) => {
@@ -17,7 +18,7 @@ export const searchContent = async (
     restricted_field?: string;
     restricted_value?: string;
   },
-) => {
+): Promise<ZhihuSearchResponse> => {
   const params = new URLSearchParams({
     t: type,
     q: query,

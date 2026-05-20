@@ -31,10 +31,12 @@ import {
   unfollowMember,
 } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
+import { FeedCard } from '@/components/FeedCard';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import type { ZhihuMemberRelation } from '@/types/zhihu';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 const subTabKeys: ('answers' | 'articles' | 'questions' | 'pins')[] = [
   'answers',
@@ -86,7 +88,8 @@ export default function UserDetailScreen() {
   }, [navigation]);
 
   const borderColor = Colors[colorScheme].border;
-  const primaryColor = '#0084ff';
+  const { primaryColor: customPrimaryColor } = useSettingsStore();
+  const primaryColor = customPrimaryColor || '#0084ff';
 
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => getMe() });
   const isMe = me?.id === id;
@@ -183,9 +186,70 @@ export default function UserDetailScreen() {
     },
   });
 
+  const HighlightText = (
+    text: string,
+    highlightColor: string = primaryColor,
+  ) => {
+    if (!text) return '';
+    const decodedText = text
+      .replace(/&lt;em&gt;/g, '[[EM]]')
+      .replace(/&lt;\/em&gt;/g, '[[/EM]]')
+      .replace(/<em>/g, '[[EM]]')
+      .replace(/<\/em>/g, '[[/EM]]')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&nbsp;/g, ' ');
+    const parts = decodedText.split(/(\[\[EM\]\].*?\[\[\/EM\]\])/gs);
+    return (
+      <React.Fragment>
+        {parts.map((part, i) =>
+          part.startsWith('[[EM]]') && part.endsWith('[[/EM]]') ? (
+            <Text key={i} type="primary" className="font-bold" style={{ color: highlightColor }}>
+              {part.replace(/\[\[\/?EM\]\]/g, '')}
+            </Text>
+          ) : (
+            part
+          ),
+        )}
+      </React.Fragment>
+    );
+  };
+
+  const parseSearchResult = (item: any) => {
+    const obj = item.object;
+    if (!obj) return null;
+    const highlight = item.highlight || {};
+    return {
+      id: obj.id,
+      type: obj.type + 's',
+      title: highlight.title
+        ? HighlightText(highlight.title)
+        : obj.question?.name || obj.title || '无标题',
+      titleString: obj.question?.name || obj.title || '无标题',
+      excerpt: highlight.description
+        ? HighlightText(highlight.description)
+        : obj.excerpt || '',
+      image: obj.thumbnail_info?.thumbnails?.[0]?.url || null,
+      voteCount: obj.voteup_count || 0,
+      commentCount: obj.comment_count || 0,
+      author: {
+        id: obj.author?.id,
+        name: obj.author?.name || '匿名用户',
+        avatar: obj.author?.avatar_url,
+        url_token: obj.author?.url_token,
+      },
+      questionId: obj.question?.id || obj.id,
+      voted: obj.relationship?.voting || 0,
+    };
+  };
+
   const isSearching = debouncedSearchQuery.length > 0;
   const currentListItems = isSearching
-    ? searchResults?.pages.flatMap((page) => page.data || []) || []
+    ? searchResults?.pages.flatMap((page) =>
+        page.data?.map(parseSearchResult).filter(Boolean) || []
+      ) || []
     : listItems;
 
   const handleToggleExpand = useCallback(
@@ -232,36 +296,7 @@ export default function UserDetailScreen() {
     return index === -1 ? 0 : index;
   };
 
-  const HighlightText = (
-    text: string,
-    highlightColor: string = primaryColor,
-  ) => {
-    if (!text) return '';
-    const decodedText = text
-      .replace(/&lt;em&gt;/g, '[[EM]]')
-      .replace(/&lt;\/em&gt;/g, '[[/EM]]')
-      .replace(/<em>/g, '[[EM]]')
-      .replace(/<\/em>/g, '[[/EM]]')
-      .replace(/&quot;/g, '"')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&nbsp;/g, ' ');
-    const parts = decodedText.split(/(\[\[EM\]\].*?\[\[\/EM\]\])/gs);
-    return (
-      <React.Fragment>
-        {parts.map((part, i) =>
-          part.startsWith('[[EM]]') && part.endsWith('[[/EM]]') ? (
-            <Text key={i} type="primary" className="font-bold">
-              {part.replace(/\[\[\/?EM\]\]/g, '')}
-            </Text>
-          ) : (
-            part
-          ),
-        )}
-      </React.Fragment>
-    );
-  };
+
 
   const handleFollow = async () => {
     if (followLoading) return;
@@ -609,41 +644,20 @@ export default function UserDetailScreen() {
   };
 
   const renderItemContent = (item: any, index: number) => {
-    let displayItem = item;
-    let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
-    let isSearchItem = false;
-    let excerptVal: React.ReactNode = undefined;
-
     if (isSearching) {
-      isSearchItem = true;
-      const obj = item.object;
-      const highlight = item.highlight || {};
-      if (!obj) return null;
-      if (obj.type === 'article') type = 'article';
-      else if (obj.type === 'question') type = 'question';
-      else if (obj.type === 'pin') type = 'pin';
-      else if (obj.type === 'zvideo') type = 'video';
-      displayItem = {
-        ...obj,
-        title: highlight.title
-          ? HighlightText(highlight.title)
-          : obj.title,
-        titleString: obj.title || obj.question?.name || '',
-      };
-      excerptVal = highlight.description
-        ? HighlightText(highlight.description)
-        : undefined;
-    } else {
-      displayItem = item as ZhihuMemberRelation;
-      if (activeTab === 'activities') displayItem = item.target || item;
-      if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
-
-      const itemType = displayItem.type;
-      if (itemType === 'article') type = 'article';
-      else if (itemType === 'question') type = 'question';
-      else if (itemType === 'pin') type = 'pin';
-      else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
+      return <FeedCard item={item} />;
     }
+
+    let displayItem = item as ZhihuMemberRelation;
+    let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
+    if (activeTab === 'activities') displayItem = item.target || item;
+    if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
+
+    const itemType = displayItem.type;
+    if (itemType === 'article') type = 'article';
+    else if (itemType === 'question') type = 'question';
+    else if (itemType === 'pin') type = 'pin';
+    else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
 
     const itemIdStr = displayItem.id?.toString() || '';
     const isExpanded = itemIdStr ? expandedIds.has(itemIdStr) : false;
@@ -659,7 +673,6 @@ export default function UserDetailScreen() {
         }}
         item={displayItem}
         type={type}
-        excerpt={excerptVal}
         isExpanded={isExpanded}
         onToggle={handleToggleExpand}
         isCollapsedHighlighted={isCollapsedHighlighted}
@@ -825,7 +838,7 @@ export default function UserDetailScreen() {
                     : 'rgba(0,0,0,0.05)',
               }}
             >
-              <Text className="text-[13px] font-bold mr-1" style={{ color: '#0084ff' }}>
+              <Text className="text-[13px] font-bold mr-1" style={{ color: primaryColor }}>
                 收起回答
               </Text>
               <Ionicons

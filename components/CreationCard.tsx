@@ -6,6 +6,7 @@ import Animated from 'react-native-reanimated';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
@@ -33,6 +34,8 @@ export const CreationCard = React.forwardRef(
   ) => {
     const router = useRouter();
     const colorScheme = useColorScheme();
+    const { primaryColor: customPrimaryColor } = useSettingsStore();
+    const primaryColor = customPrimaryColor || '#0084ff';
     const [localExpanded, setLocalExpanded] = React.useState(false);
     const [menuVisible, setMenuVisible] = React.useState(false);
     const footerRef = React.useRef<NativeView>(null);
@@ -52,34 +55,37 @@ export const CreationCard = React.forwardRef(
   };
 
   const handlePress = () => {
-    if (type === 'answer' || type === 'article' || type === 'pin') {
-      setExpanded(!expanded);
-      return;
-    }
     if (onPress) {
       onPress();
       return;
     }
-    const cleanTitle = (val: any) => {
-      if (typeof val === 'string') return val;
-      if (item.titleString) return item.titleString;
-      if (item.question?.titleString) return item.question.titleString;
-      return '';
-    };
-    if (type === 'video') {
-      router.push({
-        pathname: '/video/[id]',
-        params: { id: item.id, title: cleanTitle(item.title) },
-      } as any);
-    } else {
-      router.push({
-        pathname: `/${type}/[id]`,
-        params: {
-          id: item.id,
-          title: cleanTitle(item.title || item.question?.title),
-          questionId: item.question?.id,
-        },
-      } as any);
+    if (excerpt !== undefined) {
+      const cleanTitle = (val: any) => {
+        if (typeof val === 'string') return val;
+        if (item.titleString) return item.titleString;
+        if (item.question?.titleString) return item.question.titleString;
+        return '';
+      };
+      if (type === 'video') {
+        router.push({
+          pathname: '/video/[id]',
+          params: { id: item.id, title: cleanTitle(item.title) },
+        } as any);
+      } else {
+        router.push({
+          pathname: `/${type}/[id]`,
+          params: {
+            id: item.id,
+            title: cleanTitle(item.title || item.question?.title),
+            questionId: item.question?.id,
+          },
+        } as any);
+      }
+      return;
+    }
+    if (type === 'answer' || type === 'article' || type === 'pin') {
+      setExpanded(!expanded);
+      return;
     }
   };
 
@@ -136,6 +142,7 @@ export const CreationCard = React.forwardRef(
 
   const fullText = getFullContent();
   const isLongContent =
+    excerpt === undefined &&
     (type === 'answer' || type === 'article' || type === 'pin') &&
     (fullText.length > 120 ||
       (typeof item.content === 'string' &&
@@ -153,10 +160,10 @@ export const CreationCard = React.forwardRef(
           backgroundColor: Colors[colorScheme].backgroundSecondary,
           borderRadius: 12,
           borderWidth: 1.5,
-          borderColor: isCollapsedHighlighted ? '#0084ff' : 'transparent',
+          borderColor: isCollapsedHighlighted ? primaryColor : 'transparent',
         },
         isCollapsedHighlighted && {
-          shadowColor: '#0084ff',
+          shadowColor: primaryColor,
           shadowOffset: { width: 0, height: 0 },
           shadowOpacity: 0.3,
           shadowRadius: 6,
