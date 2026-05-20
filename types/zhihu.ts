@@ -118,3 +118,23 @@ export type ZhihuMemberRelation =
   | ZhihuArticle
   | ZhihuPin
   | ZhihuVideo;
+
+export interface ZhihuSearchHighlight {
+  description?: string;
+  title?: string;
+}
+
+export interface ZhihuSearchResultItem {
+  type: 'search_result';
+  highlight: ZhihuSearchHighlight;
+  object: ZhihuMemberRelation;
+  index: number;
+}
+
+export interface ZhihuSearchResponse {
+  paging: {
+    is_end: boolean;
+    next: string;
+  };
+  data: ZhihuSearchResultItem[];
+}

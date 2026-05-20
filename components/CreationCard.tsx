@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable, TouchableOpacity, View as NativeView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -10,27 +10,37 @@ import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
 
-export const CreationCard = ({
-  item,
-  type,
-  onPress,
-  excerpt,
-  isExpanded,
-  onToggle,
-  isCollapsedHighlighted,
-}: {
-  item: any;
-  type: 'answer' | 'article' | 'question' | 'pin' | 'video';
-  onPress?: () => void;
-  excerpt?: string;
-  isExpanded?: boolean;
-  onToggle?: (id: string, expanded: boolean) => void;
-  isCollapsedHighlighted?: boolean;
-}) => {
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-  const [localExpanded, setLocalExpanded] = React.useState(false);
-  const [menuVisible, setMenuVisible] = React.useState(false);
+export const CreationCard = React.forwardRef(
+  (
+    {
+      item,
+      type,
+      onPress,
+      excerpt,
+      isExpanded,
+      onToggle,
+      isCollapsedHighlighted,
+    }: {
+      item: any;
+      type: 'answer' | 'article' | 'question' | 'pin' | 'video';
+      onPress?: () => void;
+      excerpt?: React.ReactNode;
+      isExpanded?: boolean;
+      onToggle?: (id: string, expanded: boolean) => void;
+      isCollapsedHighlighted?: boolean;
+    },
+    ref,
+  ) => {
+    const router = useRouter();
+    const colorScheme = useColorScheme();
+    const [localExpanded, setLocalExpanded] = React.useState(false);
+    const [menuVisible, setMenuVisible] = React.useState(false);
+    const footerRef = React.useRef<NativeView>(null);
+
+    React.useImperativeHandle(ref, () => ({
+      measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
+      id: item?.id?.toString() || Math.random().toString(),
+    }));
 
   const expanded = isExpanded !== undefined ? isExpanded : localExpanded;
   const setExpanded = (val: boolean) => {
@@ -50,17 +60,23 @@ export const CreationCard = ({
       onPress();
       return;
     }
+    const cleanTitle = (val: any) => {
+      if (typeof val === 'string') return val;
+      if (item.titleString) return item.titleString;
+      if (item.question?.titleString) return item.question.titleString;
+      return '';
+    };
     if (type === 'video') {
       router.push({
         pathname: '/video/[id]',
-        params: { id: item.id, title: item.title },
+        params: { id: item.id, title: cleanTitle(item.title) },
       } as any);
     } else {
       router.push({
         pathname: `/${type}/[id]`,
         params: {
           id: item.id,
-          title: item.title || item.question?.title,
+          title: cleanTitle(item.title || item.question?.title),
           questionId: item.question?.id,
         },
       } as any);
@@ -320,7 +336,10 @@ export const CreationCard = ({
         )}
       </View>
 
-      <View className="flex-row justify-between mt-4 items-center bg-transparent">
+      <NativeView
+        ref={footerRef}
+        className="flex-row justify-between mt-4 items-center bg-transparent"
+      >
         {type !== 'question' && type !== 'video' ? (
           <View className="flex-row items-center bg-transparent">
             <LikeButton
@@ -397,7 +416,7 @@ export const CreationCard = ({
             <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
           </TouchableOpacity>
         </View>
-      </View>
+      </NativeView>
 
       <ShareMenu
         visible={menuVisible}
@@ -415,4 +434,4 @@ export const CreationCard = ({
       />
     </TouchableOpacity>
   );
-};
+});

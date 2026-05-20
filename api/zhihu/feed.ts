@@ -16,11 +16,11 @@ export interface FeedTopic {
 
 export interface FeedItem {
   id: string;
-  title: string;
+  title: any;
   questionId?: string;
   actionText?: string;
   author: FeedAuthor;
-  excerpt: string;
+  excerpt: any;
   content: string;
   image: string | null;
   voteCount: number;
@@ -30,6 +30,7 @@ export interface FeedItem {
   topics: FeedTopic[];
   rank?: number;
   hotValue?: string;
+  titleString?: string;
 }
 
 export interface RawFeedTarget {

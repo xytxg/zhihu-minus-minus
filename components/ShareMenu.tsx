@@ -13,11 +13,12 @@ export type ShareContentType = 'answer' | 'question' | 'pin' | 'article';
 
 interface ShareData {
   id: string | number;
-  title?: string;
+  title?: any;
   author?: string;
   authorHeadline?: string;
   content?: string;
   url?: string;
+  excerpt?: any;
 }
 
 interface ShareMenuProps {

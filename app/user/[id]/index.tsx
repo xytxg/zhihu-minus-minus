@@ -12,8 +12,10 @@ import {
   TextInput,
   Animated,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import { LikeButton } from '@/components/LikeButton';
@@ -56,10 +58,6 @@ export default function UserDetailScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
-  // Dynamic Height measurement states
-  const [creationsHeight, setCreationsHeight] = useState(600);
-  const [activitiesHeight, setActivitiesHeight] = useState(600);
-
   // States for expanding card behavior
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -71,13 +69,11 @@ export default function UserDetailScreen() {
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
   
   // Layout and view measurement refs
-  const itemLayouts = useRef<Map<string, { y: number; height: number }>>(new Map());
   const itemRefs = useRef<Map<string, any>>(new Map());
-  const pagerOffsetY = useRef(0);
   const footerAnim = useRef(new Animated.Value(0)).current;
+  const flashListRef = useRef<any>(null);
+  const { height: screenHeight } = useWindowDimensions();
 
-  const pagerRef = useRef<PagerView>(null);
-  const nestedPagerRef = useRef<PagerView>(null);
   const nestedSubTabIndexRef = useRef(0);
 
   useEffect(() => {
@@ -283,41 +279,39 @@ export default function UserDetailScreen() {
     }
   };
 
-  const handleScroll = (event: any) => {
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const currentY = contentOffset.y;
-    const viewportHeight = layoutMeasurement.height;
-
-    const isCloseToBottom =
-      viewportHeight + currentY >= contentSize.height - 400;
-    if (isCloseToBottom) {
-      if (isSearching) {
-        if (hasNextSearchPage && !isFetchingNextSearchPage)
-          fetchNextSearchPage();
-      } else {
-        if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-      }
+  const handleRefresh = async () => {
+    refetchUser();
+    if (isSearching) {
+      refetchSearch();
+    } else {
+      refetchList();
     }
+  };
 
-    // JS-based synchronous active card footer check
+  const lastCheckTime = useRef(0);
+  const handleScroll = (event: any) => {
     if (!activeItem) {
       if (!footerVisible) setFooterVisible(true);
       return;
     }
 
-    const layout = itemLayouts.current.get(activeItem.id.toString());
-    if (layout) {
-      // Calculate active card's absolute footer position in ScrollView
-      const footerAbsY = layout.y + pagerOffsetY.current + layout.height;
-      const footerRelY = footerAbsY - currentY;
-
-      // If footer is scrolled above or below screen, it is invisible -> show overlay
-      const isVisible = footerRelY > 50 && footerRelY < viewportHeight + 100;
-      if (isVisible !== footerVisible) {
-        setFooterVisible(isVisible);
+    const now = Date.now();
+    if (now - lastCheckTime.current > 100) {
+      lastCheckTime.current = now;
+      const itemIdStr = activeItem.id?.toString();
+      if (itemIdStr) {
+        const ref = itemRefs.current.get(itemIdStr);
+        if (ref) {
+          ref.measureFooter((x: number, y: number, w: number, h: number) => {
+            const isVisible = y > insets.top + 40 && y < screenHeight - 60;
+            if (isVisible !== footerVisible) {
+              setFooterVisible(isVisible);
+            }
+          });
+        } else {
+          if (!footerVisible) setFooterVisible(true);
+        }
       }
-    } else {
-      if (!footerVisible) setFooterVisible(true);
     }
   };
 
@@ -496,7 +490,6 @@ export default function UserDetailScreen() {
           key={tab.index}
           onPress={() => {
             setActiveMainTab(tab.index);
-            pagerRef.current?.setPage(tab.index);
             if (tab.index === 1) {
               setActiveTab('activities');
             } else {
@@ -504,6 +497,7 @@ export default function UserDetailScreen() {
                 setActiveTab(subTabKeys[nestedSubTabIndexRef.current]);
               }
             }
+            flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
           }}
           className="flex-1 py-3.5 items-center"
           style={
@@ -546,7 +540,8 @@ export default function UserDetailScreen() {
                 const key = subTab.key as any;
                 setActiveTab(key);
                 const targetIndex = getSubTabIndex(key);
-                nestedPagerRef.current?.setPage(targetIndex);
+                nestedSubTabIndexRef.current = targetIndex;
+                flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
               }
             }}
             className="px-4 py-1.5 rounded-full items-center justify-center"
@@ -617,7 +612,7 @@ export default function UserDetailScreen() {
     let displayItem = item;
     let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
     let isSearchItem = false;
-    let excerptVal: string | undefined = undefined;
+    let excerptVal: React.ReactNode = undefined;
 
     if (isSearching) {
       isSearchItem = true;
@@ -631,11 +626,12 @@ export default function UserDetailScreen() {
       displayItem = {
         ...obj,
         title: highlight.title
-          ? highlight.title.replace(/<[^>]+>/g, '')
+          ? HighlightText(highlight.title)
           : obj.title,
+        titleString: obj.title || obj.question?.name || '',
       };
       excerptVal = highlight.description
-        ? (HighlightText(highlight.description) as any)
+        ? HighlightText(highlight.description)
         : undefined;
     } else {
       displayItem = item as ZhihuMemberRelation;
@@ -654,113 +650,76 @@ export default function UserDetailScreen() {
     const isCollapsedHighlighted = itemIdStr ? highlightedId === itemIdStr : false;
 
     return (
-      <View
-        key={isSearchItem ? `search-${displayItem.id || ''}-${index}` : `item-${displayItem.id || ''}-${index}`}
-        onLayout={(event) => {
-          const { y, height } = event.nativeEvent.layout;
-          if (displayItem?.id) {
-            itemLayouts.current.set(displayItem.id.toString(), { y, height });
+      <CreationCard
+        ref={(el) => {
+          if (itemIdStr) {
+            if (el) itemRefs.current.set(itemIdStr, el);
+            else itemRefs.current.delete(itemIdStr);
           }
         }}
-      >
-        <CreationCard
-          item={displayItem}
-          type={type}
-          excerpt={excerptVal}
-          isExpanded={isExpanded}
-          onToggle={handleToggleExpand}
-          isCollapsedHighlighted={isCollapsedHighlighted}
-        />
-      </View>
+        item={displayItem}
+        type={type}
+        excerpt={excerptVal}
+        isExpanded={isExpanded}
+        onToggle={handleToggleExpand}
+        isCollapsedHighlighted={isCollapsedHighlighted}
+      />
     );
   };
-
-  const currentPagerHeight =
-    activeMainTab === 0 ? creationsHeight : activitiesHeight;
 
   return (
     <View
       className="flex-1"
       style={{ backgroundColor: Colors[colorScheme].background }}
     >
-      <ScrollView
-        className="flex-1"
+      <FlashList
+        ref={flashListRef}
+        data={currentListItems}
+        renderItem={({ item, index }) => renderItemContent(item, index)}
+        keyExtractor={(item: any, index: number) => `user-item-${item.id || ''}-${index}`}
+        {...({ estimatedItemSize: 250 } as any)}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-      >
-        {renderHeader()}
-        {renderSearchBar()}
-        {renderMainTabsSelector()}
-
-        <PagerView
-          ref={pagerRef}
-          onLayout={(e) => {
-            pagerOffsetY.current = e.nativeEvent.layout.y;
-          }}
-          style={{ height: currentPagerHeight }}
-          initialPage={0} // 默认创作放左边打开
-          onPageSelected={(e) => {
-            const pageIndex = e.nativeEvent.position;
-            setActiveMainTab(pageIndex);
-            if (pageIndex === 1) {
-              setActiveTab('activities');
-            } else {
-              if (activeTab === 'activities') {
-                setActiveTab(subTabKeys[nestedSubTabIndexRef.current]);
-              }
-            }
-          }}
-        >
-          {/* Page 0: 创作 */}
-          <View key="creations" className="bg-transparent">
-            <View
-              className="bg-transparent"
-              onLayout={(e) => {
-                const h = e.nativeEvent.layout.height;
-                if (h > 0) setCreationsHeight(h);
-              }}
-            >
-              {renderCreationsSubTabs()}
-              {renderAnswersSortSelector()}
+        ListHeaderComponent={
+          <View className="bg-transparent">
+            {renderHeader()}
+            {renderSearchBar()}
+            {renderMainTabsSelector()}
+            {activeMainTab === 0 && (
               <View className="bg-transparent">
-                {currentListItems.map((item, index) =>
-                  renderItemContent(item, index),
-                )}
+                {renderCreationsSubTabs()}
+                {renderAnswersSortSelector()}
               </View>
-            </View>
+            )}
           </View>
-
-          {/* Page 1: 动态 */}
-          <View key="activities" className="bg-transparent">
-            <View
-              className="bg-transparent"
-              onLayout={(e) => {
-                const h = e.nativeEvent.layout.height;
-                if (h > 0) setActivitiesHeight(h);
-              }}
-            >
-              {currentListItems.map((item, index) =>
-                renderItemContent(item, index),
-              )}
-            </View>
+        }
+        ListFooterComponent={
+          <View className="bg-transparent">
+            {listLoading || searchLoading || isFetchingNextPage ? (
+              <ActivityIndicator
+                style={{ margin: 20 }}
+                color={Colors[colorScheme].primary}
+              />
+            ) : currentListItems.length > 0 &&
+              !(isSearching ? hasNextSearchPage : hasNextPage) ? (
+              <Text type="secondary" className="text-center p-5 text-xs">
+                — 已经到底了喵 —
+              </Text>
+            ) : null}
           </View>
-        </PagerView>
-
-        {/* Loading and Footer Indicators */}
-        <View className="bg-transparent">
-          {listLoading || searchLoading || isFetchingNextPage ? (
-            <ActivityIndicator
-              style={{ margin: 20 }}
-              color={Colors[colorScheme].primary}
-            />
-          ) : currentListItems.length > 0 &&
-            !(isSearching ? hasNextSearchPage : hasNextPage) ? (
-            <Text type="secondary" className="text-center p-5 text-xs">
-              — 已经到底了喵 —
-            </Text>
-          ) : null}
-        </View>
-      </ScrollView>
+        }
+        onEndReached={() => {
+          if (isSearching) {
+            if (hasNextSearchPage && !isFetchingNextSearchPage)
+              fetchNextSearchPage();
+          } else {
+            if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        onRefresh={handleRefresh}
+        refreshing={isRefetching}
+      />
 
       <ShareMenu
         visible={isSharing}

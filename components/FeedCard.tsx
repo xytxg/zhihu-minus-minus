@@ -33,8 +33,12 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           return;
         }
         const routeType = item.type.slice(0, -1);
+        const cleanTitle =
+          typeof item.title === 'string'
+            ? item.title
+            : item.titleString || '';
         const params: any = {
-          title: item.title,
+          title: cleanTitle,
           questionId: item.questionId,
         };
         if (tab) {

@@ -10,10 +10,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import {
   ActivityIndicator,
   Animated,
-  FlatList,
   Image,
   LayoutAnimation,
   Platform,
@@ -387,15 +387,15 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-              item.updated ||
-              item.created_time ||
-              item.created
+                item.updated ||
+                item.created_time ||
+                item.created
                 ? new Date(
-                    (item.updated_time ||
-                      item.updated ||
-                      item.created_time ||
-                      item.created) * 1000,
-                  ).toLocaleDateString()
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
                 : ''}
             </Text>
             <TouchableOpacity
@@ -422,7 +422,7 @@ export default function UserStreamScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const flatListRef = useRef<FlatList>(null);
+  const flashListRef = useRef<any>(null);
   const [hasScrolledToInitial, setHasScrolledToInitial] = useState(false);
 
   const activeTab = type || 'answers';
@@ -475,14 +475,14 @@ export default function UserStreamScreen() {
 
     if (now - lastCheckTime.current > 50) {
       lastCheckTime.current = now;
-      
+
       if (activeItem && activeItem.id && expandedIds.has(activeItem.id.toString())) {
         const layout = itemLayouts.current.get(activeItem.id.toString());
         if (layout) {
           const headerHeight = 56;
           const viewportHeight = screenHeight - headerHeight - insets.top - insets.bottom;
           const footerRelY = (layout.y + layout.height) - currentY;
-          
+
           // Footer is visible if its relative Y is within the viewport
           const isFooterVisible = footerRelY > 50 && footerRelY < viewportHeight - 20;
           const shouldShow = !isFooterVisible && currentY > 300;
@@ -590,7 +590,7 @@ export default function UserStreamScreen() {
       if (index !== -1) {
         setHasScrolledToInitial(true);
         setTimeout(() => {
-          flatListRef.current?.scrollToIndex({
+          flashListRef.current?.scrollToIndex({
             index,
             animated: true,
             viewPosition: 0,
@@ -631,7 +631,7 @@ export default function UserStreamScreen() {
             return displayItem?.id?.toString() === id;
           });
           if (index >= 0) {
-            flatListRef.current?.scrollToIndex({
+            flashListRef.current?.scrollToIndex({
               index: index,
               animated: true,
               viewOffset: insets.top + 56,
@@ -764,11 +764,12 @@ export default function UserStreamScreen() {
       </View>
 
       {/* 2. Content Stream List */}
-      <FlatList
-        ref={flatListRef}
+      <FlashList
+        ref={flashListRef}
         onScroll={handleScroll}
         data={streamItems}
-        keyExtractor={(item, index) => `stream-${item.id || ''}-${index}`}
+        {...({ estimatedItemSize: 250 } as any)}
+        keyExtractor={(item: any, index: number) => `stream-${item.id || ''}-${index}`}
         renderItem={renderItemContent}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
@@ -801,12 +802,6 @@ export default function UserStreamScreen() {
             </Text>
           ) : null
         }
-        onScrollToIndexFailed={(info) => {
-          flatListRef.current?.scrollToOffset({
-            offset: info.highestMeasuredFrameIndex * 150,
-            animated: true,
-          });
-        }}
       />
 
       <ShareMenu
@@ -825,12 +820,12 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
-                author: selectedAnswer.author?.name || user?.name,
-                authorHeadline: selectedAnswer.author?.headline || user?.headline,
-                content: selectedAnswer.excerpt || selectedAnswer.content || '',
-              }
+              id: selectedAnswer.id,
+              title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
+              author: selectedAnswer.author?.name || user?.name,
+              authorHeadline: selectedAnswer.author?.headline || user?.headline,
+              content: selectedAnswer.excerpt || selectedAnswer.content || '',
+            }
             : null
         }
       />

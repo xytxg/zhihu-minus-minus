@@ -77,7 +77,7 @@ export default function SearchScreen() {
     }
   };
 
-  const HighlightText = (text: string, highlightColor: string) => {
+  const HighlightText = (text: string) => {
     if (!text) return '';
     const decodedText = text
       .replace(/&lt;em&gt;/g, '[[EM]]')
@@ -97,7 +97,8 @@ export default function SearchScreen() {
             return (
               <Text
                 key={i}
-                style={{ color: highlightColor, fontWeight: 'bold' }}
+                type="primary"
+                className="font-bold"
               >
                 {part.replace(/\[\[\/?EM\]\]/g, '')}
               </Text>
@@ -118,10 +119,10 @@ export default function SearchScreen() {
         ...obj,
         type: 'peoples',
         name: highlight.title
-          ? HighlightText(highlight.title, tintColor)
+          ? HighlightText(highlight.title)
           : obj.name,
         headline: highlight.description
-          ? HighlightText(highlight.description, tintColor)
+          ? HighlightText(highlight.description)
           : obj.headline,
       };
     }
@@ -129,10 +130,11 @@ export default function SearchScreen() {
       id: obj.id,
       type: obj.type + 's',
       title: highlight.title
-        ? HighlightText(highlight.title, tintColor)
+        ? HighlightText(highlight.title)
         : obj.question?.name || obj.title || '无标题',
+      titleString: obj.question?.name || obj.title || '无标题',
       excerpt: highlight.description
-        ? HighlightText(highlight.description, tintColor)
+        ? HighlightText(highlight.description)
         : obj.excerpt || '',
       image: obj.thumbnail_info?.thumbnails?.[0]?.url || null,
       voteCount: obj.voteup_count || 0,
@@ -326,14 +328,12 @@ export default function SearchScreen() {
                   typeof userObj.name === 'string'
                     ? HighlightText(
                         highlight.title || userObj.name || '',
-                        tintColor,
                       )
                     : userObj.name,
                 headline:
                   typeof userObj.headline === 'string'
                     ? HighlightText(
                         highlight.description || userObj.headline || '',
-                        tintColor,
                       )
                     : userObj.headline,
               };
