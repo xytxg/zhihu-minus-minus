@@ -25,6 +25,7 @@ export interface AppSettings {
   defaultTab: TabKey;
   borderRadius: number;
   useWebView: boolean;
+  enablePrivateMessaging: boolean;
 }
 
 interface SettingsState extends AppSettings {
@@ -40,6 +41,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultTab: 'recommend',
   borderRadius: 12,
   useWebView: false,
+  enablePrivateMessaging: false,
 };
 
 export const useSettingsStore = create<SettingsState>()(

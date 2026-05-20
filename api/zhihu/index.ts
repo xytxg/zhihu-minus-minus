@@ -1,5 +1,6 @@
 export * from './answer';
 export * from './article';
+export * from './chat';
 export * from './collection';
 export * from './comment';
 export * from './daily';

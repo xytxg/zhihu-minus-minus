@@ -32,6 +32,7 @@ export default function ProfileScreen() {
   const accentColor = useThemeColor({}, 'primary');
   const surfaceColor = Colors[colorScheme].surface;
   const textColor = Colors[colorScheme].text;
+  const { enablePrivateMessaging } = useSettingsStore();
   const {
     cookies,
     setMe,
@@ -362,6 +363,14 @@ export default function ProfileScreen() {
             ) : undefined
           }
         />
+        {enablePrivateMessaging && (
+          <MenuItem
+            icon="chatbubbles-outline"
+            title="我的私信"
+            color="#4caf50"
+            onPress={() => router.push('/inbox' as any)}
+          />
+        )}
         <MenuItem
           icon="people-outline"
           title="切换账号"

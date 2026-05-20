@@ -36,6 +36,7 @@ export default function AppearanceSettings() {
     visibleTabs,
     defaultTab,
     useWebView,
+    enablePrivateMessaging,
     updateSettings,
     resetSettings,
   } = useSettingsStore();
@@ -194,6 +195,13 @@ export default function AppearanceSettings() {
             <Switch
               value={useWebView}
               onValueChange={(val) => updateSettings({ useWebView: val })}
+              trackColor={{ true: tintColor }}
+            />
+          </SettingItem>
+          <SettingItem label="启用私信功能 (IM)">
+            <Switch
+              value={enablePrivateMessaging}
+              onValueChange={(val) => updateSettings({ enablePrivateMessaging: val })}
               trackColor={{ true: tintColor }}
             />
           </SettingItem>
