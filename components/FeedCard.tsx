@@ -24,11 +24,11 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const colorScheme = useColorScheme();
 
   const isCollectable = item.type === 'answers' || item.type === 'articles';
-  const storeCollected = useCollectionStore((state) => 
+  const storeCollected = useCollectionStore((state) =>
     state.collectedStatusMap[item.id.toString()]
   );
   const isCollected = storeCollected !== undefined ? storeCollected : false;
-  const storeOffset = useCollectionStore((state) => 
+  const storeOffset = useCollectionStore((state) =>
     state.collectedCountOffsetMap[item.id.toString()] || 0
   );
   const displayCount = (item.favlistsCount || 0) + storeOffset;

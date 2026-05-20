@@ -35,6 +35,7 @@ import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { showToast } from '@/utils/toast';
 import { useCollectionStore } from '@/store/useCollectionStore';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 const _slowTransition = SharedTransition.duration(600);
 
@@ -150,6 +151,18 @@ export const AnswerDetailView = ({
   const favoritedCollection = collectionStatus?.data?.find(
     (item: any) => item.is_favorited,
   );
+
+  const { toggleCollect } = useCollectionAction();
+
+  const storeCollected = useCollectionStore((state) =>
+    state.collectedStatusMap[id.toString()]
+  );
+  const rawIsFaved = answer?.reaction?.relation?.faved || answer?.relationship?.is_favorited || false;
+  const activeCollected = storeCollected !== undefined ? storeCollected : (isCollected !== undefined ? isCollected : rawIsFaved);
+  const storeOffset = useCollectionStore((state) =>
+    state.collectedCountOffsetMap[id.toString()] || 0
+  );
+  const displayCount = (answer?.favlists_count || 0) + storeOffset;
 
   React.useEffect(() => {
     if (collectionStatus) {
@@ -295,10 +308,10 @@ export const AnswerDetailView = ({
               !answer?.author?.is_following
                 ? { backgroundColor: '#0084ff15' }
                 : {
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: '#eee',
-                  },
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  borderColor: '#eee',
+                },
             ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
@@ -421,12 +434,12 @@ export const AnswerDetailView = ({
         data={
           answer
             ? {
-                id: answer.id,
-                title: answer.question?.title,
-                author: answer.author?.name,
-                authorHeadline: answer.author?.headline,
-                url: getShareLink(),
-              }
+              id: answer.id,
+              title: answer.question?.title,
+              author: answer.author?.name,
+              authorHeadline: answer.author?.headline,
+              url: getShareLink(),
+            }
             : null
         }
       />

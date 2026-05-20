@@ -293,10 +293,10 @@ export default function ArticleDetail() {
                   !data.author?.is_following
                     ? { backgroundColor: '#0084ff15' }
                     : {
-                        backgroundColor: 'transparent',
-                        borderWidth: 1,
-                        borderColor: '#eee',
-                      },
+                      backgroundColor: 'transparent',
+                      borderWidth: 1,
+                      borderColor: '#eee',
+                    },
                 ]}
                 onPress={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
@@ -409,12 +409,12 @@ export default function ArticleDetail() {
         data={
           data
             ? {
-                id: id as string,
-                title: data.title,
-                author: data.author?.name,
-                authorHeadline: data.author?.headline,
-                url: isDaily ? undefined : `https://zhuanlan.zhihu.com/p/${id}`,
-              }
+              id: id as string,
+              title: data.title,
+              author: data.author?.name,
+              authorHeadline: data.author?.headline,
+              url: isDaily ? undefined : `https://zhuanlan.zhihu.com/p/${id}`,
+            }
             : null
         }
       />
