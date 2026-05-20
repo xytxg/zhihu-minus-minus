@@ -21,9 +21,11 @@ import {
   createArticleComment,
   createCommentReply,
   createQuestionComment,
+  createPinComment,
   getAnswerComments,
   getArticleCommentsV5 as getArticleComments,
   getQuestionCommentsV5 as getQuestionComments,
+  getPinCommentsV5 as getPinComments,
 } from '@/api/zhihu';
 import { LikeButton } from '@/components/LikeButton';
 import { Text, View } from '@/components/Themed';
@@ -60,6 +62,7 @@ export default function CommentScreen() {
       }
       if (type === 'question') return getQuestionComments(id as string);
       if (type === 'article') return getArticleComments(id as string);
+      if (type === 'pin') return getPinComments(id as string);
       return getAnswerComments(id as string);
     },
   });
@@ -73,6 +76,8 @@ export default function CommentScreen() {
         return createQuestionComment(id as string, content);
       if (type === 'article')
         return createArticleComment(id as string, content);
+      if (type === 'pin')
+        return createPinComment(id as string, content);
       return createAnswerComment(id as string, content);
     },
     onSuccess: () => {

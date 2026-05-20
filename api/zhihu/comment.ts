@@ -262,6 +262,29 @@ export const getArticleCommentsV5 = async (
   return res.data;
 };
 
+export const getPinCommentsV5 = async (
+  id: string | number,
+  limit = 20,
+  offset: string | number = 0,
+): Promise<ZhihuCommentResponse> => {
+  const res = await apiClient.get(
+    `/comment_v5/pins/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
+  );
+  res.data.data = (res.data.data || []).map(normalizeComment);
+  return res.data;
+};
+
+export const createPinComment = async (
+  id: string | number,
+  content: string,
+): Promise<any> => {
+  const res = await apiClient.post(`/pins/${id}/comments`, {
+    content,
+    type: 'comment',
+  });
+  return res.data;
+};
+
 export const createArticleComment = async (
   id: string | number,
   content: string,
