@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
+export interface TextSelectionInfo {
+  text: string;
+  startParagraphId: string;
+  endParagraphId: string;
+  startOffset: number;
+  endOffset: number;
+}
+
 interface ZhihuDOMContentProps {
   htmlContent: string;
   segmentInfosStr?: string;
@@ -9,6 +17,7 @@ interface ZhihuDOMContentProps {
   onImagePress: (src: string) => void;
   onLinkPress: (href: string) => void;
   onSegmentPress: (pid: string) => void;
+  onTextSelected?: (info: TextSelectionInfo | null) => void;
   onReady?: () => void;
   style?: object;
 }
@@ -20,6 +29,7 @@ export default React.memo(function ZhihuDOMContent({
   onImagePress,
   onLinkPress,
   onSegmentPress,
+  onTextSelected,
   onReady,
   style,
 }: ZhihuDOMContentProps) {
@@ -45,6 +55,8 @@ export default React.memo(function ZhihuDOMContent({
           background-color: transparent !important;
           max-width: 100%;
           overflow-x: hidden;
+          -webkit-user-select: text;
+          user-select: text;
         }
         .zhihu-content {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -292,6 +304,62 @@ export default React.memo(function ZhihuDOMContent({
           }
         });
 
+        // Text selection detection
+        function findParagraph(node) {
+          while (node && node !== container) {
+            if (node.nodeType === 1 && node.getAttribute && node.getAttribute('data-pid')) {
+              return node;
+            }
+            node = node.parentElement || node.parentNode;
+          }
+          return null;
+        }
+
+        function getTextOffset(paragraph, targetNode, targetOffset) {
+          var walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT, null, false);
+          var offset = 0;
+          var node;
+          while (node = walker.nextNode()) {
+            if (node === targetNode) {
+              return offset + targetOffset;
+            }
+            offset += node.textContent.length;
+          }
+          return offset;
+        }
+
+        var selectionTimeout;
+        document.addEventListener('selectionchange', function() {
+          clearTimeout(selectionTimeout);
+          selectionTimeout = setTimeout(function() {
+            var selection = window.getSelection();
+            if (!selection || selection.isCollapsed || !selection.toString().trim()) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'selection', info: null }));
+              return;
+            }
+            var text = selection.toString();
+            var range = selection.getRangeAt(0);
+            var startP = findParagraph(range.startContainer);
+            var endP = findParagraph(range.endContainer);
+            if (startP) {
+              var startPid = startP.getAttribute('data-pid');
+              var endPid = endP ? endP.getAttribute('data-pid') : startPid;
+              var sOff = getTextOffset(startP, range.startContainer, range.startOffset);
+              var eOff = endP ? getTextOffset(endP, range.endContainer, range.endOffset) : sOff + text.length;
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'selection',
+                info: {
+                  text: text,
+                  startParagraphId: startPid,
+                  endParagraphId: endPid,
+                  startOffset: sOff,
+                  endOffset: eOff
+                }
+              }));
+            }
+          }, 300);
+        });
+
         // Send height
         function sendHeight() {
           const height = Math.max(
@@ -339,6 +407,8 @@ export default React.memo(function ZhihuDOMContent({
               onLinkPress(data.href);
             } else if (data.type === 'segment') {
               onSegmentPress(data.pid);
+            } else if (data.type === 'selection') {
+              onTextSelected?.(data.info);
             }
           } catch (e) {
             console.error('Failed to parse message from WebView', e);

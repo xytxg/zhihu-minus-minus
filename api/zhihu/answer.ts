@@ -94,6 +94,28 @@ export const reactAnswerSegment = async (
   return res.data;
 };
 
+export const createSegmentReaction = async (
+  answerId: string | number,
+  content: string,
+  startParagraphId: string,
+  startOffset: number,
+  endParagraphId: string,
+  endOffset: number,
+) => {
+  const payload = {
+    content,
+    position: {
+      start: { paragraph_id: startParagraphId, offset: startOffset },
+      end: { paragraph_id: endParagraphId, offset: endOffset },
+    },
+  };
+  const res = await apiClient.post(
+    `/reaction/answers/${answerId}/segment_reaction`,
+    payload,
+  );
+  return res.data;
+};
+
 export const unreactAnswerSegment = async (
   answerId: string | number,
   segId: string,

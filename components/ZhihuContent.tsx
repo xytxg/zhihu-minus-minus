@@ -20,7 +20,7 @@ import RenderHtml, {
   useRendererProps,
 } from 'react-native-render-html';
 import { SvgUri } from 'react-native-svg';
-import { reactAnswerSegment, unreactAnswerSegment } from '@/api/zhihu/answer';
+import { createSegmentReaction, reactAnswerSegment, unreactAnswerSegment } from '@/api/zhihu/answer';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -28,7 +28,7 @@ import { showToast } from '@/utils/toast';
 import { parseZhihuUrl } from '@/utils/url';
 import MathView from './MathView';
 import { Text, View } from './Themed';
-import ZhihuDOMContent from './ZhihuDOMContent';
+import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
 
 interface SegmentInfo {
   pid: string;
@@ -660,6 +660,8 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
 
     const systemFonts = [...defaultSystemFonts, 'Inter', 'Roboto'];
 
+    const defaultTextProps = useMemo(() => ({ selectable: true }), []);
+
     const renderPinContent = () => {
       if (!contentArray) return null;
       return contentArray.map((item, index) => {
@@ -676,6 +678,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               systemFonts={systemFonts}
               renderersProps={renderersProps as any}
               ignoredDomTags={ignoredDomTags}
+              defaultTextProps={defaultTextProps}
             />
           );
         }
@@ -735,6 +738,38 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       },
       [segmentMap, findActiveInteraction, handlePress],
     );
+
+    // --- Segment reaction from text selection ---
+    const [textSelection, setTextSelection] = useState<TextSelectionInfo | null>(null);
+
+    const onTextSelectedCallback = useCallback(
+      (info: TextSelectionInfo | null) => {
+        setTextSelection(info);
+      },
+      [],
+    );
+
+    const createReactionMutation = useMutation({
+      mutationFn: async () => {
+        if (!textSelection) return;
+        return createSegmentReaction(
+          objectId,
+          textSelection.text,
+          textSelection.startParagraphId,
+          textSelection.startOffset,
+          textSelection.endParagraphId,
+          textSelection.endOffset,
+        );
+      },
+      onSuccess: () => {
+        showToast('已赞同此段落');
+        setTextSelection(null);
+        onRefresh?.();
+      },
+      onError: () => {
+        showToast('操作失败，请重试');
+      },
+    });
     const domStyle = useMemo(
       () => ({ backgroundColor: 'transparent', minHeight: 400 }),
       [],
@@ -764,6 +799,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               systemFonts={systemFonts}
               renderersProps={renderersProps as any}
               ignoredDomTags={ignoredDomTags}
+              defaultTextProps={defaultTextProps}
             />
           </View>
         ) : (
@@ -785,6 +821,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               onImagePress={onImagePressCallback}
               onLinkPress={handleInternalLink}
               onSegmentPress={onSegmentPressCallback}
+              onTextSelected={type === 'answer' ? onTextSelectedCallback : undefined}
               style={domStyle}
             />
           </View>
@@ -904,6 +941,83 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               />
             )}
           </Modal>
+        )}
+
+        {textSelection && type === 'answer' && (
+          <View
+            className="mt-3 rounded-2xl overflow-hidden"
+            style={[
+              {
+                backgroundColor: surfaceColor,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: 'rgba(150,150,150,0.15)',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 4,
+              },
+            ]}
+          >
+            <View className="px-4 pt-3 pb-2 bg-transparent">
+              <Text
+                type="secondary"
+                className="text-xs mb-1.5"
+              >
+                已选中文字
+              </Text>
+              <Text
+                className="text-[15px] leading-5"
+                numberOfLines={2}
+                style={{ fontStyle: 'italic' }}
+              >
+                "{textSelection.text}"
+              </Text>
+            </View>
+            <View
+              className="flex-row items-center justify-between px-4 py-2.5 bg-transparent"
+              style={{
+                borderTopWidth: StyleSheet.hairlineWidth,
+                borderTopColor: 'rgba(150,150,150,0.1)',
+              }}
+            >
+              <Pressable
+                className="flex-row items-center bg-transparent"
+                onPress={() => setTextSelection(null)}
+              >
+                <Ionicons
+                  name="close-circle-outline"
+                  size={18}
+                  color={Colors[colorScheme].textSecondary}
+                />
+                <Text type="secondary" className="text-sm ml-1">
+                  取消
+                </Text>
+              </Pressable>
+              <Pressable
+                className="flex-row items-center rounded-full px-4 py-1.5"
+                style={{
+                  backgroundColor: Colors[colorScheme].primary,
+                }}
+                onPress={() => createReactionMutation.mutate()}
+                disabled={createReactionMutation.isPending}
+              >
+                {createReactionMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="heart" size={16} color="#fff" />
+                    <Text
+                      className="text-sm font-bold ml-1"
+                      style={{ color: '#fff' }}
+                    >
+                      赞同
+                    </Text>
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </View>
         )}
       </View>
     );
