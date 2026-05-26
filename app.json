@@ -29,6 +29,7 @@
     "android": {
       "splash": {
         "backgroundColor": "#ffffff",
+        "image": "./assets/images/android-icon-monochrome.png",
         "dark": {
           "backgroundColor": "#121212",
           "image": "./assets/images/android-icon-monochrome.png"
