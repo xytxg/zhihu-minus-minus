@@ -826,12 +826,12 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title: question?.title,
-              author: selectedAnswer.author?.name,
-              authorHeadline: selectedAnswer.author?.headline,
-              url: getShareLink(selectedAnswer),
-            }
+                id: selectedAnswer.id,
+                title: question?.title,
+                author: selectedAnswer.author?.name,
+                authorHeadline: selectedAnswer.author?.headline,
+                url: getShareLink(selectedAnswer),
+              }
             : null
         }
       />

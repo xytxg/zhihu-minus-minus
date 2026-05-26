@@ -138,7 +138,9 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
             }
             const routeType = item.type.slice(0, -1);
             const cleanTitle =
-              typeof item.title === 'string' ? item.title : item.titleString || '';
+              typeof item.title === 'string'
+                ? item.title
+                : item.titleString || '';
             const params: any = {
               title: cleanTitle,
               questionId: item.questionId,

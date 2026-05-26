@@ -321,10 +321,10 @@ export const AnswerDetailView = ({
               !answer?.author?.is_following
                 ? { backgroundColor: '#0084ff15' }
                 : {
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: '#eee',
-                },
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: '#eee',
+                  },
             ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
@@ -456,12 +456,12 @@ export const AnswerDetailView = ({
         data={
           answer
             ? {
-              id: answer.id,
-              title: answer.question?.title,
-              author: answer.author?.name,
-              authorHeadline: answer.author?.headline,
-              url: getShareLink(),
-            }
+                id: answer.id,
+                title: answer.question?.title,
+                author: answer.author?.name,
+                authorHeadline: answer.author?.headline,
+                url: getShareLink(),
+              }
             : null
         }
       />

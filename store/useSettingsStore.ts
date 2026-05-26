@@ -12,6 +12,7 @@ const settingsStorage = {
 export type TabKey =
   | 'following'
   | 'recommend'
+  | 'local'
   | 'hot'
   | 'daily'
   | 'publish'
@@ -23,6 +24,7 @@ export interface AppSettings {
   primaryColor: string | null;
   visibleTabs: TabKey[];
   defaultTab: TabKey;
+  localCityName: string | null;
   borderRadius: number;
   useWebView: boolean;
   enablePrivateMessaging: boolean;
@@ -37,8 +39,16 @@ const DEFAULT_SETTINGS: AppSettings = {
   fontSizeScale: 1.0,
   lineHeightScale: 1.5,
   primaryColor: null, // null means use system default
-  visibleTabs: ['following', 'recommend', 'hot', 'daily', 'publish', 'profile'],
+  visibleTabs: [
+    'following',
+    'recommend',
+    'hot',
+    'daily',
+    'publish',
+    'profile',
+  ],
   defaultTab: 'recommend',
+  localCityName: null,
   borderRadius: 12,
   useWebView: false,
   enablePrivateMessaging: false,
@@ -65,6 +75,10 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'zhihu-settings-storage',
       storage: createJSONStorage(() => settingsStorage),
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        return persistedState as SettingsState;
+      },
     },
   ),
 );

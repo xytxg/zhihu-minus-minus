@@ -123,7 +123,6 @@ export default function CommentScreen() {
                 <Text className="font-bold text-sm mr-2">
                   {item.author.member.name}
                 </Text>
-
               </View>
             </Pressable>
             <Text
@@ -188,9 +187,7 @@ export default function CommentScreen() {
                         source={{ uri: child.author?.member?.avatar_url }}
                         className="w-[18px] h-[18px] rounded-full mr-2"
                       />
-                      <Text
-                        className="text-sm leading-5 flex-1"
-                      >
+                      <Text className="text-sm leading-5 flex-1">
                         <Text type="secondary" className="font-bold">
                           {child.author?.member?.name}：
                         </Text>

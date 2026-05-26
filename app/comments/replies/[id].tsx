@@ -227,7 +227,6 @@ export default function ReplyDetailScreen() {
               >
                 {parentComment.author.member.name}
               </Text>
-
             </View>
             <Text
               className="text-[16px] leading-[24px] mt-1 mb-2"

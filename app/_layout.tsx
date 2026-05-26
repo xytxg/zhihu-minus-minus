@@ -9,7 +9,7 @@ import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
 import { ClipboardLinkModal } from '@/components/ClipboardLinkModal';
 import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
@@ -23,8 +23,8 @@ import {
 } from '@/store/useThemeStore';
 import { parseZhihuUrl } from '@/utils/url';
 import '../global.css';
-import { Linking, AppState, Alert, AppStateStatus } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { Alert, AppState, type AppStateStatus, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // 保持启动页显示，直到资源加载完成
@@ -155,7 +155,8 @@ function RootLayout() {
             if (
               text &&
               text !== lastCheckedUrlRef.current &&
-              (text.includes('zhihu.com/') || text.includes('zhuanlan.zhihu.com/'))
+              (text.includes('zhihu.com/') ||
+                text.includes('zhuanlan.zhihu.com/'))
             ) {
               lastCheckedUrlRef.current = text;
               const urlMatch = text.match(
@@ -174,7 +175,10 @@ function RootLayout() {
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
     return () => {
       subscription.remove();
     };

@@ -139,6 +139,7 @@ export interface ZhihuFeedResponse {
 export const FEED_URLS = {
   following: 'https://www.zhihu.com/api/v3/moments?limit=10',
   recommend: 'https://www.zhihu.com/api/v3/feed/topstory/recommend?limit=10',
+  local: 'zhihu://local-feed',
   hot: 'https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=50',
 };
 
@@ -152,6 +153,47 @@ export const getFeed = async (url: string): Promise<ZhihuFeedResponse> => {
       'https://www.zhihu.com/api/v3/explore/guest/feeds?limit=15&ws_qiangzhisafe=0';
   }
 
+  if (url === 'zhihu://local-feed') {
+    // 1. Fetch sections to find the local section ID
+    try {
+      const sectionsRes = await apiClient.get(
+        'https://api.zhihu.com/feed-root/sections/query/v2',
+      );
+      const sections = sectionsRes.data?.data || [];
+      const localSection = sections.find(
+        (s: any) => s.section_name?.includes('同城') || s.section_id,
+      );
+
+      if (localSection && localSection.section_id) {
+        finalUrl = `https://api.zhihu.com/feed-root/section/${localSection.section_id}?channelStyle=0`;
+        if (localSection.section_name) {
+          useSettingsStore.getState().updateSettings({ localCityName: localSection.section_name });
+        }
+      } else {
+        throw new Error('未找到同城版块');
+      }
+    } catch (err) {
+      console.warn('获取同城版块失败，回退到推荐流', err);
+      finalUrl = FEED_URLS.recommend;
+    }
+  } else if (url.startsWith('zhihu://local-feed/')) {
+    finalUrl = url.replace(
+      'zhihu://local-feed/',
+      'https://api.zhihu.com/feed-root/section/',
+    );
+  }
+
   const res = await apiClient.get<ZhihuFeedResponse>(finalUrl);
+
+  if (url.startsWith('zhihu://local-feed')) {
+    // Override the next URL to use our custom scheme so we can intercept it again
+    if (res.data?.paging?.next) {
+      res.data.paging.next = res.data.paging.next.replace(
+        'https://api.zhihu.com/feed-root/section/',
+        'zhihu://local-feed/',
+      );
+    }
+  }
+
   return res.data;
 };

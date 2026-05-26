@@ -52,7 +52,12 @@ export function ClipboardLinkModal({
   if (!internalVisible) return null;
 
   return (
-    <Modal visible={internalVisible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible={internalVisible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+    >
       <Animated.View
         style={{
           flex: 1,
@@ -76,7 +81,9 @@ export function ClipboardLinkModal({
             style={{
               borderRadius: 24,
               overflow: 'hidden',
-              backgroundColor: isDark ? 'rgba(30,30,30,0.7)' : 'rgba(255,255,255,0.7)',
+              backgroundColor: isDark
+                ? 'rgba(30,30,30,0.7)'
+                : 'rgba(255,255,255,0.7)',
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
             }}
@@ -95,7 +102,11 @@ export function ClipboardLinkModal({
                 numberOfLines={4}
               >
                 是否要打开剪贴板中的链接？{'\n'}
-                <Text type="secondary" style={{ color: '#0084ff' }} className="text-[13px]">
+                <Text
+                  type="secondary"
+                  style={{ color: '#0084ff' }}
+                  className="text-[13px]"
+                >
                   {url}
                 </Text>
               </Text>
@@ -104,7 +115,11 @@ export function ClipboardLinkModal({
                 <Pressable
                   onPress={onClose}
                   className="flex-1 py-3.5 rounded-[16px] items-center justify-center"
-                  style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
+                  style={{
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.1)'
+                      : 'rgba(0,0,0,0.05)',
+                  }}
                 >
                   <Text className="font-bold text-[16px]">忽略</Text>
                 </Pressable>
@@ -113,7 +128,9 @@ export function ClipboardLinkModal({
                   className="flex-1 py-3.5 rounded-[16px] items-center justify-center"
                   style={{ backgroundColor: '#0084ff' }}
                 >
-                  <Text className="font-bold text-[16px] text-white">立即打开</Text>
+                  <Text className="font-bold text-[16px] text-white">
+                    立即打开
+                  </Text>
                 </Pressable>
               </View>
             </View>

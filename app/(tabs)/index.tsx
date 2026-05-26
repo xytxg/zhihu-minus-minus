@@ -55,6 +55,7 @@ const _tintColor = Colors.light.tint; // Fallback or use colorScheme logic insid
 const TABS = [
   'following',
   'recommend',
+  'local',
   'hot',
   'daily',
   'publish',
@@ -70,7 +71,7 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ tab?: string }>();
-  const { visibleTabs, defaultTab } = useSettingsStore();
+  const { visibleTabs, defaultTab, localCityName } = useSettingsStore();
 
   // 动态过滤 Tabs
   const currentTabs = useMemo(() => {
@@ -78,6 +79,7 @@ export default function HomeScreen() {
       [
         'following',
         'recommend',
+        'local',
         'hot',
         'daily',
         'publish',
@@ -172,23 +174,23 @@ export default function HomeScreen() {
 
   // 顶部导航栏动画样式
   const topNavAnimStyle = useAnimatedStyle(() => {
-    // 当滑动到 index 4 (发布) 及以后时，顶部导航渐隐
+    // 当滑动到 index 5 (发布) 及以后时，顶部导航渐隐
     const opacity = interpolate(
       scrollX.value,
-      [3, 4],
+      [4, 5],
       [1, 0],
       Extrapolate.CLAMP,
     );
     const translateY = interpolate(
       scrollX.value,
-      [3, 4],
+      [4, 5],
       [0, -100],
       Extrapolate.CLAMP,
     );
     return {
       opacity,
       transform: [{ translateY }],
-      pointerEvents: scrollX.value > 3.5 ? 'none' : 'auto',
+      pointerEvents: scrollX.value > 4.5 ? 'none' : 'auto',
     };
   });
 
@@ -299,6 +301,7 @@ export default function HomeScreen() {
                   const labels: Record<string, string> = {
                     following: '关注',
                     recommend: '推荐',
+                    local: localCityName || '同城',
                     hot: '热榜',
                     daily: '日报',
                   };
@@ -351,6 +354,7 @@ export default function HomeScreen() {
             [
               'following',
               'recommend',
+              'local',
               'hot',
               'daily',
               'publish',
@@ -361,15 +365,15 @@ export default function HomeScreen() {
 
           return (
             <View key={tab} style={{ flex: 1, backgroundColor: 'transparent' }}>
-              {globalIndex === 3 ? (
+              {globalIndex === 4 ? (
                 <DailyList
                   ref={(el) => (listRefs.current[idx] = el)}
                   insets={insets}
                   onScroll={(offset) => handleScrollUpdate(idx, offset)}
                 />
-              ) : globalIndex === 4 ? (
-                <PublishScreen />
               ) : globalIndex === 5 ? (
+                <PublishScreen />
+              ) : globalIndex === 6 ? (
                 <ProfileScreen />
               ) : !cookies && tab === 'following' ? (
                 <View style={styles.loginPrompt}>
@@ -616,7 +620,7 @@ const FeedList = React.forwardRef<
           items = rawItems
             .map((item: RawFeedItem) => parseFollowingData(item))
             .filter(Boolean) as FeedItem[];
-        else if (tab === 'recommend')
+        else if (tab === 'recommend' || tab === 'local')
           items = rawItems.map((item: RawFeedItem) => parseRecommendData(item));
         else
           items = rawItems.map((item: RawFeedItem, index: number) =>

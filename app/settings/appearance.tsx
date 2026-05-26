@@ -17,14 +17,7 @@ const PRESET_COLORS = [
   '#34495e', // Navy
 ];
 
-const TAB_LABELS: Record<TabKey, string> = {
-  following: '关注',
-  recommend: '推荐',
-  hot: '热榜',
-  daily: '日报',
-  publish: '发布',
-  profile: '我的',
-};
+
 
 export default function AppearanceSettings() {
   const insets = useSafeAreaInsets();
@@ -39,7 +32,18 @@ export default function AppearanceSettings() {
     enablePrivateMessaging,
     updateSettings,
     resetSettings,
+    localCityName,
   } = useSettingsStore();
+
+  const TAB_LABELS: Record<TabKey, string> = {
+    following: '关注',
+    recommend: '推荐',
+    local: localCityName || '同城',
+    hot: '热榜',
+    daily: '日报',
+    publish: '发布',
+    profile: '我的',
+  };
 
   const tintColor = useThemeColor({}, 'primary');
 

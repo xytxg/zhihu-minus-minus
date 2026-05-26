@@ -171,7 +171,6 @@ export const DailyList = React.forwardRef<
     );
   }
 
-
   return (
     <View className="flex-1">
       <FlashList
