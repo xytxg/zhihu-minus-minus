@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, {
   forwardRef,
@@ -10,22 +12,20 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { FlashList } from '@shopify/flash-list';
 import {
   ActivityIndicator,
   Animated,
   Image,
   LayoutAnimation,
+  View as NativeView,
   Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   UIManager,
-  View as NativeView,
   useWindowDimensions,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -36,8 +36,8 @@ import {
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
-import { ZhihuContent } from '@/components/ZhihuContent';
 import { useColorScheme } from '@/components/useColorScheme';
+import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { ZhihuMemberRelation } from '@/types/zhihu';
 
@@ -170,7 +170,7 @@ const StreamItem = forwardRef(
             shadowOpacity: 0.3,
             shadowRadius: 6,
             elevation: 5,
-          }
+          },
         ]}
         className="p-4 mb-2.5 shadow-sm"
       >
@@ -237,7 +237,12 @@ const StreamItem = forwardRef(
                   className="text-[13px] font-bold mr-1"
                   style={{ color: '#0084ff' }}
                 >
-                  收起{type === 'answer' ? '回答' : type === 'article' ? '文章' : '想法'}
+                  收起
+                  {type === 'answer'
+                    ? '回答'
+                    : type === 'article'
+                      ? '文章'
+                      : '想法'}
                 </Text>
                 <Ionicons
                   name="chevron-up"
@@ -387,15 +392,15 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-                item.updated ||
-                item.created_time ||
-                item.created
+              item.updated ||
+              item.created_time ||
+              item.created
                 ? new Date(
-                  (item.updated_time ||
-                    item.updated ||
-                    item.created_time ||
-                    item.created) * 1000,
-                ).toLocaleDateString()
+                    (item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created) * 1000,
+                  ).toLocaleDateString()
                 : ''}
             </Text>
             <TouchableOpacity
@@ -411,7 +416,6 @@ const StreamItem = forwardRef(
     );
   },
 );
-
 
 export default function UserStreamScreen() {
   const { id, type, initialId } = useLocalSearchParams<{
@@ -476,15 +480,21 @@ export default function UserStreamScreen() {
     if (now - lastCheckTime.current > 50) {
       lastCheckTime.current = now;
 
-      if (activeItem && activeItem.id && expandedIds.has(activeItem.id.toString())) {
+      if (
+        activeItem &&
+        activeItem.id &&
+        expandedIds.has(activeItem.id.toString())
+      ) {
         const layout = itemLayouts.current.get(activeItem.id.toString());
         if (layout) {
           const headerHeight = 56;
-          const viewportHeight = screenHeight - headerHeight - insets.top - insets.bottom;
-          const footerRelY = (layout.y + layout.height) - currentY;
+          const viewportHeight =
+            screenHeight - headerHeight - insets.top - insets.bottom;
+          const footerRelY = layout.y + layout.height - currentY;
 
           // Footer is visible if its relative Y is within the viewport
-          const isFooterVisible = footerRelY > 50 && footerRelY < viewportHeight - 20;
+          const isFooterVisible =
+            footerRelY > 50 && footerRelY < viewportHeight - 20;
           const shouldShow = !isFooterVisible && currentY > 300;
 
           if (shouldShow !== isFloatingShown.current) {
@@ -683,14 +693,20 @@ export default function UserStreamScreen() {
           }}
           item={displayItem}
           type={itemType}
-          isExpanded={displayItem?.id ? expandedIds.has(displayItem.id.toString()) : false}
+          isExpanded={
+            displayItem?.id ? expandedIds.has(displayItem.id.toString()) : false
+          }
           onToggle={handleToggleExpand}
           onShare={(ans) => {
             setSelectedAnswer(ans);
             setIsSharing(true);
           }}
           isHighlighted={!!isHighlighted}
-          isCollapsedHighlighted={displayItem?.id ? highlightedId === displayItem.id.toString() : false}
+          isCollapsedHighlighted={
+            displayItem?.id
+              ? highlightedId === displayItem.id.toString()
+              : false
+          }
         />
       </View>
     );
@@ -716,7 +732,10 @@ export default function UserStreamScreen() {
       {/* 1. Header Bar */}
       <View
         className="flex-row items-center px-4 py-3 border-b border-gray-100 dark:border-gray-800"
-        style={{ paddingTop: insets.top, backgroundColor: Colors[colorScheme].background }}
+        style={{
+          paddingTop: insets.top,
+          backgroundColor: Colors[colorScheme].background,
+        }}
       >
         <TouchableOpacity
           onPress={() => router.back()}
@@ -769,7 +788,9 @@ export default function UserStreamScreen() {
         onScroll={handleScroll}
         data={streamItems}
         {...({ estimatedItemSize: 250 } as any)}
-        keyExtractor={(item: any, index: number) => `stream-${item.id || ''}-${index}`}
+        keyExtractor={(item: any, index: number) =>
+          `stream-${item.id || ''}-${index}`
+        }
         renderItem={renderItemContent}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
@@ -820,12 +841,16 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
-              author: selectedAnswer.author?.name || user?.name,
-              authorHeadline: selectedAnswer.author?.headline || user?.headline,
-              content: selectedAnswer.excerpt || selectedAnswer.content || '',
-            }
+                id: selectedAnswer.id,
+                title:
+                  selectedAnswer.title ||
+                  selectedAnswer.question?.title ||
+                  '想法',
+                author: selectedAnswer.author?.name || user?.name,
+                authorHeadline:
+                  selectedAnswer.author?.headline || user?.headline,
+                content: selectedAnswer.excerpt || selectedAnswer.content || '',
+              }
             : null
         }
       />

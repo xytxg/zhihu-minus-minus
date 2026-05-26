@@ -149,14 +149,19 @@ export default function HomeScreen() {
     );
     const isAtHome = currentPage < homeTabs.length;
 
-    if (isAtHome && scrolledTabs[currentPage]) {
-      // 如果已经在首页 Tab 且已滚动，则置顶
-      listRefs.current[currentPage]?.scrollToOffset({
-        offset: 0,
-        animated: true,
-      });
+    if (isAtHome) {
+      if (scrolledTabs[currentPage]) {
+        // 如果已经在首页 Tab 且已滚动，则置顶
+        listRefs.current[currentPage]?.scrollToOffset({
+          offset: 0,
+          animated: true,
+        });
+      } else {
+        // 在顶部时，刷新当前 tab 的内容
+        listRefs.current[currentPage]?.refresh?.();
+      }
     } else {
-      // 否则切换到第一页
+      // 如果不在首页 Tab（如发布或我的页面），则切换到第一页
       pagerRef.current?.setPage(0);
     }
   };
@@ -421,13 +426,13 @@ export default function HomeScreen() {
                   backgroundColor: `${tintColor}15`,
                   width:
                     containerWidth /
-                    ((currentTabs.filter(
-                      (t) => !['publish', 'profile'].includes(t),
-                    ).length > 0
-                      ? 1
-                      : 0) +
-                      (currentTabs.includes('publish') ? 1 : 0) +
-                      (currentTabs.includes('profile') ? 1 : 0)) -
+                      ((currentTabs.filter(
+                        (t) => !['publish', 'profile'].includes(t),
+                      ).length > 0
+                        ? 1
+                        : 0) +
+                        (currentTabs.includes('publish') ? 1 : 0) +
+                        (currentTabs.includes('profile') ? 1 : 0)) -
                     20,
                 },
                 bottomIndicatorStyle,
@@ -439,14 +444,14 @@ export default function HomeScreen() {
                 // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
                 isScrollTop={
                   currentPage <
-                  currentTabs.filter(
-                    (t) => !['publish', 'profile'].includes(t),
-                  ).length && scrolledTabs[currentPage]
+                    currentTabs.filter(
+                      (t) => !['publish', 'profile'].includes(t),
+                    ).length && scrolledTabs[currentPage]
                 }
                 icon={
                   currentPage <
-                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                      .length
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
                     ? 'home'
                     : 'home-outline'
                 }
@@ -458,8 +463,8 @@ export default function HomeScreen() {
                 onPress={handleHomeTabPress}
                 color={
                   currentPage <
-                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                      .length
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
                     ? tintColor
                     : Colors[colorScheme].textSecondary
                 }
@@ -645,9 +650,16 @@ const FeedList = React.forwardRef<
     });
   }, [data]);
 
+  const flashListRef = useRef<any>(null);
+
+  React.useImperativeHandle(ref, () => ({
+    scrollToOffset: (args: any) => flashListRef.current?.scrollToOffset(args),
+    refresh: handleRefresh,
+  }));
+
   return (
     <FlashList
-      ref={ref}
+      ref={flashListRef}
       data={flattenedData}
       keyExtractor={(item, index) =>
         `feed-${item.id?.toString() || index}-${index}`
@@ -730,7 +742,8 @@ function parseFollowingData(item: RawFeedItem): FeedItem | null {
         : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
-    favlistsCount: target.favorite_count || target.reaction?.statistics?.favorites || 0,
+    favlistsCount:
+      target.favorite_count || target.reaction?.statistics?.favorites || 0,
     voted: target.relationship?.voting || 0,
     type: appType,
     topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
@@ -769,7 +782,11 @@ function parseRecommendData(item: RawFeedItem): FeedItem {
         : null),
     voteCount: target.voteup_count || target.like_count || 0,
     commentCount: target.comment_count || 0,
-    favlistsCount: target.favlists_count || target.favorite_count || target.reaction?.statistics?.favorites || 0,
+    favlistsCount:
+      target.favlists_count ||
+      target.favorite_count ||
+      target.reaction?.statistics?.favorites ||
+      0,
     voted: target.relationship?.voting || 0,
     type: appType,
     topics: target.topics?.map((t: any) => ({ id: t.id, name: t.name })) || [],
@@ -778,12 +795,15 @@ function parseRecommendData(item: RawFeedItem): FeedItem {
 
 function parseHotData(item: any, index: number): HotItem {
   const target = (item.target || item) as any;
-  const questionId = target.link?.url?.split('/').pop() || target.url?.split('/').pop() || '';
-  
+  const questionId =
+    target.link?.url?.split('/').pop() || target.url?.split('/').pop() || '';
+
   // Handle fallback fields for both JSON structures
-  const hotValue = target.metrics_area?.text || item.detail_text || target.detail_text || '';
-  const answerCount = item.feed_specific?.answer_count || target.answer_count || 0;
-  
+  const hotValue =
+    target.metrics_area?.text || item.detail_text || target.detail_text || '';
+  const answerCount =
+    item.feed_specific?.answer_count || target.answer_count || 0;
+
   // Reconstruct labelArea if it's missing but we have card_label
   let labelArea = target.label_area || null;
   if (!labelArea) {
@@ -795,12 +815,17 @@ function parseHotData(item: any, index: number): HotItem {
   }
 
   return {
-    id: item.id?.toString() || target.id?.toString() || Math.random().toString(),
+    id:
+      item.id?.toString() || target.id?.toString() || Math.random().toString(),
     questionId: questionId,
     rank: index + 1,
     title: target.title_area?.text || target.title || '无标题',
     excerpt: target.excerpt_area?.text || target.excerpt || '',
-    image: target.image_area?.url || item.children?.[0]?.thumbnail || item.image_url || null,
+    image:
+      target.image_area?.url ||
+      item.children?.[0]?.thumbnail ||
+      item.image_url ||
+      null,
     hotValue,
     answerCount,
     labelArea,

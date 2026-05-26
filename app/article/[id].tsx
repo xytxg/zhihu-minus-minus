@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -28,9 +28,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
-import { showToast } from '@/utils/toast';
 import { useCollectionStore } from '@/store/useCollectionStore';
-import React, { useEffect } from 'react';
+import { showToast } from '@/utils/toast';
 
 export default function ArticleDetail() {
   const colorScheme = useColorScheme();
@@ -76,7 +75,9 @@ export default function ArticleDetail() {
     },
   );
 
-  const setCollectedStatus = useCollectionStore((state) => state.setCollectedStatus);
+  const setCollectedStatus = useCollectionStore(
+    (state) => state.setCollectedStatus,
+  );
 
   const isCollected = collectionStatus?.data?.some(
     (item: any) => item.is_favorited,
@@ -87,7 +88,8 @@ export default function ArticleDetail() {
 
   useEffect(() => {
     if (collectionStatus && id) {
-      const activeCollected = collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
+      const activeCollected =
+        collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
       setCollectedStatus(id as string, activeCollected);
     }
   }, [collectionStatus, id, setCollectedStatus]);
@@ -106,7 +108,9 @@ export default function ArticleDetail() {
       refetchCollectionStatus();
       if (!isCollected) {
         const folderName = res?.collection?.title || '默认收藏夹';
-        useCollectionStore.getState().showToast(id as string, 'article', `已收藏到「${folderName}」`);
+        useCollectionStore
+          .getState()
+          .showToast(id as string, 'article', `已收藏到「${folderName}」`);
       } else {
         showToast('已取消收藏');
       }
@@ -293,10 +297,10 @@ export default function ArticleDetail() {
                   !data.author?.is_following
                     ? { backgroundColor: '#0084ff15' }
                     : {
-                      backgroundColor: 'transparent',
-                      borderWidth: 1,
-                      borderColor: '#eee',
-                    },
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: '#eee',
+                      },
                 ]}
                 onPress={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
@@ -409,12 +413,12 @@ export default function ArticleDetail() {
         data={
           data
             ? {
-              id: id as string,
-              title: data.title,
-              author: data.author?.name,
-              authorHeadline: data.author?.headline,
-              url: isDaily ? undefined : `https://zhuanlan.zhihu.com/p/${id}`,
-            }
+                id: id as string,
+                title: data.title,
+                author: data.author?.name,
+                authorHeadline: data.author?.headline,
+                url: isDaily ? undefined : `https://zhuanlan.zhihu.com/p/${id}`,
+              }
             : null
         }
       />

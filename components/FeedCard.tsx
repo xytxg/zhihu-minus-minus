@@ -6,12 +6,12 @@ import Animated, { SharedTransition } from 'react-native-reanimated';
 import type { FeedItem } from '@/api/zhihu';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, View } from './Themed';
-import { useCollectionStore } from '@/store/useCollectionStore';
-import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 const slowTransition = SharedTransition.duration(600);
 
@@ -24,12 +24,12 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const colorScheme = useColorScheme();
 
   const isCollectable = item.type === 'answers' || item.type === 'articles';
-  const storeCollected = useCollectionStore((state) =>
-    state.collectedStatusMap[item.id.toString()]
+  const storeCollected = useCollectionStore(
+    (state) => state.collectedStatusMap[item.id.toString()],
   );
   const isCollected = storeCollected !== undefined ? storeCollected : false;
-  const storeOffset = useCollectionStore((state) =>
-    state.collectedCountOffsetMap[item.id.toString()] || 0
+  const storeOffset = useCollectionStore(
+    (state) => state.collectedCountOffsetMap[item.id.toString()] || 0,
   );
   const displayCount = (item.favlistsCount || 0) + storeOffset;
   const { toggleCollect } = useCollectionAction();
@@ -47,9 +47,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         }
         const routeType = item.type.slice(0, -1);
         const cleanTitle =
-          typeof item.title === 'string'
-            ? item.title
-            : item.titleString || '';
+          typeof item.title === 'string' ? item.title : item.titleString || '';
         const params: any = {
           title: cleanTitle,
           questionId: item.questionId,

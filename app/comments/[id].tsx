@@ -20,12 +20,12 @@ import {
   createAnswerComment,
   createArticleComment,
   createCommentReply,
-  createQuestionComment,
   createPinComment,
+  createQuestionComment,
   getAnswerComments,
   getArticleCommentsV5 as getArticleComments,
-  getQuestionCommentsV5 as getQuestionComments,
   getPinCommentsV5 as getPinComments,
+  getQuestionCommentsV5 as getQuestionComments,
 } from '@/api/zhihu';
 import { LikeButton } from '@/components/LikeButton';
 import { Text, View } from '@/components/Themed';
@@ -76,8 +76,7 @@ export default function CommentScreen() {
         return createQuestionComment(id as string, content);
       if (type === 'article')
         return createArticleComment(id as string, content);
-      if (type === 'pin')
-        return createPinComment(id as string, content);
+      if (type === 'pin') return createPinComment(id as string, content);
       return createAnswerComment(id as string, content);
     },
     onSuccess: () => {

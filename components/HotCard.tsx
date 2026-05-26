@@ -5,8 +5,9 @@ import Animated, { SharedTransition } from 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
-import { Text, View } from './Themed';
 import { BouncyButton } from './BouncyButton';
+import { Text, View } from './Themed';
+
 const slowTransition = SharedTransition.duration(600);
 
 export interface HotItem {
@@ -36,16 +37,22 @@ export const HotCard = ({ item }: { item: HotItem }) => {
   const isTop3 = item.rank <= 3;
 
   // Custom Rank Colors
-  const rankBgColor = item.rank === 1 ? '#e73828' :
-    item.rank === 2 ? '#f65324' :
-      item.rank === 3 ? '#ff8b1f' :
-        Colors[colorScheme].backgroundTertiary || '#e0e0e0';
-  const rankTextColor = item.rank <= 3 ? '#ffffff' : Colors[colorScheme].textSecondary;
+  const rankBgColor =
+    item.rank === 1
+      ? '#e73828'
+      : item.rank === 2
+        ? '#f65324'
+        : item.rank === 3
+          ? '#ff8b1f'
+          : Colors[colorScheme].backgroundTertiary || '#e0e0e0';
+  const rankTextColor =
+    item.rank <= 3 ? '#ffffff' : Colors[colorScheme].textSecondary;
 
   // Dynamic Label Style
-  const labelColor = colorScheme === 'dark'
-    ? (item.labelArea?.night_color || '#ff9607')
-    : (item.labelArea?.normal_color || '#ff9607');
+  const labelColor =
+    colorScheme === 'dark'
+      ? item.labelArea?.night_color || '#ff9607'
+      : item.labelArea?.normal_color || '#ff9607';
 
   return (
     <BouncyButton
@@ -78,9 +85,9 @@ export const HotCard = ({ item }: { item: HotItem }) => {
         shadowRadius: 10,
         elevation: 3,
       }}
-      className='p-4 mb-3 mx-4 '
+      className="p-4 mb-3 mx-4 "
     >
-      <View className='flex-col'>
+      <View className="flex-col">
         <View className="flex-row">
           <View className="flex-1 bg-transparent pr-4">
             {/* Title & Rank Badge */}
@@ -89,7 +96,10 @@ export const HotCard = ({ item }: { item: HotItem }) => {
                 className="w-[20px] h-[20px] rounded-[4px] items-center justify-center mr-2 mt-0.5"
                 style={{ backgroundColor: rankBgColor }}
               >
-                <Text className="font-extrabold text-[11px]" style={{ color: rankTextColor }}>
+                <Text
+                  className="font-extrabold text-[11px]"
+                  style={{ color: rankTextColor }}
+                >
                   {item.rank}
                 </Text>
               </View>
@@ -100,7 +110,6 @@ export const HotCard = ({ item }: { item: HotItem }) => {
                 {item.title}
               </Text>
             </View>
-
           </View>
 
           {/* Image Area */}
@@ -117,20 +126,24 @@ export const HotCard = ({ item }: { item: HotItem }) => {
               />
             </View>
           )}
-
         </View>
         {/* Bottom Info Bar */}
         <View className="flex-row items-center mt-auto pt-2 bg-transparent flex-wrap">
-          {item.labelArea && item.labelArea.type === 'text' && item.labelArea.text && (
-            <View
-              className="px-1.5 py-[2px] rounded mr-2"
-              style={{ backgroundColor: `${labelColor}15` }}
-            >
-              <Text className="text-[11px] font-bold" style={{ color: labelColor }}>
-                {item.labelArea.text}
-              </Text>
-            </View>
-          )}
+          {item.labelArea &&
+            item.labelArea.type === 'text' &&
+            item.labelArea.text && (
+              <View
+                className="px-1.5 py-[2px] rounded mr-2"
+                style={{ backgroundColor: `${labelColor}15` }}
+              >
+                <Text
+                  className="text-[11px] font-bold"
+                  style={{ color: labelColor }}
+                >
+                  {item.labelArea.text}
+                </Text>
+              </View>
+            )}
           {item.labelArea && item.labelArea.type === 'trend' && (
             <View
               className="flex-row items-center px-1.5 py-[2px] rounded mr-2"
@@ -141,8 +154,15 @@ export const HotCard = ({ item }: { item: HotItem }) => {
           )}
 
           {/* 热和新都没有的时候占位 */}
-          {(!item.labelArea || !item.labelArea.type && !item.labelArea.text && !item.labelArea.trend) && <View className="flex-row items-center mt-auto pt-2 bg-transparent flex-wrap" style={{ marginRight: 32 }}>
-          </View>}
+          {(!item.labelArea ||
+            (!item.labelArea.type &&
+              !item.labelArea.text &&
+              !item.labelArea.trend)) && (
+            <View
+              className="flex-row items-center mt-auto pt-2 bg-transparent flex-wrap"
+              style={{ marginRight: 32 }}
+            ></View>
+          )}
 
           {item.hotValue ? (
             <Text className="text-[12px] text-[#ff9607] font-medium mr-2">

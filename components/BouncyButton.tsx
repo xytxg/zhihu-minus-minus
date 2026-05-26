@@ -1,6 +1,12 @@
 import * as Haptics from 'expo-haptics';
-import React, { useCallback } from 'react';
-import { Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
+import type React from 'react';
+import { useCallback } from 'react';
+import {
+  Pressable,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -48,7 +54,7 @@ export function BouncyButton({
       opacity.value = withTiming(activeOpacity, { duration: 50 });
       if (onPressIn) onPressIn(e);
     },
-    [activeScale, activeOpacity, hapticFeedback, onPressIn, scale, opacity]
+    [activeScale, activeOpacity, hapticFeedback, onPressIn, scale, opacity],
   );
 
   const handlePressOut = useCallback(
@@ -57,7 +63,7 @@ export function BouncyButton({
       opacity.value = withTiming(1, { duration: 100 });
       if (onPressOut) onPressOut(e);
     },
-    [onPressOut, scale, opacity]
+    [onPressOut, scale, opacity],
   );
 
   return (

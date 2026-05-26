@@ -201,7 +201,9 @@ export default function AppearanceSettings() {
           <SettingItem label="启用私信功能 (IM)">
             <Switch
               value={enablePrivateMessaging}
-              onValueChange={(val) => updateSettings({ enablePrivateMessaging: val })}
+              onValueChange={(val) =>
+                updateSettings({ enablePrivateMessaging: val })
+              }
               trackColor={{ true: tintColor }}
             />
           </SettingItem>

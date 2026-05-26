@@ -1,14 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCollectionStore } from '@/store/useCollectionStore';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { Text, View } from './Themed';
 
 export function CollectionToastOverlay() {
-  const { toastVisible, toastMessage, toastContentId, toastContentType, hideToast, openSelector } =
-    useCollectionStore();
+  const {
+    toastVisible,
+    toastMessage,
+    toastContentId,
+    toastContentType,
+    hideToast,
+    openSelector,
+  } = useCollectionStore();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';

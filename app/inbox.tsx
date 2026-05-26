@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
-import { getInbox, InboxThread } from '@/api/zhihu';
+import { getInbox, type InboxThread } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -92,7 +92,11 @@ export default function InboxScreen() {
               {time}
             </Text>
           </View>
-          <Text className="text-sm leading-5" numberOfLines={2} type="secondary">
+          <Text
+            className="text-sm leading-5"
+            numberOfLines={2}
+            type="secondary"
+          >
             {item.snippet}
           </Text>
         </View>

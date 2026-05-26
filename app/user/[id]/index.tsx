@@ -1,26 +1,24 @@
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
-  Animated,
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { FlashList } from '@shopify/flash-list';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
-import { LikeButton } from '@/components/LikeButton';
-import { ShareMenu } from '@/components/ShareMenu';
 import Reanimated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   followMember,
   getMe,
@@ -32,11 +30,13 @@ import {
 } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
 import { FeedCard } from '@/components/FeedCard';
+import { LikeButton } from '@/components/LikeButton';
+import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import type { ZhihuMemberRelation } from '@/types/zhihu';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import type { ZhihuMemberRelation } from '@/types/zhihu';
 
 const subTabKeys: ('answers' | 'articles' | 'questions' | 'pins')[] = [
   'answers',
@@ -63,13 +63,13 @@ export default function UserDetailScreen() {
   // States for expanding card behavior
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  
+
   // Floating Actions States
   const [activeItem, setActiveItem] = useState<any>(null);
   const [footerVisible, setFooterVisible] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
-  
+
   // Layout and view measurement refs
   const itemRefs = useRef<Map<string, any>>(new Map());
   const footerAnim = useRef(new Animated.Value(0)).current;
@@ -206,7 +206,12 @@ export default function UserDetailScreen() {
       <React.Fragment>
         {parts.map((part, i) =>
           part.startsWith('[[EM]]') && part.endsWith('[[/EM]]') ? (
-            <Text key={i} type="primary" className="font-bold" style={{ color: highlightColor }}>
+            <Text
+              key={i}
+              type="primary"
+              className="font-bold"
+              style={{ color: highlightColor }}
+            >
               {part.replace(/\[\[\/?EM\]\]/g, '')}
             </Text>
           ) : (
@@ -247,8 +252,8 @@ export default function UserDetailScreen() {
 
   const isSearching = debouncedSearchQuery.length > 0;
   const currentListItems = isSearching
-    ? searchResults?.pages.flatMap((page) =>
-        page.data?.map(parseSearchResult).filter(Boolean) || []
+    ? searchResults?.pages.flatMap(
+        (page) => page.data?.map(parseSearchResult).filter(Boolean) || [],
       ) || []
     : listItems;
 
@@ -271,9 +276,7 @@ export default function UserDetailScreen() {
           );
           setHighlightedId(targetIdStr);
           setTimeout(() => {
-            setHighlightedId((curr) =>
-              curr === targetIdStr ? null : curr,
-            );
+            setHighlightedId((curr) => (curr === targetIdStr ? null : curr));
           }, 1500);
         }
         return next;
@@ -295,8 +298,6 @@ export default function UserDetailScreen() {
     const index = subTabKeys.indexOf(tab as any);
     return index === -1 ? 0 : index;
   };
-
-
 
   const handleFollow = async () => {
     if (followLoading) return;
@@ -532,7 +533,10 @@ export default function UserDetailScreen() {
                 setActiveTab(subTabKeys[nestedSubTabIndexRef.current]);
               }
             }
-            flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
+            flashListRef.current?.scrollToOffset({
+              offset: 0,
+              animated: false,
+            });
           }}
           className="flex-1 py-3.5 items-center"
           style={
@@ -576,7 +580,10 @@ export default function UserDetailScreen() {
                 setActiveTab(key);
                 const targetIndex = getSubTabIndex(key);
                 nestedSubTabIndexRef.current = targetIndex;
-                flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
+                flashListRef.current?.scrollToOffset({
+                  offset: 0,
+                  animated: false,
+                });
               }
             }}
             className="px-4 py-1.5 rounded-full items-center justify-center"
@@ -661,7 +668,9 @@ export default function UserDetailScreen() {
 
     const itemIdStr = displayItem.id?.toString() || '';
     const isExpanded = itemIdStr ? expandedIds.has(itemIdStr) : false;
-    const isCollapsedHighlighted = itemIdStr ? highlightedId === itemIdStr : false;
+    const isCollapsedHighlighted = itemIdStr
+      ? highlightedId === itemIdStr
+      : false;
 
     return (
       <CreationCard
@@ -689,7 +698,9 @@ export default function UserDetailScreen() {
         ref={flashListRef}
         data={currentListItems}
         renderItem={({ item, index }) => renderItemContent(item, index)}
-        keyExtractor={(item: any, index: number) => `user-item-${item.id || ''}-${index}`}
+        keyExtractor={(item: any, index: number) =>
+          `user-item-${item.id || ''}-${index}`
+        }
         {...({ estimatedItemSize: 250 } as any)}
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -751,9 +762,13 @@ export default function UserDetailScreen() {
           selectedAnswer
             ? {
                 id: selectedAnswer.id,
-                title: selectedAnswer.title || selectedAnswer.question?.title || '想法',
+                title:
+                  selectedAnswer.title ||
+                  selectedAnswer.question?.title ||
+                  '想法',
                 author: selectedAnswer.author?.name || user?.name,
-                authorHeadline: selectedAnswer.author?.headline || user?.headline,
+                authorHeadline:
+                  selectedAnswer.author?.headline || user?.headline,
                 content: selectedAnswer.excerpt || selectedAnswer.content || '',
               }
             : null
@@ -838,7 +853,10 @@ export default function UserDetailScreen() {
                     : 'rgba(0,0,0,0.05)',
               }}
             >
-              <Text className="text-[13px] font-bold mr-1" style={{ color: primaryColor }}>
+              <Text
+                className="text-[13px] font-bold mr-1"
+                style={{ color: primaryColor }}
+              >
                 收起回答
               </Text>
               <Ionicons

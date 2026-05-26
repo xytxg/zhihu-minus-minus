@@ -11,11 +11,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
+import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
+import { CollectionToastOverlay } from '@/components/CollectionToastOverlay';
 import { UpdateChecker } from '@/components/UpdateChecker';
 import { useColorScheme } from '@/components/useColorScheme';
 import { VerificationModal } from '@/components/VerificationModal';
-import { CollectionToastOverlay } from '@/components/CollectionToastOverlay';
-import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
 import {
   useSyncThemeWithNativeWind,
   useThemeStore,

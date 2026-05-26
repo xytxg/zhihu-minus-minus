@@ -20,7 +20,11 @@ import RenderHtml, {
   useRendererProps,
 } from 'react-native-render-html';
 import { SvgUri } from 'react-native-svg';
-import { createSegmentReaction, reactAnswerSegment, unreactAnswerSegment } from '@/api/zhihu/answer';
+import {
+  createSegmentReaction,
+  reactAnswerSegment,
+  unreactAnswerSegment,
+} from '@/api/zhihu/answer';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -740,7 +744,8 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
     );
 
     // --- Segment reaction from text selection ---
-    const [textSelection, setTextSelection] = useState<TextSelectionInfo | null>(null);
+    const [textSelection, setTextSelection] =
+      useState<TextSelectionInfo | null>(null);
 
     const onTextSelectedCallback = useCallback(
       (info: TextSelectionInfo | null) => {
@@ -821,7 +826,9 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               onImagePress={onImagePressCallback}
               onLinkPress={handleInternalLink}
               onSegmentPress={onSegmentPressCallback}
-              onTextSelected={type === 'answer' ? onTextSelectedCallback : undefined}
+              onTextSelected={
+                type === 'answer' ? onTextSelectedCallback : undefined
+              }
               style={domStyle}
             />
           </View>
@@ -960,10 +967,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
             ]}
           >
             <View className="px-4 pt-3 pb-2 bg-transparent">
-              <Text
-                type="secondary"
-                className="text-xs mb-1.5"
-              >
+              <Text type="secondary" className="text-xs mb-1.5">
                 已选中文字
               </Text>
               <Text

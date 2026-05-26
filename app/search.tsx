@@ -95,11 +95,7 @@ export default function SearchScreen() {
         {parts.map((part, i) => {
           if (part.startsWith('[[EM]]') && part.endsWith('[[/EM]]')) {
             return (
-              <Text
-                key={i}
-                type="primary"
-                className="font-bold"
-              >
+              <Text key={i} type="primary" className="font-bold">
                 {part.replace(/\[\[\/?EM\]\]/g, '')}
               </Text>
             );
@@ -118,9 +114,7 @@ export default function SearchScreen() {
       return {
         ...obj,
         type: 'peoples',
-        name: highlight.title
-          ? HighlightText(highlight.title)
-          : obj.name,
+        name: highlight.title ? HighlightText(highlight.title) : obj.name,
         headline: highlight.description
           ? HighlightText(highlight.description)
           : obj.headline,
@@ -326,9 +320,7 @@ export default function SearchScreen() {
                 ...userObj,
                 name:
                   typeof userObj.name === 'string'
-                    ? HighlightText(
-                        highlight.title || userObj.name || '',
-                      )
+                    ? HighlightText(highlight.title || userObj.name || '')
                     : userObj.name,
                 headline:
                   typeof userObj.headline === 'string'

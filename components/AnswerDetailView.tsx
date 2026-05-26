@@ -31,11 +31,11 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
-import { showToast } from '@/utils/toast';
 import { useCollectionStore } from '@/store/useCollectionStore';
-import { useCollectionAction } from '@/hooks/useCollectionAction';
+import { showToast } from '@/utils/toast';
 
 const _slowTransition = SharedTransition.duration(600);
 
@@ -143,7 +143,9 @@ export const AnswerDetailView = ({
     },
   );
 
-  const setCollectedStatus = useCollectionStore((state) => state.setCollectedStatus);
+  const setCollectedStatus = useCollectionStore(
+    (state) => state.setCollectedStatus,
+  );
 
   const isCollected = collectionStatus?.data?.some(
     (item: any) => item.is_favorited,
@@ -154,19 +156,28 @@ export const AnswerDetailView = ({
 
   const { toggleCollect } = useCollectionAction();
 
-  const storeCollected = useCollectionStore((state) =>
-    state.collectedStatusMap[id.toString()]
+  const storeCollected = useCollectionStore(
+    (state) => state.collectedStatusMap[id.toString()],
   );
-  const rawIsFaved = answer?.reaction?.relation?.faved || answer?.relationship?.is_favorited || false;
-  const activeCollected = storeCollected !== undefined ? storeCollected : (isCollected !== undefined ? isCollected : rawIsFaved);
-  const storeOffset = useCollectionStore((state) =>
-    state.collectedCountOffsetMap[id.toString()] || 0
+  const rawIsFaved =
+    answer?.reaction?.relation?.faved ||
+    answer?.relationship?.is_favorited ||
+    false;
+  const activeCollected =
+    storeCollected !== undefined
+      ? storeCollected
+      : isCollected !== undefined
+        ? isCollected
+        : rawIsFaved;
+  const storeOffset = useCollectionStore(
+    (state) => state.collectedCountOffsetMap[id.toString()] || 0,
   );
   const displayCount = (answer?.favlists_count || 0) + storeOffset;
 
   React.useEffect(() => {
     if (collectionStatus) {
-      const activeCollected = collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
+      const activeCollected =
+        collectionStatus?.data?.some((item: any) => item.is_favorited) || false;
       setCollectedStatus(id, activeCollected);
     }
   }, [collectionStatus, id, setCollectedStatus]);
@@ -181,7 +192,9 @@ export const AnswerDetailView = ({
       refetchCollectionStatus();
       if (!isCollected) {
         const folderName = res?.collection?.title || '默认收藏夹';
-        useCollectionStore.getState().showToast(id, 'answer', `已收藏到「${folderName}」`);
+        useCollectionStore
+          .getState()
+          .showToast(id, 'answer', `已收藏到「${folderName}」`);
       } else {
         showToast('已取消收藏');
       }
@@ -308,10 +321,10 @@ export const AnswerDetailView = ({
               !answer?.author?.is_following
                 ? { backgroundColor: '#0084ff15' }
                 : {
-                  backgroundColor: 'transparent',
-                  borderWidth: 1,
-                  borderColor: '#eee',
-                },
+                    backgroundColor: 'transparent',
+                    borderWidth: 1,
+                    borderColor: '#eee',
+                  },
             ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
@@ -434,12 +447,12 @@ export const AnswerDetailView = ({
         data={
           answer
             ? {
-              id: answer.id,
-              title: answer.question?.title,
-              author: answer.author?.name,
-              authorHeadline: answer.author?.headline,
-              url: getShareLink(),
-            }
+                id: answer.id,
+                title: answer.question?.title,
+                author: answer.author?.name,
+                authorHeadline: answer.author?.headline,
+                url: getShareLink(),
+              }
             : null
         }
       />

@@ -1,17 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, TouchableOpacity, View as NativeView } from 'react-native';
+import { View as NativeView, Pressable, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
-import { useCollectionStore } from '@/store/useCollectionStore';
-import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 export const CreationCard = React.forwardRef(
   (
@@ -44,13 +44,14 @@ export const CreationCard = React.forwardRef(
 
     const isCollectable = type === 'answer' || type === 'article';
     const storeCollected = useCollectionStore((state) =>
-      item?.id ? state.collectedStatusMap[item.id.toString()] : false
+      item?.id ? state.collectedStatusMap[item.id.toString()] : false,
     );
     const isCollected = storeCollected !== undefined ? storeCollected : false;
     const storeOffset = useCollectionStore((state) =>
-      item?.id ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0
+      item?.id ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0,
     );
-    const displayCount = ((item?.favlists_count || item?.favlistsCount) || 0) + storeOffset;
+    const displayCount =
+      (item?.favlists_count || item?.favlistsCount || 0) + storeOffset;
     const { toggleCollect } = useCollectionAction();
 
     React.useImperativeHandle(ref, () => ({
@@ -181,7 +182,7 @@ export const CreationCard = React.forwardRef(
             shadowOpacity: 0.3,
             shadowRadius: 6,
             elevation: 5,
-          }
+          },
         ]}
         className="p-4 mb-2.5 shadow-sm"
       >
@@ -198,7 +199,7 @@ export const CreationCard = React.forwardRef(
 
         <View className="bg-transparent mt-1">
           {expanded &&
-            (type === 'answer' || type === 'article' || type === 'pin') ? (
+          (type === 'answer' || type === 'article' || type === 'pin') ? (
             <View className="flex-1 bg-transparent mt-1">
               <ZhihuContent
                 objectId={item.id?.toString()}
@@ -232,7 +233,7 @@ export const CreationCard = React.forwardRef(
                 />
               </Pressable>
             </View>
-          ) : (type === 'answer' || type === 'article' || type === 'pin') ? (
+          ) : type === 'answer' || type === 'article' || type === 'pin' ? (
             isLongContent ? (
               <Pressable
                 onPress={() => setExpanded(true)}
@@ -437,15 +438,15 @@ export const CreationCard = React.forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-                item.updated ||
-                item.created_time ||
-                item.created
+              item.updated ||
+              item.created_time ||
+              item.created
                 ? new Date(
-                  (item.updated_time ||
-                    item.updated ||
-                    item.created_time ||
-                    item.created) * 1000,
-                ).toLocaleDateString()
+                    (item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created) * 1000,
+                  ).toLocaleDateString()
                 : ''}
             </Text>
             <TouchableOpacity
@@ -474,4 +475,5 @@ export const CreationCard = React.forwardRef(
         />
       </TouchableOpacity>
     );
-  });
+  },
+);

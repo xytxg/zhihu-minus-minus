@@ -44,16 +44,16 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { useViewableItems } from '@/hooks/useViewableItems';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
-import { useCollectionStore } from '@/store/useCollectionStore';
-import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 const AnswerItem = forwardRef(
   (
@@ -82,12 +82,16 @@ const AnswerItem = forwardRef(
     const queryClient = useQueryClient();
     const footerRef = useRef<NativeView>(null);
 
-    const storeCollected = useCollectionStore((state) => 
-      item?.id ? state.collectedStatusMap[item.id.toString()] : false
+    const storeCollected = useCollectionStore((state) =>
+      item?.id ? state.collectedStatusMap[item.id.toString()] : false,
     );
     const isCollected = storeCollected !== undefined ? storeCollected : false;
-    const storeOffset = useCollectionStore((state) => 
-      item?.id ? state.collectedStatusMap[item.id.toString()] !== undefined ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0 : 0
+    const storeOffset = useCollectionStore((state) =>
+      item?.id
+        ? state.collectedStatusMap[item.id.toString()] !== undefined
+          ? state.collectedCountOffsetMap[item.id.toString()] || 0
+          : 0
+        : 0,
     );
     const displayCount = (item.favlists_count || 0) + storeOffset;
     const { toggleCollect } = useCollectionAction();
@@ -414,14 +418,20 @@ export default function QuestionDetail() {
     onViewableItemsChanged,
   } = useViewableItems<any>();
 
-  const storeFloatingCollected = useCollectionStore((state) => 
-    activeItem?.id ? state.collectedStatusMap[activeItem.id.toString()] : false
+  const storeFloatingCollected = useCollectionStore((state) =>
+    activeItem?.id ? state.collectedStatusMap[activeItem.id.toString()] : false,
   );
-  const isFloatingCollected = storeFloatingCollected !== undefined ? storeFloatingCollected : false;
-  const storeFloatingOffset = useCollectionStore((state) => 
-    activeItem?.id ? state.collectedStatusMap[activeItem.id.toString()] !== undefined ? state.collectedCountOffsetMap[activeItem.id.toString()] || 0 : 0 : 0
+  const isFloatingCollected =
+    storeFloatingCollected !== undefined ? storeFloatingCollected : false;
+  const storeFloatingOffset = useCollectionStore((state) =>
+    activeItem?.id
+      ? state.collectedStatusMap[activeItem.id.toString()] !== undefined
+        ? state.collectedCountOffsetMap[activeItem.id.toString()] || 0
+        : 0
+      : 0,
   );
-  const displayFloatingCount = (activeItem?.favlists_count || 0) + storeFloatingOffset;
+  const displayFloatingCount =
+    (activeItem?.favlists_count || 0) + storeFloatingOffset;
   const { toggleCollect: toggleFloatingCollect } = useCollectionAction();
 
   const footerAnim = useRef(new Animated.Value(0)).current;
@@ -967,18 +977,33 @@ export default function QuestionDetail() {
 
               <Pressable
                 className="flex-row items-center ml-5 bg-transparent"
-                onPress={() => activeItem?.id && toggleFloatingCollect(activeItem.id, 'answer', isFloatingCollected)}
+                onPress={() =>
+                  activeItem?.id &&
+                  toggleFloatingCollect(
+                    activeItem.id,
+                    'answer',
+                    isFloatingCollected,
+                  )
+                }
               >
                 <Ionicons
                   name={isFloatingCollected ? 'star' : 'star-outline'}
                   size={20}
-                  color={isFloatingCollected ? '#ffb400' : Colors[colorScheme].primary}
+                  color={
+                    isFloatingCollected
+                      ? '#ffb400'
+                      : Colors[colorScheme].primary
+                  }
                 />
                 {displayFloatingCount > 0 && (
                   <Text
                     type="primary"
                     className="ml-1.5 text-sm font-bold"
-                    style={{ color: isFloatingCollected ? '#ffb400' : Colors[colorScheme].primary }}
+                    style={{
+                      color: isFloatingCollected
+                        ? '#ffb400'
+                        : Colors[colorScheme].primary,
+                    }}
                   >
                     {displayFloatingCount}
                   </Text>

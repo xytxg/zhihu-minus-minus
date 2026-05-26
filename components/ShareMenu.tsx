@@ -3,13 +3,13 @@ import React from 'react';
 import { Modal, Pressable, Share, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
+import { useCollectionAction } from '@/hooks/useCollectionAction';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { showToast } from '@/utils/toast';
 import { MenuOption } from './MenuOption';
 import { Text, View } from './Themed';
 import { useColorScheme } from './useColorScheme';
-import { useCollectionStore } from '@/store/useCollectionStore';
-import { useCollectionAction } from '@/hooks/useCollectionAction';
 
 export type ShareContentType = 'answer' | 'question' | 'pin' | 'article';
 
@@ -36,8 +36,8 @@ export function ShareMenu({ visible, onClose, type, data }: ShareMenuProps) {
   const surfaceColor = Colors[colorScheme].surface;
   const textColor = Colors[colorScheme].text;
 
-  const isCollected = useCollectionStore((state) => 
-    data ? !!state.collectedStatusMap[data.id.toString()] : false
+  const isCollected = useCollectionStore((state) =>
+    data ? !!state.collectedStatusMap[data.id.toString()] : false,
   );
   const { toggleCollect } = useCollectionAction();
 

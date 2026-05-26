@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,23 +12,21 @@ import {
   Switch,
   TextInput,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCollectionStore } from '@/store/useCollectionStore';
-import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { Text, View } from './Themed';
 import {
+  addArticleToCollection,
+  addToCollection,
+  createCollection,
   getAnswerCollectionStatus,
   getArticleCollectionStatus,
-  addToCollection,
-  removeFromCollection,
-  addArticleToCollection,
   removeArticleFromCollection,
-  createCollection,
+  removeFromCollection,
 } from '@/api/zhihu/collection';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
+import { useCollectionStore } from '@/store/useCollectionStore';
 import { showToast } from '@/utils/toast';
+import { Text, View } from './Themed';
 
 export function CollectionSelectorModal() {
   const insets = useSafeAreaInsets();
@@ -49,8 +49,16 @@ export function CollectionSelectorModal() {
   const [newIsPublic, setNewIsPublic] = useState(true);
 
   // Fetch folders and their favorite status for the active item
-  const { data: statusData, isLoading, refetch } = useQuery({
-    queryKey: ['collection-selector-status', selectorContentId, selectorContentType],
+  const {
+    data: statusData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: [
+      'collection-selector-status',
+      selectorContentId,
+      selectorContentType,
+    ],
     queryFn: async () => {
       if (!selectorContentId || !selectorContentType) return null;
       if (selectorContentType === 'answer') {
@@ -92,20 +100,28 @@ export function CollectionSelectorModal() {
       refetch().then((updated) => {
         const idStr = selectorContentId?.toString();
         if (idStr) {
-          const prevCollected = useCollectionStore.getState().collectedStatusMap[idStr] || false;
+          const prevCollected =
+            useCollectionStore.getState().collectedStatusMap[idStr] || false;
           // If the item is in at least one folder now, set collected = true
-          const hasCollections = updated.data?.data?.some((item: any) => item.is_favorited) || false;
-          
+          const hasCollections =
+            updated.data?.data?.some((item: any) => item.is_favorited) || false;
+
           if (prevCollected !== hasCollections) {
             const delta = hasCollections ? 1 : -1;
-            useCollectionStore.getState().updateCollectedCountOffset(idStr, delta);
+            useCollectionStore
+              .getState()
+              .updateCollectedCountOffset(idStr, delta);
           }
-          
+
           setCollectedStatus(idStr, hasCollections);
-          
+
           // Invalidate key queries so detail views update
-          queryClient.invalidateQueries({ queryKey: ['answer-collection-status', idStr] });
-          queryClient.invalidateQueries({ queryKey: ['article-collection-status', idStr] });
+          queryClient.invalidateQueries({
+            queryKey: ['answer-collection-status', idStr],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ['article-collection-status', idStr],
+          });
         }
       });
     },
@@ -159,7 +175,10 @@ export function CollectionSelectorModal() {
         animationType="fade"
         onRequestClose={closeSelector}
       >
-        <Pressable className="flex-1 justify-end bg-black/40" onPress={closeSelector}>
+        <Pressable
+          className="flex-1 justify-end bg-black/40"
+          onPress={closeSelector}
+        >
           <Pressable
             className="rounded-t-[28px] px-5 pt-3"
             style={{
@@ -183,7 +202,10 @@ export function CollectionSelectorModal() {
                 style={{ backgroundColor: 'rgba(0,132,255,0.08)' }}
               >
                 <Ionicons name="add" size={16} color={primaryColor} />
-                <Text style={{ color: primaryColor }} className="text-sm font-bold ml-0.5">
+                <Text
+                  style={{ color: primaryColor }}
+                  className="text-sm font-bold ml-0.5"
+                >
                   新建
                 </Text>
               </Pressable>
@@ -201,16 +223,24 @@ export function CollectionSelectorModal() {
                 className="flex-1"
                 renderItem={({ item }) => {
                   const isFavorited = item.is_favorited;
-                  const isPending = toggleMutation.isPending && toggleMutation.variables?.folderId === item.id;
-                  
+                  const isPending =
+                    toggleMutation.isPending &&
+                    toggleMutation.variables?.folderId === item.id;
+
                   return (
                     <Pressable
                       onPress={() => {
                         if (isPending) return;
-                        toggleMutation.mutate({ folderId: item.id, isFavorited });
+                        toggleMutation.mutate({
+                          folderId: item.id,
+                          isFavorited,
+                        });
                       }}
                       className="flex-row py-4 items-center justify-between"
-                      style={{ borderBottomWidth: StyleSheet.hairlineWidth, borderColor }}
+                      style={{
+                        borderBottomWidth: StyleSheet.hairlineWidth,
+                        borderColor,
+                      }}
                     >
                       <View className="flex-row items-center flex-1 bg-transparent">
                         <Ionicons
@@ -219,21 +249,31 @@ export function CollectionSelectorModal() {
                           color={isFavorited ? primaryColor : '#888'}
                         />
                         <View className="ml-3 flex-1 bg-transparent">
-                          <Text className="text-base font-semibold" numberOfLines={1}>
+                          <Text
+                            className="text-base font-semibold"
+                            numberOfLines={1}
+                          >
                             {item.title}
                           </Text>
                           {item.description ? (
-                            <Text type="secondary" className="text-xs mt-0.5" numberOfLines={1}>
+                            <Text
+                              type="secondary"
+                              className="text-xs mt-0.5"
+                              numberOfLines={1}
+                            >
                               {item.description}
                             </Text>
                           ) : null}
                         </View>
                       </View>
-                      
+
                       {/* Status indicator */}
                       <View className="w-8 h-8 items-center justify-center bg-transparent">
                         {isPending ? (
-                          <ActivityIndicator size="small" color={primaryColor} />
+                          <ActivityIndicator
+                            size="small"
+                            color={primaryColor}
+                          />
                         ) : (
                           <Ionicons
                             name={isFavorited ? 'checkbox' : 'square-outline'}
@@ -286,17 +326,25 @@ export function CollectionSelectorModal() {
               </View>
 
               <ScrollView className="flex-1 bg-transparent">
-                <Text className="text-[15px] font-semibold mb-2 mt-[10px]">标题</Text>
+                <Text className="text-[15px] font-semibold mb-2 mt-[10px]">
+                  标题
+                </Text>
                 <TextInput
                   className="rounded-lg p-3 text-base"
-                  style={{ borderWidth: 1, borderColor, color: Colors[colorScheme].text }}
+                  style={{
+                    borderWidth: 1,
+                    borderColor,
+                    color: Colors[colorScheme].text,
+                  }}
                   value={newTitle}
                   onChangeText={setNewTitle}
                   placeholder="输入标题"
                   placeholderTextColor="#999"
                 />
 
-                <Text className="text-[15px] font-semibold mb-2 mt-[20px]">描述 (可选)</Text>
+                <Text className="text-[15px] font-semibold mb-2 mt-[20px]">
+                  描述 (可选)
+                </Text>
                 <TextInput
                   className="rounded-lg p-3 text-base h-20"
                   style={{
@@ -315,7 +363,9 @@ export function CollectionSelectorModal() {
 
                 <View className="flex-row justify-between items-center mt-5 mb-[30px] bg-transparent">
                   <View className="bg-transparent">
-                    <Text className="text-[15px] font-semibold">公开收藏夹</Text>
+                    <Text className="text-[15px] font-semibold">
+                      公开收藏夹
+                    </Text>
                     <Text type="secondary" className="text-xs mt-0.5">
                       公开后其他用户可见
                     </Text>

@@ -1,4 +1,4 @@
-import { ZhihuSearchResponse } from '../../types/zhihu';
+import type { ZhihuSearchResponse } from '../../types/zhihu';
 import apiClient from '../client';
 
 export const getSearchSuggest = async (query: string) => {

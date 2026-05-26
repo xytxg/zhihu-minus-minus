@@ -137,6 +137,13 @@ export const DailyList = React.forwardRef<
     return items;
   }, [data]);
 
+  const flashListRef = React.useRef<FlashList<any>>(null);
+
+  React.useImperativeHandle(ref, () => ({
+    scrollToOffset: (args: any) => flashListRef.current?.scrollToOffset(args),
+    refresh: handleRefresh,
+  }));
+
   if (isLoading) {
     return (
       <View className="flex-1">
@@ -164,10 +171,11 @@ export const DailyList = React.forwardRef<
     );
   }
 
+
   return (
     <View className="flex-1">
       <FlashList
-        ref={ref}
+        ref={flashListRef}
         data={flattenedData}
         keyExtractor={(item: any, index: number) =>
           item.type === 'date' ? item.date : item.data.id.toString() + index

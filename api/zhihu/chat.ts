@@ -39,7 +39,7 @@ export interface ChatMessageInfo {
   text: string;
   created_time: number;
   content_type: number;
-  user_type: "receiver" | "sender" | "normal";
+  user_type: 'receiver' | 'sender' | 'normal';
 }
 
 export interface ChatMessage {
@@ -58,15 +58,17 @@ export interface ChatMessagesResponse {
 }
 
 export const getInbox = async (nextUrl?: string) => {
-  const url = nextUrl || "https://www.zhihu.com/api/v4/inbox";
+  const url = nextUrl || 'https://www.zhihu.com/api/v4/inbox';
   const { data } = await client.get<InboxResponse>(url);
   return data;
 };
 
 export const getMessages = async (senderId: string, nextUrl?: string) => {
-  const url = nextUrl || `https://www.zhihu.com/api/v4/chat?sender_id=${senderId}&limit=20`;
+  const url =
+    nextUrl ||
+    `https://www.zhihu.com/api/v4/chat?sender_id=${senderId}&limit=20`;
   const { data } = await client.get<any>(url);
-  
+
   // 转换数据结构，使其与 POST 返回的单条消息结构一致，方便统一渲染
   const messages = data?.data?.messages || [];
   const sender = data?.data?.sender || {};
@@ -83,10 +85,13 @@ export const getMessages = async (senderId: string, nextUrl?: string) => {
 };
 
 export const sendMessage = async (receiverId: string, text: string) => {
-  const { data } = await client.post<ChatMessage>("https://www.zhihu.com/api/v4/chat", {
-    content_type: 0,
-    receiver_id: receiverId,
-    text: text,
-  });
+  const { data } = await client.post<ChatMessage>(
+    'https://www.zhihu.com/api/v4/chat',
+    {
+      content_type: 0,
+      receiver_id: receiverId,
+      text: text,
+    },
+  );
   return data;
 };
