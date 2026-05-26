@@ -120,20 +120,52 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         </View>
       )}
 
-      {/* 标题 - 统一为主卡片点击，完美穿透 */}
+      {/* 标题 - 统一为主卡片点击，但点击标题跳转问题 */}
       {item.title ? (
-        <Animated.View
-          sharedTransitionTag={`title-${item.questionId || item.id}`}
-          sharedTransitionStyle={slowTransition}
-          className="mb-1.5"
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => {
+            if (isGuest) {
+              router.push({
+                pathname: '/guest/detail',
+                params: { item: JSON.stringify(item) },
+              } as any);
+              return;
+            }
+            if (item.type === 'answers' && item.questionId) {
+              router.push(`/question/${item.questionId}`);
+              return;
+            }
+            const routeType = item.type.slice(0, -1);
+            const cleanTitle =
+              typeof item.title === 'string' ? item.title : item.titleString || '';
+            const params: any = {
+              title: cleanTitle,
+              questionId: item.questionId,
+            };
+            if (tab) {
+              params.source = 'feed';
+              params.tab = tab;
+            }
+            router.push({
+              pathname: `/${routeType}/${item.id}`,
+              params,
+            } as any);
+          }}
         >
-          <Text
-            className="text-lg font-bold leading-6 text-foreground dark:text-foreground-dark"
-            numberOfLines={2}
+          <Animated.View
+            sharedTransitionTag={`title-${item.questionId || item.id}`}
+            sharedTransitionStyle={slowTransition}
+            className="mb-1.5"
           >
-            {item.title}
-          </Text>
-        </Animated.View>
+            <Text
+              className="text-lg font-bold leading-6 text-foreground dark:text-foreground-dark"
+              numberOfLines={2}
+            >
+              {item.title}
+            </Text>
+          </Animated.View>
+        </TouchableOpacity>
       ) : null}
 
       {/* 摘要与图片 - 统一为主卡片点击，完美穿透 */}

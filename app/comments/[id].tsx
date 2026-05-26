@@ -198,7 +198,6 @@ export default function CommentScreen() {
                       />
                       <Text
                         className="text-sm leading-5 flex-1"
-                        numberOfLines={2}
                       >
                         <Text type="secondary" className="font-bold">
                           {child.author?.member?.name}：

@@ -1,6 +1,66 @@
 import apiClient from '../client';
 
-export const getAnswer = async (id: string | number, include?: string) => {
+export interface AnswerDetail {
+  id: number | string;
+  type?: string;
+  answer_type?: string;
+  question?: {
+    id: number | string;
+    title: string;
+    type: string;
+    topics?: any[];
+  };
+  author: {
+    id: string;
+    url_token: string;
+    name: string;
+    avatar_url: string;
+    headline: string;
+    gender?: number;
+    is_following?: boolean;
+    badge?: any[];
+    badge_v2?: any;
+    is_org?: boolean;
+    type?: string;
+  };
+  content: string;
+  excerpt: string;
+  created_time: number;
+  created_time_name?: string;
+  updated_time?: number;
+  voteup_count: number;
+  comment_count: number;
+  favlists_count?: number;
+  thanks_count?: number;
+  visited_count?: number;
+  reaction?: {
+    relation?: {
+      vote?: 'UP' | 'DOWN' | 'NEUTRAL';
+      faved?: boolean;
+    };
+  };
+  relationship?: {
+    is_author?: boolean;
+    is_favorited?: boolean;
+    is_thanked?: boolean;
+    voting?: number;
+  };
+  segment_infos?: any[];
+  can_comment?: {
+    status: boolean;
+    reason: string;
+  };
+  allow_segment_interaction?: number;
+  content_need_truncated?: boolean;
+  biz_ext?: any;
+  ip_info?: string;
+  paid_info?: any;
+}
+
+export const getAnswer = async (
+  id: string | number,
+  include?: string,
+): Promise<AnswerDetail> => {
   const defaultInclude =
     'content,paid_info,can_comment,excerpt,thanks_count,voteup_count,comment_count,visited_count,reaction,ip_info,question.topics,reaction.relation.voting,segment_infos,favlists_count';
   const res = await apiClient.get(
