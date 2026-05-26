@@ -71,7 +71,7 @@
 
 1. `git clone` 本仓库。
 2. 安装环境（参考下方的 **快速开始**）。
-3. 难蚌 expo 搞的只有 macOS 才能本地打包安卓...
+3. 难蚌 expo 搞的只有 Linux/macOS 才能本地打包安卓...
 
 `npm run prebuild`
 
@@ -84,7 +84,11 @@
 或者修改 app.json 信息，删掉 sentry 相关组件，注册 expo 账号使用 expo 服务器打包。
 
 ### 🍎 iOS
-由于 iOS 平台的限制，目前未在 App Store 上架。你需要：
+
+本应用不会在 App Store 上架。
+[GitHub Releases](https://github.com/huamurui/zhihu-minus-minus/releases) 可以在这里找找，有尝试打包的未签名 ipa 但我没什么 ios 越狱经验和设备，可能无法使用。
+
+如果你有 mac，可以试试自己打包：
 1. `git clone` 本仓库。
 2. 安装环境（参考下方的 **快速开始**）。
 3. 使用自己的 Apple ID 在 Xcode 中进行签名并编译到真机。
@@ -157,4 +161,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.0.17 | **Last Updated**: 2026-05-20
+**Version**: v0.1.0 | **Last Updated**: 2026-05-26
