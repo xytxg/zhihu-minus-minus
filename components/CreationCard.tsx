@@ -186,16 +186,29 @@ export const CreationCard = React.forwardRef(
         ]}
         className="p-4 mb-2.5 shadow-sm"
       >
-        <Animated.View
-          sharedTransitionTag={`title-${item.question?.id || item.id}`}
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => {
+            if (type === 'answer' && item.question?.id) {
+              router.push(`/question/${item.question.id}`);
+            } else if (type === 'question') {
+              router.push(`/question/${item.id}`);
+            } else {
+              handlePress();
+            }
+          }}
         >
-          <Text
-            className="text-lg font-bold mb-1.5 leading-6 text-foreground dark:text-foreground-dark"
-            numberOfLines={expanded ? undefined : 2}
+          <Animated.View
+            sharedTransitionTag={`title-${item.question?.id || item.id}`}
           >
-            {getTitle()}
-          </Text>
-        </Animated.View>
+            <Text
+              className="text-lg font-bold mb-1.5 leading-6 text-foreground dark:text-foreground-dark"
+              numberOfLines={expanded ? undefined : 2}
+            >
+              {getTitle()}
+            </Text>
+          </Animated.View>
+        </TouchableOpacity>
 
         <View className="bg-transparent mt-1">
           {expanded &&

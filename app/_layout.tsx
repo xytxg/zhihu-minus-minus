@@ -9,8 +9,9 @@ import { Stack, useRootNavigationState, useRouter } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { RootSiblingParent } from 'react-native-root-siblings';
+import { ClipboardLinkModal } from '@/components/ClipboardLinkModal';
 import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
 import { CollectionToastOverlay } from '@/components/CollectionToastOverlay';
 import { UpdateChecker } from '@/components/UpdateChecker';
@@ -22,7 +23,8 @@ import {
 } from '@/store/useThemeStore';
 import { parseZhihuUrl } from '@/utils/url';
 import '../global.css';
-import { Linking } from 'react-native';
+import { Linking, AppState, Alert, AppStateStatus } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // 保持启动页显示，直到资源加载完成
@@ -73,6 +75,8 @@ function RootLayout() {
 
   const [pendingUrl, setPendingUrl] = useState<string | null>(null);
   const [isInitialUrl, setIsInitialUrl] = useState(false);
+  const [clipboardModalVisible, setClipboardModalVisible] = useState(false);
+  const [clipboardUrl, setClipboardUrl] = useState('');
 
   // Handle deep links manually
   useEffect(() => {
@@ -138,6 +142,44 @@ function RootLayout() {
     }
   }, [isReady, pendingUrl, isInitialUrl, router.push, router.replace]);
 
+  const lastCheckedUrlRef = useRef<string | null>(null);
+
+  // Check clipboard for Zhihu links when app becomes active
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        try {
+          const hasText = await Clipboard.hasStringAsync();
+          if (hasText) {
+            const text = await Clipboard.getStringAsync();
+            if (
+              text &&
+              text !== lastCheckedUrlRef.current &&
+              (text.includes('zhihu.com/') || text.includes('zhuanlan.zhihu.com/'))
+            ) {
+              lastCheckedUrlRef.current = text;
+              const urlMatch = text.match(
+                /https?:\/\/(?:www\.|zhuanlan\.)?zhihu\.com\/[^\s]*/,
+              );
+              const url = urlMatch ? urlMatch[0] : null;
+              if (url) {
+                setClipboardUrl(url);
+                setClipboardModalVisible(true);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to read clipboard on app active', e);
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   // 这里简单处理：如果以后需要加载字体，可以写在这里
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -149,6 +191,15 @@ function RootLayout() {
         <RootSiblingParent>
           <ThemeProvider value={theme}>
             <UpdateChecker />
+            <ClipboardLinkModal
+              visible={clipboardModalVisible}
+              url={clipboardUrl}
+              onClose={() => setClipboardModalVisible(false)}
+              onOpen={() => {
+                setClipboardModalVisible(false);
+                setPendingUrl(clipboardUrl);
+              }}
+            />
             <Stack
               screenOptions={{
                 headerStyle: {

@@ -174,7 +174,6 @@ export default function PinDetailScreen() {
             {pin?.created
               ? new Date(pin.created * 1000).toLocaleString()
               : '不久前'}{' '}
-            · 著作权归作者所有
           </Text>
         </View>
       </ScrollView>

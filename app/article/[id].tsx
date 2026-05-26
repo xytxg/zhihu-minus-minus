@@ -336,8 +336,7 @@ export default function ArticleDetail() {
               type="secondary"
               className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
             >
-              发布于 {new Date(data.created * 1000).toLocaleDateString()} ·
-              著作权归作者所有
+              发布于 {new Date(data.created * 1000).toLocaleDateString()}
             </Text>
           </View>
         )}

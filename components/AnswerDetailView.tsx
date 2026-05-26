@@ -369,22 +369,23 @@ export const AnswerDetailView = ({
             )}
             <Text
               type="secondary"
-              className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
+              className="text-[#bbb] text-[13px] mt-[30px] italic"
             >
               发布于{' '}
               {answer?.created_time
                 ? new Date(answer.created_time * 1000).toLocaleDateString()
                 : answer?.created_time_name || '不久前'}{' '}
-              · 著作权归作者所有
+              {answer?.ip_info ? `· ${answer.ip_info} ` : ''}
             </Text>
-            <Text
-              type="secondary"
-            >
-              最后编辑{' '}
-              {answer?.updated_time
-                ? new Date(answer.updated_time * 1000).toLocaleDateString()
-                : answer?.created_time_name || '不久前'}{' '}
-            </Text>
+            {answer?.updated_time && (
+              <Text
+                type="secondary"
+                className="text-[#bbb] text-[13px] italic pb-5 mt-1"
+              >
+                最后编辑{' '}
+                {new Date(answer.updated_time * 1000).toLocaleDateString()}
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>

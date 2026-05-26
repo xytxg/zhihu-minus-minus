@@ -218,9 +218,30 @@ const AnswerItem = forwardRef(
                 content={item.content}
                 segmentInfos={item.segment_infos}
               />
+              <View className="mt-[20px] bg-transparent">
+                <Text
+                  type="secondary"
+                  className="text-[#bbb] text-[13px] italic"
+                >
+                  发布于{' '}
+                  {item.created_time
+                    ? new Date(item.created_time * 1000).toLocaleDateString()
+                    : ''}{' '}
+                  {item.ip_info ? `· ${item.ip_info} ` : ''}
+                </Text>
+                {item.updated_time && (
+                  <Text
+                    type="secondary"
+                    className="text-[#bbb] text-[13px] italic mt-1"
+                  >
+                    最后编辑{' '}
+                    {new Date(item.updated_time * 1000).toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
               <Pressable
                 onPress={() => item?.id && onToggle(item.id.toString(), false)}
-                className="flex-row items-center justify-center py-2.5 mt-1 bg-transparent"
+                className="flex-row items-center justify-center py-2.5 mt-[20px] bg-transparent"
               >
                 <Text
                   type="primary"
@@ -453,7 +474,7 @@ export default function QuestionDetail() {
     queryKey: ['question-answers', id, sortBy],
     queryFn: async ({ pageParam = 0 }) => {
       const include =
-        'data[*].content,voteup_count,comment_count,favlists_count,author.name,author.avatar_url,author.headline,author.is_following,relationship.voting,relationship.is_author,created_time,segment_infos';
+        'data[*].content,voteup_count,comment_count,favlists_count,author.name,author.avatar_url,author.headline,author.is_following,relationship.voting,relationship.is_author,created_time,updated_time,ip_info,segment_infos';
       const res = await client.get(
         `/questions/${id}/answers?include=${include}&limit=20&offset=${pageParam}&sort_by=${sortBy}`,
       );
@@ -805,12 +826,12 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title: question?.title,
-                author: selectedAnswer.author?.name,
-                authorHeadline: selectedAnswer.author?.headline,
-                url: getShareLink(selectedAnswer),
-              }
+              id: selectedAnswer.id,
+              title: question?.title,
+              author: selectedAnswer.author?.name,
+              authorHeadline: selectedAnswer.author?.headline,
+              url: getShareLink(selectedAnswer),
+            }
             : null
         }
       />
