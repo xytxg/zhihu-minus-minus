@@ -8,7 +8,7 @@
     "scheme": "zhihu--",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/android-icon-monochrome.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,9 +17,23 @@
       "bundleIdentifier": "com.huamu013.ZhihuMinusMinus",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "splash": {
+        "backgroundColor": "#ffffff",
+        "dark": {
+          "backgroundColor": "#121212",
+          "image": "./assets/images/android-icon-monochrome.png"
+        }
       }
     },
     "android": {
+      "splash": {
+        "backgroundColor": "#ffffff",
+        "dark": {
+          "backgroundColor": "#121212",
+          "image": "./assets/images/android-icon-monochrome.png"
+        }
+      },
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,7 +42,9 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.huamu013.ZhihuMinusMinus",
-      "permissions": ["REQUEST_INSTALL_PACKAGES"],
+      "permissions": [
+        "REQUEST_INSTALL_PACKAGES"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -84,7 +100,10 @@
               "pathPrefix": "/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         },
         {
           "action": "VIEW",
@@ -96,7 +115,10 @@
               "scheme": "zhihu--"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

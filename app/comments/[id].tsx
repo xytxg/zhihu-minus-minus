@@ -123,15 +123,7 @@ export default function CommentScreen() {
                 <Text className="font-bold text-sm mr-2">
                   {item.author.member.name}
                 </Text>
-                {item.author.member.headline && (
-                  <Text
-                    type="secondary"
-                    className="text-xs flex-1"
-                    numberOfLines={1}
-                  >
-                    {item.author.member.headline}
-                  </Text>
-                )}
+
               </View>
             </Pressable>
             <Text
@@ -175,7 +167,7 @@ export default function CommentScreen() {
 
             {item.child_comment_count > 0 && (
               <Pressable
-                className="mt-2.5 p-2.5 rounded-lg"
+                className="pt-2 rounded-lg"
                 style={{ backgroundColor: surfaceColor }}
                 onPress={() =>
                   router.push(
@@ -207,7 +199,7 @@ export default function CommentScreen() {
                     </View>
                   ))}
                 <View
-                  className="py-1 px-3 rounded-[14px] mt-2 self-start"
+                  className="py-1 px-3 rounded-[14px] self-start"
                   style={{ backgroundColor: borderColor }}
                 >
                   <Text type="secondary" className="text-xs font-medium">

@@ -227,15 +227,7 @@ export default function ReplyDetailScreen() {
               >
                 {parentComment.author.member.name}
               </Text>
-              {parentComment.author.member.headline && (
-                <Text
-                  type="secondary"
-                  className="text-xs flex-1"
-                  numberOfLines={1}
-                >
-                  {parentComment.author.member.headline}
-                </Text>
-              )}
+
             </View>
             <Text
               className="text-[16px] leading-[24px] mt-1 mb-2"
