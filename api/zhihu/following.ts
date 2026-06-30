@@ -196,3 +196,52 @@ export const getMemberFollowingQuestions = async (
   });
   return res.data;
 };
+
+export interface ZhihuFollowingFavlistCreator {
+  id: string;
+  name: string;
+  avatar_url: string;
+  headline?: string;
+  url_token: string;
+}
+
+export interface ZhihuFollowingFavlistItem {
+  id: number;
+  title: string;
+  description: string;
+  url: string;
+  answer_count: number;
+  follower_count: number;
+  comment_count: number;
+  updated_time: number;
+  created_time: number;
+  is_following: boolean;
+  is_public: boolean;
+  type: 'collection';
+  creator: ZhihuFollowingFavlistCreator;
+}
+
+export interface ZhihuFollowingFavlistsResponse {
+  paging: ZhihuPaging;
+  data: ZhihuFollowingFavlistItem[];
+}
+
+/**
+ * 获取用户关注的收藏夹
+ * GET /members/{id}/following-favlists
+ */
+export const getMemberFollowingFavlists = async (
+  memberId: string | number,
+  offset = 0,
+  limit = 20,
+): Promise<ZhihuFollowingFavlistsResponse> => {
+  const include = 'data[*].updated_time,answer_count,follower_count,creator,description,is_following,comment_count,created_time';
+  const res = await apiClient.get(`/members/${memberId}/following-favlists`, {
+    params: {
+      include,
+      offset,
+      limit,
+    },
+  });
+  return res.data;
+};

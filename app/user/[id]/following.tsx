@@ -3,11 +3,13 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, Dimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   getMemberFollowing,
   getMemberFollowingColumns,
   getMemberFollowingQuestions,
   getMemberFollowingTopics,
+  getMemberFollowingFavlists,
 } from '@/api/zhihu';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { UserCard } from '@/components/UserCard';
@@ -16,9 +18,10 @@ import Colors from '@/constants/Colors';
 
 const TABS = [
   { key: 'users', title: '关注的人' },
-  { key: 'columns', title: '关注的专栏' },
-  { key: 'topics', title: '关注的话题' },
-  { key: 'questions', title: '关注的问题' },
+  { key: 'columns', title: '专栏' },
+  { key: 'topics', title: '话题' },
+  { key: 'questions', title: '问题' },
+  { key: 'favlists', title: '收藏夹' },
 ];
 
 export default function FollowingScreen() {
@@ -92,6 +95,21 @@ export default function FollowingScreen() {
     enabled: activeTab === 'questions',
   });
 
+  // 5. 关注的收藏夹 Query
+  const favlistsQuery = useInfiniteQuery({
+    queryKey: ['user-following-favlists', id],
+    queryFn: ({ pageParam = 0 }) =>
+      getMemberFollowingFavlists(id as string, pageParam as number, 20),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.paging?.is_end) return undefined;
+      const nextUrl = lastPage.paging?.next;
+      const match = nextUrl?.match(/offset=(\d+)/);
+      return match ? parseInt(match[1]) : undefined;
+    },
+    enabled: activeTab === 'favlists',
+  });
+
   const getQueryState = () => {
     switch (activeTab) {
       case 'users':
@@ -133,6 +151,16 @@ export default function FollowingScreen() {
           fetchNextPage: questionsQuery.fetchNextPage,
           refetch: questionsQuery.refetch,
           isRefetching: questionsQuery.isRefetching,
+        };
+      case 'favlists':
+        return {
+          data: favlistsQuery.data?.pages.flatMap((page) => page.data) || [],
+          isLoading: favlistsQuery.isLoading,
+          isFetchingNextPage: favlistsQuery.isFetchingNextPage,
+          hasNextPage: favlistsQuery.hasNextPage,
+          fetchNextPage: favlistsQuery.fetchNextPage,
+          refetch: favlistsQuery.refetch,
+          isRefetching: favlistsQuery.isRefetching,
         };
       default:
         return {
@@ -245,6 +273,42 @@ export default function FollowingScreen() {
                 提问者: {item.author.name}
               </Text>
             )}
+          </View>
+        </Pressable>
+      );
+    }
+    if (activeTab === 'favlists') {
+      return (
+        <Pressable
+          className="flex-row items-center p-4"
+          style={{ borderBottomWidth: 0.5, borderBottomColor: borderColor }}
+          onPress={() => router.push(`/collections/${item.id}`)}
+        >
+          <View
+            className="w-12 h-12 rounded-lg justify-center items-center relative"
+            style={{ backgroundColor: 'rgba(0,132,255,0.05)' }}
+          >
+            <Ionicons
+              name={item.is_public ? 'folder' : 'folder-outline'}
+              size={24}
+              color={tint}
+            />
+          </View>
+          <View className="flex-1 ml-3 bg-transparent">
+            <Text className="text-base font-semibold" numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text type="secondary" className="text-[13px] mt-0.5" numberOfLines={1}>
+              {item.description || `创建者: ${item.creator?.name || '匿名'}`}
+            </Text>
+            <View className="flex-row mt-1 bg-transparent">
+              <Text type="secondary" className="text-xs">
+                {item.answer_count || 0} 内容
+              </Text>
+              <Text type="secondary" className="text-xs ml-3">
+                {item.follower_count || 0} 关注者
+              </Text>
+            </View>
           </View>
         </Pressable>
       );
