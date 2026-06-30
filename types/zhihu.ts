@@ -138,3 +138,21 @@ export interface ZhihuSearchResponse {
   };
   data: ZhihuSearchResultItem[];
 }
+
+export interface ZhihuColumnDetail {
+  id: string;
+  type: 'column';
+  title: string;
+  url: string;
+  image_url: string;
+  updated: number;
+  column_type: string;
+  accept_submission: boolean;
+  comment_permission: string;
+  intro?: string;
+  excerpt?: string;
+  followers?: number;
+  items_count?: number;
+  articles_count?: number;
+  author: ZhihuAuthor;
+}

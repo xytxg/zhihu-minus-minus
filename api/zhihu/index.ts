@@ -15,3 +15,5 @@ export * from './question';
 export * from './search';
 export * from './topic';
 export * from './voters';
+export * from './following';
+export * from './column';
