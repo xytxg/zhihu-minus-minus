@@ -155,4 +155,5 @@ export interface ZhihuColumnDetail {
   items_count?: number;
   articles_count?: number;
   author: ZhihuAuthor;
+  is_following?: boolean;
 }

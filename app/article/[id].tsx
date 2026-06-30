@@ -18,6 +18,7 @@ import {
   getArticleCollectionStatus,
   removeArticleFromCollection,
 } from '@/api/zhihu/collection';
+import { followColumn, getArticleColumnCard, unfollowColumn } from '@/api/zhihu/column';
 import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
@@ -130,6 +131,30 @@ export default function ArticleDetail() {
     isActive: data?.author?.is_following,
     successMessage: (isActive) => (isActive ? '已取消关注' : '已关注'),
     invalidateQueries: [['zhihu-article', id]],
+  });
+
+  // 5. 获取专栏卡片信息
+  const { data: columnCard } = useQuery({
+    queryKey: ['article-column-card', id],
+    queryFn: () => getArticleColumnCard(id as string),
+    enabled: !!id && !isDaily,
+  });
+
+  const tintColor = Colors[colorScheme].tint;
+
+  const columnFollowMutation = useOptimisticToggle({
+    queryKey: ['article-column-card', id],
+    isActive: columnCard?.is_following,
+    mutationFn: async () => {
+      if (!columnCard) return;
+      if (columnCard.is_following) return unfollowColumn(columnCard.id);
+      return followColumn(columnCard.id);
+    },
+    onUpdateCache: (old: any) => ({
+      ...old,
+      is_following: !old?.is_following,
+    }),
+    successMessage: (isActive) => (isActive ? '已取消关注' : '已关注专栏'),
   });
 
   const goToProfile = () => {
@@ -328,6 +353,59 @@ export default function ArticleDetail() {
             type="article"
           />
         </View>
+
+        {/* Column Card section */}
+        {!isDaily && columnCard && (
+          <View className="px-5 mt-8 mb-4 bg-transparent">
+            <Text className="text-sm font-bold mb-3">收录于专栏</Text>
+            <Pressable
+              onPress={() => router.push(`/column/${columnCard.id}`)}
+              className="flex-row items-center p-4 rounded-xl border"
+              style={{
+                borderColor: Colors[colorScheme].border,
+                backgroundColor: Colors[colorScheme].surface,
+              }}
+            >
+              <Image
+                source={{ uri: columnCard.image_url }}
+                className="w-12 h-12 rounded-lg"
+              />
+              <View className="flex-1 ml-3 bg-transparent">
+                <Text className="text-base font-bold" numberOfLines={1}>
+                  {columnCard.title}
+                </Text>
+                <Text type="secondary" className="text-xs mt-1" numberOfLines={1}>
+                  {columnCard.extra || `${columnCard.intro || '知乎专栏'}`}
+                </Text>
+              </View>
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  columnFollowMutation.mutate();
+                }}
+                className="px-4 py-1.5 rounded-full"
+                style={[
+                  {
+                    backgroundColor: columnCard.is_following ? 'transparent' : tintColor,
+                  },
+                  columnCard.is_following && {
+                    borderWidth: 1,
+                    borderColor: Colors[colorScheme].border,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: columnCard.is_following ? Colors[colorScheme].textSecondary : '#fff',
+                  }}
+                  className="font-bold text-sm"
+                >
+                  {columnCard.is_following ? '已关注' : '关注'}
+                </Text>
+              </Pressable>
+            </Pressable>
+          </View>
+        )}
 
         {/* Publish time and copyright notice for standard articles */}
         {!isDaily && data.created && (

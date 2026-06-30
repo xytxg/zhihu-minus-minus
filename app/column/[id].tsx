@@ -5,10 +5,11 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getColumn, getColumnItems } from '@/api/zhihu/column';
+import { followColumn, getColumn, getColumnItems, unfollowColumn } from '@/api/zhihu/column';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 
 export default function ColumnDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,6 +26,23 @@ export default function ColumnDetail() {
   const { data: column, isLoading: columnLoading } = useQuery({
     queryKey: ['column-detail', id],
     queryFn: () => getColumn(id),
+  });
+
+  const followMutation = useOptimisticToggle({
+    queryKey: ['column-detail', id],
+    isActive: column?.is_following,
+    mutationFn: async () => {
+      if (column?.is_following) return unfollowColumn(id);
+      return followColumn(id);
+    },
+    onUpdateCache: (old: any) => ({
+      ...old,
+      is_following: !old?.is_following,
+      followers: old?.is_following
+        ? (old.followers || 1) - 1
+        : (old.followers || 0) + 1,
+    }),
+    successMessage: (isActive) => (isActive ? '已取消关注' : '已关注专栏'),
   });
 
   // 2. 获取专栏下的文章列表
@@ -67,9 +85,31 @@ export default function ColumnDetail() {
           <View className="ml-4 flex-1 bg-transparent">
             <Text className="text-xl font-bold">{column.title}</Text>
             <Text type="secondary" className="text-sm mt-1">
-              {column.followers_count || column.followers || 0} 关注者 · {column.items_count || column.articles_count || 0} 文章
+              {column.followers || 0} 关注者 · {column.items_count || column.articles_count || 0} 文章
             </Text>
           </View>
+          <Pressable
+            onPress={() => followMutation.mutate()}
+            className="px-4 py-1.5 rounded-full"
+            style={[
+              {
+                backgroundColor: column.is_following ? 'transparent' : tintColor,
+              },
+              column.is_following && {
+                borderWidth: 1,
+                borderColor: borderColor,
+              },
+            ]}
+          >
+            <Text
+              style={{
+                color: column.is_following ? Colors[colorScheme].textSecondary : '#fff',
+              }}
+              className="font-bold text-sm"
+            >
+              {column.is_following ? '已关注' : '关注'}
+            </Text>
+          </Pressable>
         </View>
 
         {column.intro || column.excerpt ? (
