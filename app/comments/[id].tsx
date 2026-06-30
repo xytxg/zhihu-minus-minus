@@ -32,6 +32,8 @@ import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
+import { CommentContent } from '@/components/CommentContent';
+
 export default function CommentScreen() {
   const { id, type, segmentId, count } = useLocalSearchParams<{
     id: string;
@@ -94,7 +96,6 @@ export default function CommentScreen() {
   };
 
   const renderComment = ({ item }: { item: CommentItem }) => {
-    const cleanContent = item.content?.replace(/<[^>]+>/g, '').trim() || '';
     return (
       <View
         className="p-[15px] bg-transparent"
@@ -125,21 +126,18 @@ export default function CommentScreen() {
                 </Text>
               </View>
             </Pressable>
-            <Text
-              className="text-[15px] leading-[22px] mt-1"
-              style={{ color: textColor }}
-            >
-              {cleanContent}
-            </Text>
+            <View className="mt-1 bg-transparent">
+              <CommentContent htmlContent={item.content} width={300} />
+            </View>
 
-            <View className="flex-row justify-between items-center mt-2">
+            <View className="flex-row justify-between items-center mt-2 bg-transparent">
               <Text type="secondary" className="text-xs">
                 {item.created_time
                   ? new Date(item.created_time * 1000).toLocaleDateString()
                   : ''}
                 {item.address_text ? ` · ${item.address_text}` : ''}
               </Text>
-              <View className="flex-row items-center">
+              <View className="flex-row items-center bg-transparent">
                 <LikeButton
                   id={item.id}
                   count={item.vote_count || 0}
@@ -187,12 +185,9 @@ export default function CommentScreen() {
                         source={{ uri: child.author?.member?.avatar_url }}
                         className="w-[18px] h-[18px] rounded-full mr-2"
                       />
-                      <Text className="text-sm leading-5 flex-1">
-                        <Text type="secondary" className="font-bold">
-                          {child.author?.member?.name}：
-                        </Text>
-                        {child.content?.replace(/<[^>]+>/g, '').trim()}
-                      </Text>
+                      <View className="flex-1 bg-transparent">
+                        <CommentContent htmlContent={`<a href="/user/${child.author?.member?.url_token || child.author?.member?.id}">${child.author?.member?.name}</a>：${child.content}`} width={280} />
+                      </View>
                     </View>
                   ))}
                 <View

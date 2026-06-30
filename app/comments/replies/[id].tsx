@@ -3,7 +3,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +25,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { CommentContent } from '@/components/CommentContent';
 
 export default function ReplyDetailScreen() {
   const { id, parent } = useLocalSearchParams<{
@@ -97,7 +98,6 @@ export default function ReplyDetailScreen() {
   };
 
   const renderReply = ({ item }: { item: CommentItem }) => {
-    const cleanContent = item.content?.replace(/<[^>]+>/g, '').trim() || '';
     return (
       <View
         type="secondary"
@@ -147,20 +147,17 @@ export default function ReplyDetailScreen() {
               </Text>
             )}
           </Text>
-          <Text
-            className="text-[15px] leading-[22px]"
-            style={{ color: textColor }}
-          >
-            {cleanContent}
-          </Text>
+          <View className="mt-1 bg-transparent">
+            <CommentContent htmlContent={item.content} width={300} />
+          </View>
 
-          <View className="flex-row justify-between items-center mt-2">
+          <View className="flex-row justify-between items-center mt-2 bg-transparent">
             <Text type="secondary" className="text-xs">
               {item.created_time
                 ? new Date(item.created_time * 1000).toLocaleDateString()
                 : ''}
             </Text>
-            <View className="flex-row items-center">
+            <View className="flex-row items-center bg-transparent">
               <LikeButton
                 id={item.id}
                 count={item.vote_count || 0}
@@ -191,8 +188,6 @@ export default function ReplyDetailScreen() {
 
   const renderHeader = () => {
     if (!parentComment) return null;
-    const cleanContent =
-      parentComment.content?.replace(/<[^>]+>/g, '').trim() || '';
     return (
       <View
         style={{
@@ -228,14 +223,11 @@ export default function ReplyDetailScreen() {
                 {parentComment.author.member.name}
               </Text>
             </View>
-            <Text
-              className="text-[16px] leading-[24px] mt-1 mb-2"
-              style={{ color: textColor }}
-            >
-              {cleanContent}
-            </Text>
+            <View className="mt-1 mb-2 bg-transparent">
+              <CommentContent htmlContent={parentComment.content} width={300} />
+            </View>
 
-            <View className="flex-row justify-between items-center mt-1">
+            <View className="flex-row justify-between items-center mt-1 bg-transparent">
               <Text type="secondary" className="text-xs">
                 {parentComment.created_time
                   ? new Date(
