@@ -88,6 +88,8 @@
 本应用不会在 App Store 上架。
 [GitHub Releases](https://github.com/huamurui/zhihu-minus-minus/releases) 可以在这里找找，有尝试打包的未签名 ipa 但我没什么 ios 越狱经验和设备，可能无法使用。
 
+- rn 打的 ipa 包 ios 最低要求 ios15.1，但具体什么情况不清楚喵...
+
 如果你有 mac，可以试试自己打包：
 1. `git clone` 本仓库。
 2. 安装环境（参考下方的 **快速开始**）。
