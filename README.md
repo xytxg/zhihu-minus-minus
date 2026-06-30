@@ -81,7 +81,7 @@
 
 `cd android && ./gradlew assembleRelease`
 
-或者修改 app.json 信息，删掉 sentry 相关组件，注册 expo 账号使用 expo 服务器打包。
+或者修改 app.json 信息，注册 expo 账号使用 expo 服务器打包。
 
 ### 🍎 iOS
 
@@ -161,4 +161,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.1.0 | **Last Updated**: 2026-05-26
+**Version**: v0.1.1 | **Last Updated**: 2026-06-30
