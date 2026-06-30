@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import type React from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -46,6 +46,8 @@ export default function AppearanceSettings() {
   };
 
   const tintColor = useThemeColor({}, 'primary');
+  const textColor = Colors[colorScheme].text;
+  const borderColor = Colors[colorScheme].border;
 
   const toggleTab = (tab: TabKey) => {
     if (visibleTabs.includes(tab)) {
@@ -191,6 +193,48 @@ export default function AppearanceSettings() {
               <Ionicons name="refresh" size={24} color="#666" />
             </Pressable>
           </View>
+          
+          {/* 自定义颜色输入框 */}
+          <SettingItem label="自定义 Hex 颜色值">
+            <View style={styles.row}>
+              <TextInput
+                style={[
+                  styles.hexInput,
+                  {
+                    color: textColor,
+                    borderColor: borderColor,
+                    backgroundColor: Colors[colorScheme].backgroundTertiary,
+                  },
+                ]}
+                placeholder="#0084ff"
+                placeholderTextColor="#999"
+                value={primaryColor || ''}
+                onChangeText={(val) => {
+                  if (val.startsWith('#') && val.length <= 7) {
+                    updateSettings({ primaryColor: val });
+                  } else if (val === '') {
+                    updateSettings({ primaryColor: null });
+                  } else if (!val.startsWith('#') && val.length <= 6) {
+                    updateSettings({ primaryColor: `#${val}` });
+                  }
+                }}
+                maxLength={7}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {primaryColor && (
+                <View
+                  style={[
+                    styles.colorPreview,
+                    {
+                      backgroundColor: primaryColor,
+                      borderColor: borderColor,
+                    },
+                  ]}
+                />
+              )}
+            </View>
+          </SettingItem>
         </Section>
 
         {/* 实验性功能 */}
@@ -372,5 +416,22 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     backgroundColor: 'rgba(255,77,79,0.05)',
+  },
+  hexInput: {
+    width: 110,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  colorPreview: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginLeft: 10,
   },
 });

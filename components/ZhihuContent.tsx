@@ -31,7 +31,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { showToast } from '@/utils/toast';
 import { parseZhihuUrl } from '@/utils/url';
 import MathView from './MathView';
-import { Text, View } from './Themed';
+import { Text, useThemeColor, View } from './Themed';
 import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
 
 interface SegmentInfo {
@@ -575,15 +575,18 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
       ],
     );
 
+    const primaryColor = useThemeColor({}, 'primary');
+    const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
     const classesStyles = useMemo(
       () => ({
         'segment-interactable': {
           textDecorationLine: 'underline',
-          textDecorationColor: Colors[colorScheme].primaryTransparent,
+          textDecorationColor: primaryTransparent,
         },
         'segment-liked': {},
       }),
-      [colorScheme],
+      [primaryTransparent],
     );
 
     const tagsStyles = useMemo(
@@ -594,11 +597,11 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           lineHeight: (30 * lineHeightScale) / 1.5,
           marginBottom: 20,
         },
-        b: { color: Colors[colorScheme].primary, fontWeight: 'bold' },
+        b: { color: primaryColor, fontWeight: 'bold' },
         img: { borderRadius: 12, marginVertical: 10, display: 'inline' },
         blockquote: {
           borderLeftWidth: 4,
-          borderLeftColor: Colors[colorScheme].primary,
+          borderLeftColor: primaryColor,
           paddingLeft: 18,
           backgroundColor: `${surfaceColor}80`,
           paddingVertical: 12,
@@ -650,7 +653,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         },
         span: { color: textColor },
         div: { color: textColor },
-        a: { color: Colors[colorScheme].primary, textDecorationLine: 'none' },
+        a: { color: primaryColor, textDecorationLine: 'none' },
         code: {
           backgroundColor: Colors[colorScheme].border,
           borderRadius: 4,
@@ -659,7 +662,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           fontSize: 14 * fontSizeScale,
         },
       }),
-      [textColor, surfaceColor, colorScheme, fontSizeScale, lineHeightScale],
+      [textColor, surfaceColor, colorScheme, fontSizeScale, lineHeightScale, primaryColor, primaryTransparent],
     );
 
     const systemFonts = [...defaultSystemFonts, 'Inter', 'Roboto'];
@@ -783,7 +786,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
     if (!shouldRender && !contentArray) {
       return (
         <View className="h-[200px] justify-center items-center bg-transparent">
-          <ActivityIndicator size="small" color={Colors[colorScheme].primary} />
+          <ActivityIndicator size="small" color={primaryColor} />
         </View>
       );
     }

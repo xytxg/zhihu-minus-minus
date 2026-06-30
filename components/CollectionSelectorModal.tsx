@@ -26,7 +26,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { showToast } from '@/utils/toast';
-import { Text, View } from './Themed';
+import { Text, useThemeColor, View } from './Themed';
 
 export function CollectionSelectorModal() {
   const insets = useSafeAreaInsets();
@@ -161,11 +161,12 @@ export function CollectionSelectorModal() {
     });
   };
 
-  if (!selectorVisible) return null;
-
   const surfaceColor = Colors[colorScheme].surface;
   const borderColor = Colors[colorScheme].border;
-  const primaryColor = Colors[colorScheme].primary;
+  const primaryColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
+  if (!selectorVisible) return null;
 
   return (
     <>
@@ -199,7 +200,7 @@ export function CollectionSelectorModal() {
               <Pressable
                 onPress={() => setCreateModalVisible(true)}
                 className="flex-row items-center bg-transparent py-1 px-2.5 rounded-full"
-                style={{ backgroundColor: 'rgba(0,132,255,0.08)' }}
+                style={{ backgroundColor: primaryTransparent }}
               >
                 <Ionicons name="add" size={16} color={primaryColor} />
                 <Text

@@ -21,7 +21,7 @@ import {
   unfollowTopic,
 } from '@/api/zhihu/topic';
 import { FeedCard } from '@/components/FeedCard';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
@@ -34,9 +34,9 @@ export default function TopicDetail() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
-  const tintColor = Colors[colorScheme].tint;
-  const textColor = Colors[colorScheme].text;
-  const backgroundColor = Colors[colorScheme].background;
+  const tintColor = useThemeColor({}, 'primary');
+  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background');
 
   const [activeTab, setActiveTab] = useState<
     'hot' | 'top-answers' | 'unanswered' | 'structure'
@@ -306,12 +306,12 @@ function TopicStructureView({
   isLoading: boolean;
 }) {
   const router = useRouter();
-  const colorScheme = useColorScheme();
+  const primaryColor = useThemeColor({}, 'primary');
 
   if (isLoading) {
     return (
       <View className="p-10 items-center bg-transparent">
-        <ActivityIndicator color={Colors[colorScheme].primary} />
+        <ActivityIndicator color={primaryColor} />
       </View>
     );
   }

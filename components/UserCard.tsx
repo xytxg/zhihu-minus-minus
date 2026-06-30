@@ -4,7 +4,7 @@ import { ActivityIndicator, Image, Pressable } from 'react-native';
 import { followMember, unfollowMember } from '@/api/zhihu';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import { Text, View } from './Themed';
+import { Text, useThemeColor, View } from './Themed';
 export const UserCard = ({ user }: { user: any }) => {
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(user.is_following);
@@ -14,7 +14,7 @@ export const UserCard = ({ user }: { user: any }) => {
 
   const borderColor = Colors[colorScheme].border;
   const bgSecondary = Colors[colorScheme].backgroundSecondary;
-  const tint = Colors[colorScheme].tint;
+  const tint = useThemeColor({}, 'primary');
   const textSecondaryColor = Colors[colorScheme].textSecondary;
   const bgColor = Colors[colorScheme].background;
 

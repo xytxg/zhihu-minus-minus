@@ -22,7 +22,7 @@ import {
   getComment,
 } from '@/api/zhihu';
 import { LikeButton } from '@/components/LikeButton';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { CommentContent } from '@/components/CommentContent';
@@ -43,7 +43,7 @@ export default function ReplyDetailScreen() {
   const colorScheme = useColorScheme();
   const borderColor = Colors[colorScheme].border;
   const textColor = Colors[colorScheme].text;
-  const tintColor = Colors[colorScheme].tint;
+  const tintColor = useThemeColor({}, 'primary');
 
   const initialParentComment = useMemo<CommentItem | null>(() => {
     if (!parent) return null;
@@ -137,8 +137,8 @@ export default function ReplyDetailScreen() {
                   onPress={() =>
                     goToProfile(
                       item.reply_to_author?.member.url_token ||
-                        item.reply_to_author?.member.id ||
-                        0,
+                      item.reply_to_author?.member.id ||
+                      0,
                     )
                   }
                 >
@@ -200,7 +200,7 @@ export default function ReplyDetailScreen() {
             onPress={() =>
               goToProfile(
                 parentComment.author.member.url_token ||
-                  parentComment.author.member.id,
+                parentComment.author.member.id,
               )
             }
           >
@@ -216,7 +216,7 @@ export default function ReplyDetailScreen() {
                 onPress={() =>
                   goToProfile(
                     parentComment.author.member.url_token ||
-                      parentComment.author.member.id,
+                    parentComment.author.member.id,
                   )
                 }
               >
@@ -231,8 +231,8 @@ export default function ReplyDetailScreen() {
               <Text type="secondary" className="text-xs">
                 {parentComment.created_time
                   ? new Date(
-                      parentComment.created_time * 1000,
-                    ).toLocaleDateString()
+                    parentComment.created_time * 1000,
+                  ).toLocaleDateString()
                   : ''}
               </Text>
               <View className="flex-row items-center">
@@ -347,7 +347,7 @@ export default function ReplyDetailScreen() {
             <View className="flex-row items-end px-1 py-1">
               <TextInput
                 ref={inputRef}
-                className="flex-1 min-h-[40px] max-h-[100px] px-3 pt-2.5 pb-2.5"
+                className="flex-1 min-h-[35px] max-h-[100px] px-3 pt-2.5 pb-2.5"
                 style={{ color: textColor }}
                 placeholder={
                   replyTo ? `回复 ${replyTo.name}...` : '说点什么吧...'

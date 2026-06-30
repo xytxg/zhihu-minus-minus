@@ -39,7 +39,7 @@ import { DailyList } from '@/components/DailyList';
 import { FeedCard } from '@/components/FeedCard';
 import { HotCard, type HotItem } from '@/components/HotCard';
 import { RecentMoments } from '@/components/RecentMoments';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -104,8 +104,8 @@ export default function HomeScreen() {
   const pagerRef = useRef<PagerView>(null);
   const { cookies } = useAuthStore();
 
-  const tintColor = Colors[colorScheme].tint;
-  const textColor = Colors[colorScheme].text;
+  const tintColor = useThemeColor({}, 'primary');
+  const textColor = useThemeColor({}, 'text');
   const [currentPage, setCurrentPage] = useState(initialPageIndex);
   const [guestCookieReady, setGuestCookieReady] = useState(false);
 
@@ -291,7 +291,7 @@ export default function HomeScreen() {
               <Animated.View
                 style={[
                   styles.topPill,
-                  { backgroundColor: `${tintColor}15` },
+                  { backgroundColor: useThemeColor({}, 'primary_26') },
                   topIndicatorStyle,
                 ]}
               />
@@ -427,7 +427,7 @@ export default function HomeScreen() {
               style={[
                 styles.bottomIndicator,
                 {
-                  backgroundColor: `${tintColor}15`,
+                  backgroundColor: useThemeColor({}, 'primary_26'),
                   width:
                     containerWidth /
                       ((currentTabs.filter(
@@ -599,7 +599,7 @@ const FeedList = React.forwardRef<
   const queryClient = useQueryClient();
   const { cookies } = useAuthStore();
   const colorScheme = useColorScheme();
-  const tintColor = Colors[colorScheme].tint;
+  const tintColor = useThemeColor({}, 'primary');
   const {
     data,
     fetchNextPage,

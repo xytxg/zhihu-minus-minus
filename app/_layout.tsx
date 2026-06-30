@@ -27,6 +27,9 @@ import * as Clipboard from 'expo-clipboard';
 import { Alert, AppState, type AppStateStatus, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useSettingsStore } from '@/store/useSettingsStore';
+import Colors from '@/constants/Colors';
+
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
 
@@ -51,6 +54,8 @@ function RootLayout() {
   const _colorScheme = useColorScheme();
   const isDark = useThemeStore((state) => state.isDark);
   const theme = isDark ? DarkTheme : DefaultTheme;
+  const { primaryColor } = useSettingsStore();
+  const currentTint = primaryColor || Colors[isDark ? 'dark' : 'light'].primary;
 
   // Sync NativeWind dark mode with zustand store
   useSyncThemeWithNativeWind();
@@ -213,7 +218,7 @@ function RootLayout() {
                   color: isDark ? '#ffffff' : '#1a1a1a',
                   fontWeight: 'bold',
                 },
-                headerTintColor: '#0084ff',
+                headerTintColor: currentTint,
                 headerShadowVisible: false,
               }}
             >

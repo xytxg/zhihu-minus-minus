@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
-import { Text, View } from './Themed';
+import { Text, useThemeColor, View } from './Themed';
 
 const slowTransition = SharedTransition.duration(600);
 
@@ -34,6 +34,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   );
   const displayCount = (item.favlistsCount || 0) + storeOffset;
   const { toggleCollect } = useCollectionAction();
+  const warningColor = useThemeColor({}, 'warning');
 
   return (
     <TouchableOpacity
@@ -237,12 +238,12 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
               <Ionicons
                 name={isCollected ? 'star' : 'star-outline'}
                 size={16}
-                color={isCollected ? '#ffb400' : '#888'}
+                color={isCollected ? warningColor : '#888'}
               />
               {displayCount > 0 && (
                 <Text
                   className="ml-1 text-xs font-semibold"
-                  style={{ color: isCollected ? '#ffb400' : '#888' }}
+                  style={{ color: isCollected ? warningColor : '#888' }}
                 >
                   {displayCount}
                 </Text>

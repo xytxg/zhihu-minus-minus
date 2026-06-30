@@ -40,7 +40,7 @@ import {
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -139,6 +139,9 @@ const AnswerItem = forwardRef(
       ]);
     };
 
+    const primaryColor = useThemeColor({}, 'primary');
+    const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
     return (
       <View
         style={{
@@ -175,7 +178,7 @@ const AnswerItem = forwardRef(
               className="px-3 py-1.5 rounded-[15px]"
               style={[
                 !item.author?.is_following && {
-                  backgroundColor: 'rgba(0,132,255,0.08)',
+                  backgroundColor: primaryTransparent,
                 },
                 item.author?.is_following && {
                   backgroundColor: 'transparent',
@@ -190,7 +193,7 @@ const AnswerItem = forwardRef(
                 style={[
                   item.author?.is_following
                     ? { color: Colors[colorScheme].textSecondary }
-                    : { color: '#0084ff' },
+                    : { color: primaryColor },
                 ]}
               >
                 {item.author?.is_following ? '已关注' : '关注'}
@@ -246,14 +249,14 @@ const AnswerItem = forwardRef(
                 <Text
                   type="primary"
                   className="text-[13px] font-bold mr-1"
-                  style={{ color: '#0084ff' }}
+                  style={{ color: primaryColor }}
                 >
                   收起回答
                 </Text>
                 <Ionicons
                   name="chevron-up"
                   size={14}
-                  color={Colors[colorScheme].primary}
+                  color={primaryColor}
                 />
               </Pressable>
             </View>
@@ -323,7 +326,7 @@ const AnswerItem = forwardRef(
                   <Text
                     type="primary"
                     className="text-[13px] font-bold"
-                    style={{ color: '#0084ff' }}
+                    style={{ color: primaryColor }}
                   >
                     展开全文
                   </Text>
@@ -375,12 +378,12 @@ const AnswerItem = forwardRef(
             <Ionicons
               name={isCollected ? 'star' : 'star-outline'}
               size={16}
-              color={isCollected ? '#ffb400' : '#888'}
+              color={isCollected ? useThemeColor({}, 'warning') : '#888'}
             />
             {displayCount > 0 && (
               <Text
                 className="ml-1 text-xs font-semibold"
-                style={{ color: isCollected ? '#ffb400' : '#888' }}
+                style={{ color: isCollected ? useThemeColor({}, 'warning') : '#888' }}
               >
                 {displayCount}
               </Text>
@@ -598,6 +601,9 @@ export default function QuestionDetail() {
     }
   };
 
+  const primaryColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
   const { data: question, isLoading: qLoading } = useQuery({
     queryKey: ['question', id],
     queryFn: async () => await getQuestion(id as string),
@@ -665,7 +671,7 @@ export default function QuestionDetail() {
           <View className="h-[100px] justify-center bg-transparent">
             <ActivityIndicator
               size="small"
-              color={Colors[colorScheme].primary}
+              color={primaryColor}
             />
           </View>
         ) : (
@@ -677,9 +683,9 @@ export default function QuestionDetail() {
                     key={t.id}
                     onPress={() => router.push(`/topic/${t.id}` as any)}
                     className="px-2.5 py-1 rounded-[15px] mr-2 mb-1"
-                    style={{ backgroundColor: 'rgba(0,132,255,0.1)' }}
+                    style={{ backgroundColor: primaryTransparent }}
                   >
-                    <Text className="text-xs text-[#0084ff]">{t.name}</Text>
+                    <Text className="text-xs" style={{ color: primaryColor }}>{t.name}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -699,7 +705,7 @@ export default function QuestionDetail() {
               <Pressable
                 className="flex-1 flex-row items-center justify-center py-2 rounded-md"
                 style={[
-                  { backgroundColor: 'rgba(0,132,255,0.05)' },
+                  { backgroundColor: primaryTransparent },
                   question?.relationship?.is_following && {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
@@ -713,7 +719,7 @@ export default function QuestionDetail() {
                   style={[
                     question?.relationship?.is_following
                       ? { color: Colors[colorScheme].textSecondary }
-                      : { color: '#0084ff' },
+                      : { color: primaryColor },
                   ]}
                 >
                   {question?.relationship?.is_following ? '已关注' : '关注问题'}
@@ -721,7 +727,7 @@ export default function QuestionDetail() {
               </Pressable>
               <Pressable
                 className="flex-1 flex-row items-center justify-center py-2 rounded-md"
-                style={{ backgroundColor: 'rgba(0,132,255,0.05)' }}
+                style={{ backgroundColor: primaryTransparent }}
                 onPress={() =>
                   router.push({
                     pathname: '/comments/[id]',
@@ -735,19 +741,19 @@ export default function QuestionDetail() {
               >
                 <Text
                   className="text-sm font-medium"
-                  style={{ color: '#0084ff' }}
+                  style={{ color: primaryColor }}
                 >
                   {question?.comment_count || 0} 条评论
                 </Text>
               </Pressable>
               <Pressable
                 className="flex-1 flex-row items-center justify-center py-2 rounded-md"
-                style={{ backgroundColor: 'rgba(0,132,255,0.05)' }}
+                style={{ backgroundColor: primaryTransparent }}
                 onPress={() => router.push(`/question/write/${id}`)}
               >
                 <Text
                   className="text-sm font-medium"
-                  style={{ color: '#0084ff' }}
+                  style={{ color: primaryColor }}
                 >
                   写回答
                 </Text>

@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Image, Modal, Pressable } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
-import { Text, View } from './Themed';
+import { Text, useThemeColor, View } from './Themed';
 
 interface CommentContentProps {
   htmlContent: string;
@@ -13,8 +12,8 @@ interface CommentContentProps {
 
 export const CommentContent: React.FC<CommentContentProps> = ({ htmlContent }) => {
   const colorScheme = useColorScheme();
-  const tint = Colors[colorScheme].tint;
-  const textColor = Colors[colorScheme].text;
+  const tint = useThemeColor({}, 'primary');
+  const textColor = useThemeColor({}, 'text');
 
   const [viewerVisible, setViewerVisible] = useState(false);
   const [activeImage, setActiveImage] = useState<string | null>(null);

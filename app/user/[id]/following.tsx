@@ -9,7 +9,7 @@ import {
   getMemberFollowingQuestions,
   getMemberFollowingTopics,
 } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { UserCard } from '@/components/UserCard';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -29,7 +29,7 @@ export default function FollowingScreen() {
 
   const borderColor = Colors[colorScheme].border;
   const bgSecondary = Colors[colorScheme].backgroundSecondary;
-  const tint = Colors[colorScheme].tint;
+  const tint = useThemeColor({}, 'primary');
   const textSecondaryColor = Colors[colorScheme].textSecondary;
 
   // 1. 关注的人 Query
@@ -140,8 +140,8 @@ export default function FollowingScreen() {
           isLoading: false,
           isFetchingNextPage: false,
           hasNextPage: false,
-          fetchNextPage: () => {},
-          refetch: async () => {},
+          fetchNextPage: () => { },
+          refetch: async () => { },
           isRefetching: false,
         };
     }
@@ -255,7 +255,7 @@ export default function FollowingScreen() {
   return (
     <View className="flex-1">
       <Stack.Screen options={{ title: '我的关注' }} />
-      
+
       {/* Tab bar */}
       <View
         className="flex-row h-11 border-b"

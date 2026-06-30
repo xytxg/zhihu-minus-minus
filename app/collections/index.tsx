@@ -23,7 +23,7 @@ import {
   getMyCollections,
   updateCollection,
 } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -33,7 +33,7 @@ export default function MyCollectionsScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
 
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
   const surfaceColor = colorScheme === 'dark' ? '#1c1c1e' : '#fff';
   const tintColor = Colors[colorScheme].tint;
@@ -53,7 +53,7 @@ export default function MyCollectionsScreen() {
         </Pressable>
       ),
     });
-  }, [navigation]);
+  }, [navigation, primaryColor]);
 
   const {
     data,

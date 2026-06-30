@@ -11,7 +11,7 @@ import Animated, {
 import { voteContent } from '@/api/zhihu';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
-import { Text } from './Themed';
+import { Text, useThemeColor } from './Themed';
 import { useColorScheme } from './useColorScheme';
 
 export const LikeButton = ({
@@ -33,7 +33,7 @@ export const LikeButton = ({
   const scale = useSharedValue(1);
   const colorScheme = useColorScheme();
 
-  const tintColor = Colors[colorScheme].tint;
+  const tintColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
 
   // 同步外部传入的初始值

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 export interface TextSelectionInfo {
   text: string;
@@ -38,7 +39,8 @@ export default React.memo(function ZhihuDOMContent({
 
   const isDark = colorScheme === 'dark';
   const textColor = isDark ? '#ffffff' : '#1a1a1a';
-  const primaryColor = '#0084ff';
+  const { primaryColor: customPrimaryColor } = useSettingsStore();
+  const primaryColor = customPrimaryColor || '#0084ff';
 
   const html = `
     <!DOCTYPE html>

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { getSearchSuggest, searchContent } from '@/api/zhihu';
 import { FeedCard } from '@/components/FeedCard';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { UserCard } from '@/components/UserCard';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -31,11 +31,11 @@ export default function SearchScreen() {
 
   const { history, addHistory, clearHistory, removeHistory } = useSearchStore();
 
-  const tintColor = Colors[colorScheme].tint;
-  const backgroundColor = Colors[colorScheme].background;
+  const tintColor = useThemeColor({}, 'primary');
+  const backgroundColor = useThemeColor({}, 'background');
   const surfaceColor = colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5';
-  const textColor = Colors[colorScheme].text;
-  const borderColor = Colors[colorScheme].border;
+  const textColor = useThemeColor({}, 'text');
+  const borderColor = useThemeColor({}, 'border');
 
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedQuery(query), 300);
@@ -340,14 +340,14 @@ export default function SearchScreen() {
               hasNextPage && !isFetchingNextPage && fetchNextPage(),
             onEndReachedThreshold: 0.5,
             ListFooterComponent: isFetchingNextPage ? (
-              <ActivityIndicator style={{ padding: 20 }} />
+              <ActivityIndicator style={{ padding: 20 }} color={tintColor} />
             ) : null,
             ListEmptyComponent: !isLoading ? (
               <View className="flex-1 justify-center items-center">
                 <Text type="secondary">没有找到相关内容</Text>
               </View>
             ) : (
-              <ActivityIndicator style={{ marginTop: 50 }} />
+              <ActivityIndicator style={{ marginTop: 50 }} color={tintColor} />
             ),
           } as any)}
         />

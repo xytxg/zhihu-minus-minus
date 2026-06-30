@@ -129,13 +129,13 @@ export default function UserDetailScreen() {
         let include = '';
         if (activeTab === 'answers')
           include =
-            'data[*].content,data[*].voteup_count,data[*].comment_count,data[*].created_time,data[*].updated_time,data[*].excerpt,data[*].question.title,data[*].relationship.voting,data[*].relationship.is_thanked';
+            'data[*].content,data[*].voteup_count,data[*].comment_count,data[*].favlists_count,data[*].created_time,data[*].updated_time,data[*].excerpt,data[*].question.title,data[*].relationship.voting,data[*].relationship.is_thanked';
         else if (activeTab === 'questions')
           include =
             'data[*].created,data[*].answer_count,data[*].follower_count,data[*].author,data[*].admin_closed_comment,data[*].relationship.is_following';
         else if (activeTab === 'articles')
           include =
-            'data[*].comment_count,data[*].content,data[*].voteup_count,data[*].created,data[*].updated,data[*].title,data[*].excerpt,data[*].relationship.voting';
+            'data[*].comment_count,data[*].content,data[*].voteup_count,data[*].favlists_count,data[*].created,data[*].updated,data[*].title,data[*].excerpt,data[*].relationship.voting';
         else if (activeTab === 'pins')
           include =
             'data[*].content,data[*].reaction_count,data[*].comment_count,data[*].created,data[*].relationship.voting';
@@ -378,7 +378,7 @@ export default function UserDetailScreen() {
                       borderColor: borderColor,
                       borderWidth: 1,
                     }
-                  : { backgroundColor: Colors[colorScheme].primary },
+                  : { backgroundColor: primaryColor },
               ]}
               onPress={handleFollow}
               disabled={followLoading}
@@ -722,7 +722,7 @@ export default function UserDetailScreen() {
             {listLoading || searchLoading || isFetchingNextPage ? (
               <ActivityIndicator
                 style={{ margin: 20 }}
-                color={Colors[colorScheme].primary}
+                color={primaryColor}
               />
             ) : currentListItems.length > 0 &&
               !(isSearching ? hasNextSearchPage : hasNextPage) ? (

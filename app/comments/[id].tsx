@@ -28,7 +28,7 @@ import {
   getQuestionCommentsV5 as getQuestionComments,
 } from '@/api/zhihu';
 import { LikeButton } from '@/components/LikeButton';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -53,7 +53,7 @@ export default function CommentScreen() {
   const borderColor = Colors[colorScheme].border;
   const surfaceColor = Colors[colorScheme].surface;
   const textColor = Colors[colorScheme].text;
-  const tintColor = Colors[colorScheme].tint;
+  const tintColor = useThemeColor({}, 'primary');
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ['comments', id, type, segmentId],

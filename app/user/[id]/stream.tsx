@@ -66,6 +66,23 @@ const StreamItem = forwardRef(
     const router = useRouter();
     const footerRef = useRef<NativeView>(null);
 
+    const { useThemeColor } = require('@/components/Themed');
+    const { useCollectionStore } = require('@/store/useCollectionStore');
+    const { useCollectionAction } = require('@/hooks/useCollectionAction');
+
+    const warningColor = useThemeColor({}, 'warning');
+    const isCollectable = type === 'answer' || type === 'article';
+    const storeCollected = useCollectionStore((state: any) =>
+      item?.id ? state.collectedStatusMap[item.id.toString()] : false,
+    );
+    const isCollected = storeCollected !== undefined ? storeCollected : false;
+    const storeOffset = useCollectionStore((state: any) =>
+      item?.id ? state.collectedCountOffsetMap[item.id.toString()] || 0 : 0,
+    );
+    const displayCount =
+      (item?.favlists_count || item?.favlistsCount || 0) + storeOffset;
+    const { toggleCollect } = useCollectionAction();
+
     useImperativeHandle(ref, () => ({
       measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
       id: item?.id?.toString() || Math.random().toString(),
@@ -374,6 +391,26 @@ const StreamItem = forwardRef(
                   {item.comment_count > 0 ? item.comment_count : '评论'}
                 </Text>
               </Pressable>
+              {isCollectable && (
+                <Pressable
+                  onPress={() => toggleCollect(item.id, type, isCollected)}
+                  className="flex-row items-center ml-5 bg-transparent py-1"
+                >
+                  <Ionicons
+                    name={isCollected ? 'star' : 'star-outline'}
+                    size={16}
+                    color={isCollected ? warningColor : '#888'}
+                  />
+                  {displayCount > 0 && (
+                    <Text
+                      className="ml-1 text-xs font-semibold"
+                      style={{ color: isCollected ? warningColor : '#888' }}
+                    >
+                      {displayCount}
+                    </Text>
+                  )}
+                </Pressable>
+              )}
             </View>
           ) : (
             <Text

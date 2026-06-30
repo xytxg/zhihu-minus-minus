@@ -6,7 +6,7 @@ import React from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { followColumn, getColumn, getColumnItems, unfollowColumn } from '@/api/zhihu/column';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
@@ -17,10 +17,10 @@ export default function ColumnDetail() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
 
-  const tintColor = Colors[colorScheme].tint;
-  const textColor = Colors[colorScheme].text;
-  const backgroundColor = Colors[colorScheme].background;
-  const borderColor = Colors[colorScheme].border;
+  const tintColor = useThemeColor({}, 'primary');
+  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background');
+  const borderColor = useThemeColor({}, 'border');
 
   // 1. 获取专栏基本信息
   const { data: column, isLoading: columnLoading } = useQuery({

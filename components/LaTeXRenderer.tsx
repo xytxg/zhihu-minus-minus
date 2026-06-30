@@ -2,6 +2,7 @@ import type React from 'react';
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 interface LaTeXRendererProps {
   tex: string;
@@ -18,6 +19,8 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
 }) => {
   const [height, setHeight] = useState(inline ? 30 : 60);
   const [loading, setLoading] = useState(true);
+  const { primaryColor: customPrimaryColor } = useSettingsStore();
+  const primaryColor = customPrimaryColor || '#0084ff';
 
   const html = `
     <!DOCTYPE html>
@@ -103,7 +106,7 @@ export const LaTeXRenderer: React.FC<LaTeXRendererProps> = ({
           style={StyleSheet.absoluteFill}
           className="justify-center items-center bg-transparent"
         >
-          <ActivityIndicator size="small" color="#0084ff" />
+          <ActivityIndicator size="small" color={primaryColor} />
         </View>
       )}
     </View>

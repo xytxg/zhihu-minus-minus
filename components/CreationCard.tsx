@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { View as NativeView, Pressable, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useCollectionAction } from '@/hooks/useCollectionAction';
@@ -212,7 +212,7 @@ export const CreationCard = React.forwardRef(
 
         <View className="bg-transparent mt-1">
           {expanded &&
-          (type === 'answer' || type === 'article' || type === 'pin') ? (
+            (type === 'answer' || type === 'article' || type === 'pin') ? (
             <View className="flex-1 bg-transparent mt-1">
               <ZhihuContent
                 objectId={item.id?.toString()}
@@ -327,14 +327,14 @@ export const CreationCard = React.forwardRef(
                     <Text
                       type="primary"
                       className="text-[13px] font-bold mr-1"
-                      style={{ color: '#0084ff' }}
+                      style={{ color: primaryColor }}
                     >
                       展开全文
                     </Text>
                     <Ionicons
                       name="chevron-down"
                       size={14}
-                      color={Colors[colorScheme].primary}
+                      color={primaryColor}
                     />
                   </View>
                 </Pressable>
@@ -421,12 +421,12 @@ export const CreationCard = React.forwardRef(
                   <Ionicons
                     name={isCollected ? 'star' : 'star-outline'}
                     size={16}
-                    color={isCollected ? '#ffb400' : '#888'}
+                    color={isCollected ? useThemeColor({}, 'warning') : '#888'}
                   />
                   {displayCount > 0 && (
                     <Text
                       className="ml-1 text-xs font-semibold"
-                      style={{ color: isCollected ? '#ffb400' : '#888' }}
+                      style={{ color: isCollected ? useThemeColor({}, 'warning') : '#888' }}
                     >
                       {displayCount}
                     </Text>
@@ -451,15 +451,15 @@ export const CreationCard = React.forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-              item.updated ||
-              item.created_time ||
-              item.created
+                item.updated ||
+                item.created_time ||
+                item.created
                 ? new Date(
-                    (item.updated_time ||
-                      item.updated ||
-                      item.created_time ||
-                      item.created) * 1000,
-                  ).toLocaleDateString()
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
                 : ''}
             </Text>
             <TouchableOpacity

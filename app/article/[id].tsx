@@ -24,7 +24,7 @@ import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -140,7 +140,8 @@ export default function ArticleDetail() {
     enabled: !!id && !isDaily,
   });
 
-  const tintColor = Colors[colorScheme].tint;
+  const tintColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
 
   const columnFollowMutation = useOptimisticToggle({
     queryKey: ['article-column-card', id],
@@ -320,7 +321,7 @@ export default function ArticleDetail() {
                 className="px-[15px] py-1.5 rounded-[20px]"
                 style={[
                   !data.author?.is_following
-                    ? { backgroundColor: '#0084ff15' }
+                    ? { backgroundColor: primaryTransparent }
                     : {
                         backgroundColor: 'transparent',
                         borderWidth: 1,
@@ -335,7 +336,7 @@ export default function ArticleDetail() {
                   style={[
                     data.author?.is_following
                       ? { color: '#999' }
-                      : { color: '#0084ff' },
+                      : { color: tintColor },
                   ]}
                 >
                   {data.author?.is_following ? '已关注' : '关注'}
@@ -536,7 +537,7 @@ export default function ArticleDetail() {
                 <MenuOption
                   icon={isCollected ? 'star' : 'star-outline'}
                   label={isCollected ? '取消收藏' : '移至收藏'}
-                  color={isCollected ? '#ffb400' : undefined}
+                  color={isCollected ? useThemeColor({}, 'warning') : undefined}
                   onPress={() => {
                     collectMutation.mutate();
                     setMenuVisible(false);

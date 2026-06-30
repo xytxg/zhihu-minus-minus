@@ -27,7 +27,7 @@ import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -213,6 +213,9 @@ export const AnswerDetailView = ({
     return `https://www.zhihu.com/question/${actualQid}/answer/${id}`;
   };
 
+  const primaryColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
   return (
     <View className="flex-1">
       {/* Header (On Scroll) */}
@@ -319,7 +322,7 @@ export const AnswerDetailView = ({
             className="px-[15px] py-1.5 rounded-[20px]"
             style={[
               !answer?.author?.is_following
-                ? { backgroundColor: '#0084ff15' }
+                ? { backgroundColor: primaryTransparent }
                 : {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
@@ -334,7 +337,7 @@ export const AnswerDetailView = ({
               style={[
                 answer?.author?.is_following
                   ? { color: '#999' }
-                  : { color: '#0084ff' },
+                  : { color: primaryColor },
               ]}
             >
               {answer?.author?.is_following ? '已关注' : '关注'}
@@ -344,7 +347,7 @@ export const AnswerDetailView = ({
 
         {queryLoading ? (
           <View className="h-[200px] justify-center items-center bg-transparent">
-            <ActivityIndicator size="small" color="#0084ff" />
+            <ActivityIndicator size="small" color={primaryColor} />
             <Text type="secondary" className="mt-[15px]">
               正在斟酌文字...喵
             </Text>
@@ -361,7 +364,7 @@ export const AnswerDetailView = ({
               />
             ) : (
               <View className="h-[500px] justify-center items-center bg-transparent">
-                <ActivityIndicator size="small" color="#0084ff" />
+                <ActivityIndicator size="small" color={primaryColor} />
                 <Text type="secondary" className="mt-4 text-xs opacity-50">
                   正在准备内容...
                 </Text>
@@ -502,7 +505,7 @@ export const AnswerDetailView = ({
                 <MenuOption
                   icon={isCollected ? 'star' : 'star-outline'}
                   label={isCollected ? '取消收藏' : '移至收藏'}
-                  color={isCollected ? '#ffb400' : undefined}
+                  color={isCollected ? useThemeColor({}, 'warning') : undefined}
                   onPress={() => {
                     collectMutation.mutate();
                     setMenuVisible(false);
