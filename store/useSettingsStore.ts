@@ -9,6 +9,17 @@ const settingsStorage = {
   removeItem: (name: string) => SecureStore.deleteItemAsync(name),
 };
 
+/** Returns true only for a complete, well-formed 6-digit hex color like "#0084ff" */
+function isValidHex(color: string | null | undefined): boolean {
+  if (!color) return false;
+  return /^#[0-9a-fA-F]{6}$/.test(color);
+}
+
+/** Sanitize a color value: returns the color if valid, null otherwise */
+function sanitizeColor(color: string | null | undefined): string | null {
+  return isValidHex(color) ? (color as string) : null;
+}
+
 export type TabKey =
   | 'following'
   | 'recommend'
@@ -38,7 +49,7 @@ interface SettingsState extends AppSettings {
 const DEFAULT_SETTINGS: AppSettings = {
   fontSizeScale: 1.0,
   lineHeightScale: 1.5,
-  primaryColor: null, // null means use system default
+  primaryColor: '#0084ff', // Zhihu Blue — the canonical default
   visibleTabs: [
     'following',
     'recommend',
@@ -61,13 +72,15 @@ export const useSettingsStore = create<SettingsState>()(
       updateSettings: (newSettings) =>
         set((state) => {
           const nextSettings = { ...state, ...newSettings };
-          // 兜底：确保“我的”页面始终可见
+          // 兜底：确保"我的"页面始终可见
           if (
             nextSettings.visibleTabs &&
             !nextSettings.visibleTabs.includes('profile')
           ) {
             nextSettings.visibleTabs = [...nextSettings.visibleTabs, 'profile'];
           }
+          // 兜底：非法 hex 颜色退回默认（null）
+          nextSettings.primaryColor = sanitizeColor(nextSettings.primaryColor);
           return nextSettings;
         }),
       resetSettings: () => set(DEFAULT_SETTINGS),
@@ -75,8 +88,11 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'zhihu-settings-storage',
       storage: createJSONStorage(() => settingsStorage),
-      version: 1,
-      migrate: (persistedState: any, version: number) => {
+      version: 2,
+      migrate: (persistedState: any, _version: number) => {
+        // 清理历史脏数据：null 或非法 hex 都退回默认蓝
+        const sanitized = sanitizeColor(persistedState?.primaryColor);
+        persistedState.primaryColor = sanitized ?? '#0084ff';
         return persistedState as SettingsState;
       },
     },

@@ -54,6 +54,14 @@ export function useThemeColor(
         return `${primaryColor}${opacityHex}`;
       }
     }
+  } else {
+    // If primaryColor is null, use the default theme primary/tint color from constants
+    if (colorName === 'primary' || colorName === 'tint' || colorName === 'tabIconSelected') {
+      return Colors[theme].primary;
+    }
+    if (colorName === 'primaryTransparent') {
+      return Colors[theme].primaryTransparent;
+    }
   }
 
   if (colorName === 'warning') {

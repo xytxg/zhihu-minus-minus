@@ -2,7 +2,7 @@
   "expo": {
     "name": "知乎--",
     "slug": "ZhihuMinusMinus",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "zhihu--",
@@ -143,6 +143,11 @@
     "extra": {
       "router": {},
       "releaseNotes": {
+        "v0.1.1": [
+          "全新主题自由定制配色系统: 新增以计算及主题钩子形式渲染的主题配色方案，允许在暗黑模式与明亮模式下跟随用户选择进行实时自适应变色。",
+          "修复多处硬编码样式: 重构并统一了包括回答详情页、作者卡片、文章详情页、动态 Moments 页、搜索页面、我的关注页、收藏夹列表和 CollectionSelectorModal 中的知乎官方蓝色与静态收藏金色图标，全数收纳进动态主题色拦截引擎中。",
+          "修复 CollectionSelectorModal 页面中 React 规则 Hooks 顺序调用报错导致崩溃的严重问题。"
+        ],
         "v0.0.13": [
           "ZSE 签名算法重构: 引入 zhi-purity 纯 JS 实现，全面替换旧版 JS/Rust 混合逻辑，彻底解决签名失败导致的 403 问题，提升 API 调用成功率。",
           "环境兼容性增强: 针对 React Native 环境优化加密核心，移除对 Node.js 原生模块的依赖。"
@@ -151,8 +156,8 @@
           "基础稳定性优化: 修复了若干 UI 细节与已知的小概率崩溃问题。"
         ]
       },
-      "status": "🏗️ 持续开发中 (v0.1.0) - 核心功能与基础架构迭代中",
-      "lastUpdated": "2026-05-20",
+      "status": "🏗️ 持续开发中 (v0.1.1) - 核心功能与基础架构迭代中",
+      "lastUpdated": "2026-06-30",
       "eas": {
         "projectId": "faa0f061-50e6-4ec4-bb6f-accda0dbd24f"
       }
