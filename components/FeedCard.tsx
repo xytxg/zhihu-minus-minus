@@ -24,12 +24,13 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const colorScheme = useColorScheme();
 
   const isCollectable = item.type === 'answers' || item.type === 'articles';
+  const itemIdStr = item.id != null ? item.id.toString() : '';
   const storeCollected = useCollectionStore(
-    (state) => state.collectedStatusMap[item.id.toString()],
+    (state) => (itemIdStr ? state.collectedStatusMap[itemIdStr] : undefined),
   );
   const isCollected = storeCollected !== undefined ? storeCollected : false;
   const storeOffset = useCollectionStore(
-    (state) => state.collectedCountOffsetMap[item.id.toString()] || 0,
+    (state) => (itemIdStr ? state.collectedCountOffsetMap[itemIdStr] : 0) || 0,
   );
   const displayCount = (item.favlistsCount || 0) + storeOffset;
   const { toggleCollect } = useCollectionAction();

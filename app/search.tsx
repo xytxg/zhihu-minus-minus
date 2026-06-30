@@ -121,7 +121,7 @@ export default function SearchScreen() {
       };
     }
     return {
-      id: obj.id,
+      id: obj.id ?? obj.question?.id ?? '',
       type: obj.type + 's',
       title: highlight.title
         ? HighlightText(highlight.title)
