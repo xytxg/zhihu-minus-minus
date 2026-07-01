@@ -26,6 +26,7 @@ import {
   StyleSheet,
   UIManager,
   useWindowDimensions,
+  PanResponder,
 } from 'react-native';
 import Reanimated, {
   SharedTransition,
@@ -35,6 +36,7 @@ import Reanimated, {
   withSequence,
   withDelay,
   interpolate,
+  runOnJS,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '@/api/client';
@@ -73,6 +75,9 @@ const AnswerItem = forwardRef(
       questionId,
       questionTitle,
       sortBy,
+      screenTranslateX,
+      onSwipeStart,
+      onSwipeComplete,
     }: {
       item: any;
       isExpanded: boolean;
@@ -81,9 +86,13 @@ const AnswerItem = forwardRef(
       questionId: string;
       questionTitle?: string;
       sortBy: string;
+      screenTranslateX: any;
+      onSwipeStart?: (author: any) => void;
+      onSwipeComplete?: (author: any) => void;
     },
     ref,
   ) => {
+    const { width: screenWidth } = useWindowDimensions();
     const colorScheme = useColorScheme();
     const router = useRouter();
     const textColor = Colors[colorScheme].text;
@@ -155,6 +164,42 @@ const AnswerItem = forwardRef(
       };
     });
 
+    const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponderCapture: () => false,
+        onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+          // 仅在向左滑动且存在 author.url_token 时拦截手势
+          const isHorizontal =
+            gestureState.dx < -15 &&
+            Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
+          return isHorizontal && !!item.author?.url_token;
+        },
+        onPanResponderGrant: () => {
+          if (onSwipeStart) {
+            runOnJS(onSwipeStart)(item.author);
+          }
+        },
+        onPanResponderMove: (evt, gestureState) => {
+          // 只允许向左侧滑动（偏移量 <= 0）
+          screenTranslateX.value = Math.min(0, gestureState.dx);
+        },
+        onPanResponderRelease: (evt, gestureState) => {
+          if (gestureState.dx < -120) {
+            screenTranslateX.value = withTiming(-screenWidth, { duration: 250 }, () => {
+              if (onSwipeComplete) {
+                runOnJS(onSwipeComplete)(item.author);
+              }
+            });
+          } else {
+            screenTranslateX.value = withTiming(0, { duration: 250 });
+          }
+        },
+        onPanResponderTerminate: () => {
+          screenTranslateX.value = withTiming(0, { duration: 250 });
+        },
+      })
+    ).current;
+
     useImperativeHandle(ref, () => ({
       measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
       id: item?.id?.toString() || Math.random().toString(),
@@ -200,6 +245,7 @@ const AnswerItem = forwardRef(
 
     return (
       <View
+        {...panResponder.panHandlers}
         style={{
           backgroundColor: Colors[colorScheme].backgroundSecondary,
           borderRadius: 12,
@@ -507,7 +553,32 @@ export default function QuestionDetail() {
   const backgroundColor = Colors[colorScheme].background;
   const textColor = Colors[colorScheme].text;
   const queryClient = useQueryClient();
-  const { height: screenHeight } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const screenTranslateX = useSharedValue(0);
+  const [swipedAuthor, setSwipedAuthor] = useState<any>(null);
+
+  const animatedScreenStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: screenTranslateX.value }],
+    };
+  });
+
+  const animatedPreviewStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: screenTranslateX.value + screenWidth }],
+    };
+  });
+
+  const handleSwipeComplete = (author: any) => {
+    if (author?.url_token) {
+      router.push(`/user/${author.url_token}`);
+    }
+    setTimeout(() => {
+      screenTranslateX.value = 0;
+      setSwipedAuthor(null);
+    }, 500);
+  };
+
   const { saveProgress, getProgress } = useProgressStore();
   const [isRestored, setIsRestored] = useState(false);
 
@@ -924,7 +995,8 @@ export default function QuestionDetail() {
         }
       />
 
-      {/* 顶部标题栏 */}
+      <Reanimated.View style={[{ flex: 1 }, animatedScreenStyle]}>
+        {/* 顶部标题栏 */}
       <Animated.View
         className="absolute left-0 right-0 z-10"
         style={[
@@ -993,6 +1065,9 @@ export default function QuestionDetail() {
             questionId={id}
             questionTitle={question?.title}
             sortBy={sortBy}
+            screenTranslateX={screenTranslateX}
+            onSwipeStart={setSwipedAuthor}
+            onSwipeComplete={handleSwipeComplete}
           />
         )}
         keyExtractor={(item: any, index: number) =>
@@ -1154,6 +1229,63 @@ export default function QuestionDetail() {
           </View>
         </BlurView>
       </Animated.View>
+      </Reanimated.View>
+
+      {/* Immersive profile preview panel pulled from the right */}
+      {swipedAuthor && (
+        <Reanimated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              width: screenWidth,
+              backgroundColor: Colors[colorScheme].background,
+              zIndex: 9999,
+              paddingTop: insets.top + 60,
+              paddingHorizontal: 25,
+            },
+            animatedPreviewStyle,
+          ]}
+        >
+          <View className="items-center bg-transparent mt-10">
+            <Image
+              source={{ uri: swipedAuthor.avatar_url }}
+              style={{ width: 90, height: 90, borderRadius: 45 }}
+            />
+            <Text className="text-xl font-bold mt-4" style={{ color: textColor }}>
+              {swipedAuthor.name}
+            </Text>
+            {swipedAuthor.headline ? (
+              <Text
+                type="secondary"
+                className="text-center mt-2 px-5 text-sm"
+                numberOfLines={2}
+              >
+                {swipedAuthor.headline}
+              </Text>
+            ) : null}
+
+            <View
+              className="mt-10 px-5 py-2.5 rounded-full flex-row items-center"
+              style={{ backgroundColor: Colors[colorScheme].backgroundTertiary }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: Colors[colorScheme].textSecondary,
+                  marginRight: 6,
+                }}
+              >
+                正在载入个人主页
+              </Text>
+              <Ionicons name="arrow-forward" size={16} color={Colors[colorScheme].textSecondary} />
+            </View>
+          </View>
+        </Reanimated.View>
+      )}
+
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </View>
   );
