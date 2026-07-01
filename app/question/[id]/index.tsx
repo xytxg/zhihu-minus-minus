@@ -27,7 +27,15 @@ import {
   UIManager,
   useWindowDimensions,
 } from 'react-native';
-import Reanimated, { SharedTransition } from 'react-native-reanimated';
+import Reanimated, {
+  SharedTransition,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  withDelay,
+  interpolate,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '@/api/client';
 import { deleteAnswer } from '@/api/zhihu/answer';
@@ -96,6 +104,57 @@ const AnswerItem = forwardRef(
     const displayCount = (item.favlists_count || 0) + storeOffset;
     const { toggleCollect } = useCollectionAction();
 
+    const primaryColor = useThemeColor({}, 'primary');
+    const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+
+    const [measuredHeight, setMeasuredHeight] = useState(0);
+    const expandedProgress = useSharedValue(isExpanded ? 1 : 0);
+    const borderProgress = useSharedValue(0);
+    const isFirstMount = useRef(true);
+
+    React.useEffect(() => {
+      expandedProgress.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
+
+      if (isFirstMount.current) {
+        isFirstMount.current = false;
+        return;
+      }
+      if (!isExpanded) {
+        borderProgress.value = withSequence(
+          withTiming(1, { duration: 150 }),
+          withDelay(600, withTiming(0, { duration: 250 }))
+        );
+      }
+    }, [isExpanded]);
+
+    const animatedContentStyle = useAnimatedStyle(() => {
+      if (measuredHeight === 0) {
+        return { height: 'auto' };
+      }
+      const height = interpolate(
+        expandedProgress.value,
+        [0, 1],
+        [150, measuredHeight]
+      );
+      return { height };
+    });
+
+    const animatedReadMoreStyle = useAnimatedStyle(() => {
+      const opacity = interpolate(
+        expandedProgress.value,
+        [0, 1],
+        [1, 0]
+      );
+      return { opacity };
+    });
+
+    const animatedBorderStyle = useAnimatedStyle(() => {
+      return {
+        borderColor: primaryColor,
+        opacity: borderProgress.value,
+      };
+    });
+
     useImperativeHandle(ref, () => ({
       measureFooter: (cb: any) => footerRef.current?.measureInWindow(cb),
       id: item?.id?.toString() || Math.random().toString(),
@@ -139,17 +198,32 @@ const AnswerItem = forwardRef(
       ]);
     };
 
-    const primaryColor = useThemeColor({}, 'primary');
-    const primaryTransparent = useThemeColor({}, 'primaryTransparent');
-
     return (
       <View
         style={{
           backgroundColor: Colors[colorScheme].backgroundSecondary,
           borderRadius: 12,
+          position: 'relative',
         }}
         className="p-4 mb-2.5 shadow-sm"
       >
+        {/* Glowing border hint overlay */}
+        <Reanimated.View
+          style={[
+            animatedBorderStyle,
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: 12,
+              borderWidth: 2,
+              pointerEvents: 'none',
+              zIndex: 999,
+            },
+          ]}
+        />
         <View className="flex-row items-center mb-3 bg-transparent">
           <Pressable
             onPress={() =>
@@ -213,122 +287,133 @@ const AnswerItem = forwardRef(
                 useNative={true}
               />
             </View>
-          ) : isExpanded ? (
-            <View className="flex-1 bg-transparent">
-              <ZhihuContent
-                objectId={item.id}
-                type="answer"
-                content={item.content}
-                segmentInfos={item.segment_infos}
-              />
-              <View className="mt-[20px] bg-transparent">
-                <Text
-                  type="secondary"
-                  className="text-[#bbb] text-[13px] italic"
-                >
-                  发布于{' '}
-                  {item.created_time
-                    ? new Date(item.created_time * 1000).toLocaleDateString()
-                    : ''}{' '}
-                  {item.ip_info ? `· ${item.ip_info} ` : ''}
-                </Text>
-                {item.updated_time && (
-                  <Text
-                    type="secondary"
-                    className="text-[#bbb] text-[13px] italic mt-1"
-                  >
-                    最后编辑{' '}
-                    {new Date(item.updated_time * 1000).toLocaleDateString()}
-                  </Text>
-                )}
-              </View>
-              <Pressable
-                onPress={() => item?.id && onToggle(item.id.toString(), false)}
-                className="flex-row items-center justify-center py-2.5 mt-[20px] bg-transparent"
-              >
-                <Text
-                  type="primary"
-                  className="text-[13px] font-bold mr-1"
-                  style={{ color: primaryColor }}
-                >
-                  收起回答
-                </Text>
-                <Ionicons name="chevron-up" size={14} color={primaryColor} />
-              </Pressable>
-            </View>
           ) : (
-            <Pressable
-              onPress={() => {
-                onToggle(item.id.toString(), true);
-              }}
-              style={{ maxHeight: 150, overflow: 'hidden' }}
-              className="flex-1"
-            >
-              <ZhihuContent
-                objectId={item.id}
-                type="answer"
-                content={item.content}
-                segmentInfos={item.segment_infos}
-                useNative={true}
-              />
-              <Pressable
-                onPress={() => onToggle(item.id.toString(), true)}
-                className="absolute inset-x-0 bottom-0 h-24 z-[100]"
-              >
-                {/* 4 layers of progressive opacity to emulate gradient */}
+            <View className="flex-1 bg-transparent" style={{ position: 'relative' }}>
+              <Reanimated.View style={[animatedContentStyle, { overflow: 'hidden' }]} className="bg-transparent">
                 <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
+                  onLayout={(e) => {
+                    const h = e.nativeEvent.layout.height;
+                    if (h > 0) {
+                      setMeasuredHeight(h);
+                    }
                   }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 16,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
-                  }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 32,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
-                  }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 48,
-                    bottom: 0,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
-                    justifyContent: 'flex-end',
-                    alignItems: 'center',
-                    paddingBottom: 6,
-                  }}
+                  className="bg-transparent"
                 >
-                  <Text
-                    type="primary"
-                    className="text-[13px] font-bold"
-                    style={{ color: primaryColor }}
+                  <ZhihuContent
+                    objectId={item.id}
+                    type="answer"
+                    content={item.content}
+                    segmentInfos={item.segment_infos}
+                  />
+                  <View className="mt-[20px] bg-transparent">
+                    <Text
+                      type="secondary"
+                      className="text-[#bbb] text-[13px] italic"
+                    >
+                      发布于{' '}
+                      {item.created_time
+                        ? new Date(item.created_time * 1000).toLocaleDateString()
+                        : ''}{' '}
+                      {item.ip_info ? `· ${item.ip_info} ` : ''}
+                    </Text>
+                    {item.updated_time && (
+                      <Text
+                        type="secondary"
+                        className="text-[#bbb] text-[13px] italic mt-1"
+                      >
+                        最后编辑{' '}
+                        {new Date(item.updated_time * 1000).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </View>
+                  <Pressable
+                    onPress={() => item?.id && onToggle(item.id.toString(), false)}
+                    className="flex-row items-center justify-center py-2.5 mt-[20px] bg-transparent"
                   >
-                    展开全文
-                  </Text>
+                    <Text
+                      type="primary"
+                      className="text-[13px] font-bold mr-1"
+                      style={{ color: primaryColor }}
+                    >
+                      收起回答
+                    </Text>
+                    <Ionicons name="chevron-up" size={14} color={primaryColor} />
+                  </Pressable>
                 </View>
-              </Pressable>
-            </Pressable>
+              </Reanimated.View>
+
+              <Reanimated.View
+                style={[
+                  animatedReadMoreStyle,
+                  {
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 100,
+                  },
+                ]}
+                pointerEvents={isExpanded ? 'none' : 'auto'}
+              >
+                <Pressable
+                  onPress={() => onToggle(item.id.toString(), true)}
+                  className="absolute inset-0"
+                >
+                  {/* 4 layers of progressive opacity to emulate gradient */}
+                  <View
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 0,
+                      height: 16,
+                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
+                    }}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 16,
+                      height: 16,
+                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
+                    }}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 32,
+                      height: 16,
+                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
+                    }}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 48,
+                      bottom: 0,
+                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      paddingBottom: 6,
+                    }}
+                  >
+                    <Text
+                      type="primary"
+                      className="text-[13px] font-bold"
+                      style={{ color: primaryColor }}
+                    >
+                      展开全文
+                    </Text>
+                  </View>
+                </Pressable>
+              </Reanimated.View>
+            </View>
           )}
         </View>
 
@@ -988,12 +1073,11 @@ export default function QuestionDetail() {
                 <Ionicons
                   name="chatbubble-outline"
                   size={20}
-                  color={Colors[colorScheme].primary}
+                  color={Colors[colorScheme].textSecondary}
                 />
                 <Text
-                  type="primary"
                   className="ml-1.5 text-sm font-bold"
-                  style={{ color: Colors[colorScheme].primary }}
+                  style={{ color: Colors[colorScheme].textSecondary }}
                 >
                   {activeItem?.comment_count || 0}
                 </Text>
@@ -1016,17 +1100,16 @@ export default function QuestionDetail() {
                   color={
                     isFloatingCollected
                       ? '#ffb400'
-                      : Colors[colorScheme].primary
+                      : Colors[colorScheme].textSecondary
                   }
                 />
                 {displayFloatingCount > 0 && (
                   <Text
-                    type="primary"
                     className="ml-1.5 text-sm font-bold"
                     style={{
                       color: isFloatingCollected
                         ? '#ffb400'
-                        : Colors[colorScheme].primary,
+                        : Colors[colorScheme].textSecondary,
                     }}
                   >
                     {displayFloatingCount}
@@ -1044,12 +1127,11 @@ export default function QuestionDetail() {
                   <Ionicons
                     name="chevron-up-circle-outline"
                     size={20}
-                    color={Colors[colorScheme].primary}
+                    color={primaryColor}
                   />
                   <Text
-                    type="primary"
                     className="ml-1.5 text-sm font-bold"
-                    style={{ color: Colors[colorScheme].primary }}
+                    style={{ color: primaryColor }}
                   >
                     收起
                   </Text>
@@ -1066,7 +1148,7 @@ export default function QuestionDetail() {
               <Ionicons
                 name="share-outline"
                 size={22}
-                color={Colors[colorScheme].primary}
+                color={Colors[colorScheme].textSecondary}
               />
             </Pressable>
           </View>
