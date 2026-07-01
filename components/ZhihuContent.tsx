@@ -29,7 +29,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { showToast } from '@/utils/toast';
-import { parseZhihuUrl } from '@/utils/url';
+import { extractZhihuRedirectTarget, isInternalZhihuLink, parseZhihuUrl } from '@/utils/url';
 import MathView from './MathView';
 import { Text, useThemeColor, View } from './Themed';
 import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
@@ -74,6 +74,7 @@ const LinkCard: React.FC<{
   colorScheme: 'light' | 'dark';
 }> = React.memo(({ url, title, image, onPress, surfaceColor, colorScheme }) => {
   const isInternal = url.includes('zhihu.com');
+  const primaryColor = useThemeColor({}, 'primary');
 
   const getLinkTypeIcon = () => {
     if (url.includes('/question/')) return 'help-circle';
@@ -111,7 +112,7 @@ const LinkCard: React.FC<{
           <Ionicons
             name={getLinkTypeIcon() as any}
             size={14}
-            color={Colors[colorScheme].primary}
+            color={primaryColor}
           />
           <Text type="secondary" className="text-xs ml-1">
             {isInternal ? '知乎内部链接' : '外部链接'}
@@ -314,17 +315,44 @@ const A_Renderer: CustomBlockRenderer = ({
   const isLinkCard =
     tnode.attributes.class?.includes('LinkCard') ||
     tnode.attributes['data-draft-type'] === 'link-card';
-  const url = tnode.attributes.href;
+  const rawUrl = tnode.attributes.href;
   const rendererProps = useRendererProps('a');
 
   if (!rendererProps) return <TDefaultRenderer tnode={tnode} {...props} />;
-  const { onLinkCardPress, surfaceColor, colorScheme } = rendererProps as any;
+  const { onPress, onLinkCardPress, surfaceColor, colorScheme } = rendererProps as any;
+
+  // 解码 link.zhihu.com 跳转链接，拿到真实 URL
+  const url = rawUrl ? extractZhihuRedirectTarget(rawUrl) : rawUrl;
 
   if (isLinkCard && url) {
     return (
       <LinkCard
         url={url}
         title={tnode.attributes['data-draft-title']}
+        onPress={onLinkCardPress}
+        surfaceColor={surfaceColor}
+        colorScheme={colorScheme}
+      />
+    );
+  }
+
+  // 普通链接：统一渲染为卡片样式，与 link-card 保持一致
+  if (url) {
+    // 递归提取 domNode 的纯文本作为链接标题
+    const extractText = (node: any): string => {
+      if (!node) return '';
+      if (node.type === 'text') return node.data || '';
+      if (node.children) return node.children.map(extractText).join('');
+      return '';
+    };
+    const linkTitle =
+      tnode.attributes['data-draft-title'] ||
+      extractText((tnode as any).domNode) ||
+      undefined;
+    return (
+      <LinkCard
+        url={url}
+        title={linkTitle}
         onPress={onLinkCardPress}
         surfaceColor={surfaceColor}
         colorScheme={colorScheme}
@@ -400,11 +428,20 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
     const handleInternalLink = useCallback(
       (url: string) => {
         if (!url) return;
-        const internalPath = parseZhihuUrl(url);
+        // 先解码知乎跳转链接（link.zhihu.com?target=...），拿到真实 URL
+        const realUrl = extractZhihuRedirectTarget(url);
+        // 非知乎链接直接用系统浏览器打开，不尝试 in-app 导航
+        if (!isInternalZhihuLink(realUrl)) {
+          Linking.openURL(realUrl).catch((err) =>
+            console.error('Failed to open URL:', err),
+          );
+          return;
+        }
+        const internalPath = parseZhihuUrl(realUrl);
         if (internalPath && internalPath !== '/') {
           router.push(internalPath as any);
         } else {
-          Linking.openURL(url).catch((err) =>
+          Linking.openURL(realUrl).catch((err) =>
             console.error('Failed to open URL:', err),
           );
         }

@@ -79,3 +79,18 @@ export function isInternalZhihuLink(url: string): boolean {
     url.startsWith('/')
   );
 }
+
+/**
+ * 解码知乎跳转链接，提取真实目标 URL
+ * 知乎外部链接格式: https://link.zhihu.com/?target=https%3A%2F%2F...
+ */
+export function extractZhihuRedirectTarget(url: string): string {
+  try {
+    if (url.includes('link.zhihu.com')) {
+      const parsed = new URL(url);
+      const target = parsed.searchParams.get('target');
+      if (target) return decodeURIComponent(target);
+    }
+  } catch (_) {}
+  return url;
+}
