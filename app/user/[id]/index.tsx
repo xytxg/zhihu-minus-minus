@@ -1,22 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { BlurView } from 'expo-blur';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   Image,
   Pressable,
-  ScrollView,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
 } from 'react-native';
-import PagerView from 'react-native-pager-view';
 import Reanimated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -28,10 +22,7 @@ import {
   searchContent,
   unfollowMember,
 } from '@/api/zhihu';
-import { CreationCard } from '@/components/CreationCard';
 import { FeedCard } from '@/components/FeedCard';
-import { LikeButton } from '@/components/LikeButton';
-import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -60,21 +51,7 @@ export default function UserDetailScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 
-  // States for expanding card behavior
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
-
-  // Floating Actions States
-  const [activeItem, setActiveItem] = useState<any>(null);
-  const [footerVisible, setFooterVisible] = useState(true);
-  const [isSharing, setIsSharing] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
-
-  // Layout and view measurement refs
-  const itemRefs = useRef<Map<string, any>>(new Map());
-  const footerAnim = useRef(new Animated.Value(0)).current;
   const flashListRef = useRef<any>(null);
-  const { height: screenHeight } = useWindowDimensions();
 
   const nestedSubTabIndexRef = useRef(0);
 
@@ -257,42 +234,6 @@ export default function UserDetailScreen() {
       ) || []
     : listItems;
 
-  const handleToggleExpand = useCallback(
-    (targetIdStr: string, forceExpand: boolean) => {
-      setExpandedIds((prev) => {
-        const next = new Set(prev);
-        if (forceExpand) {
-          next.add(targetIdStr);
-          const matchedItem = currentListItems.find(
-            (it) => (it.target || it)?.id?.toString() === targetIdStr,
-          );
-          if (matchedItem) {
-            setActiveItem(matchedItem.target || matchedItem);
-          }
-        } else {
-          next.delete(targetIdStr);
-          setActiveItem((prevActive: any) =>
-            prevActive?.id?.toString() === targetIdStr ? null : prevActive,
-          );
-          setHighlightedId(targetIdStr);
-          setTimeout(() => {
-            setHighlightedId((curr) => (curr === targetIdStr ? null : curr));
-          }, 1500);
-        }
-        return next;
-      });
-    },
-    [currentListItems],
-  );
-
-  useEffect(() => {
-    Animated.spring(footerAnim, {
-      toValue: footerVisible ? 0 : 1,
-      useNativeDriver: true,
-      tension: 50,
-      friction: 8,
-    }).start();
-  }, [footerVisible, footerAnim]);
 
   const getSubTabIndex = (tab: string) => {
     const index = subTabKeys.indexOf(tab as any);
@@ -321,33 +262,6 @@ export default function UserDetailScreen() {
       refetchSearch();
     } else {
       refetchList();
-    }
-  };
-
-  const lastCheckTime = useRef(0);
-  const handleScroll = (event: any) => {
-    if (!activeItem) {
-      if (!footerVisible) setFooterVisible(true);
-      return;
-    }
-
-    const now = Date.now();
-    if (now - lastCheckTime.current > 100) {
-      lastCheckTime.current = now;
-      const itemIdStr = activeItem.id?.toString();
-      if (itemIdStr) {
-        const ref = itemRefs.current.get(itemIdStr);
-        if (ref) {
-          ref.measureFooter((x: number, y: number, w: number, h: number) => {
-            const isVisible = y > insets.top + 40 && y < screenHeight - 60;
-            if (isVisible !== footerVisible) {
-              setFooterVisible(isVisible);
-            }
-          });
-        } else {
-          if (!footerVisible) setFooterVisible(true);
-        }
-      }
     }
   };
 
@@ -650,43 +564,72 @@ export default function UserDetailScreen() {
     );
   };
 
-  const renderItemContent = (item: any, index: number) => {
+  const renderItemContent = (item: any, _index: number) => {
     if (isSearching) {
       return <FeedCard item={item} />;
     }
 
     let displayItem = item as ZhihuMemberRelation;
-    let type: 'answer' | 'article' | 'question' | 'pin' | 'video' = 'answer';
-    if (activeTab === 'activities') displayItem = item.target || item;
+    if (activeTab === 'activities') {
+      displayItem = item.target || item;
+    }
     if (!displayItem || (!displayItem.id && !displayItem.url)) return null;
 
-    const itemType = displayItem.type;
-    if (itemType === 'article') type = 'article';
-    else if (itemType === 'question') type = 'question';
-    else if (itemType === 'pin') type = 'pin';
-    else if (itemType === 'zvideo' || itemType === 'video') type = 'video';
+    const rawType = displayItem.type;
+    let mappedType: 'answers' | 'articles' | 'questions' | 'pins' = 'answers';
+    if (rawType === 'article') mappedType = 'articles';
+    else if (rawType === 'question') mappedType = 'questions';
+    else if (rawType === 'pin') mappedType = 'pins';
+    else if (rawType === 'zvideo' || rawType === 'video') mappedType = 'answers';
 
-    const itemIdStr = displayItem.id?.toString() || '';
-    const isExpanded = itemIdStr ? expandedIds.has(itemIdStr) : false;
-    const isCollapsedHighlighted = itemIdStr
-      ? highlightedId === itemIdStr
-      : false;
+    const getExcerptText = () => {
+      if (rawType === 'pin') {
+        if (Array.isArray(displayItem.content)) {
+          return (displayItem.content as any[])
+            .filter((c) => c.type === 'text')
+            .map((c) => c.content)
+            .join('')
+            .replace(/<[^>]+>/g, '')
+            .substring(0, 150);
+        }
+        if (typeof displayItem.content === 'string') {
+          return (displayItem.content as string).replace(/<[^>]+>/g, '').substring(0, 150);
+        }
+      }
+      const raw = (displayItem as any).excerpt || displayItem.content || '';
+      if (typeof raw === 'string') return raw.replace(/<[^>]+>/g, '').substring(0, 150);
+      return '';
+    };
 
-    return (
-      <CreationCard
-        ref={(el) => {
-          if (itemIdStr) {
-            if (el) itemRefs.current.set(itemIdStr, el);
-            else itemRefs.current.delete(itemIdStr);
-          }
-        }}
-        item={displayItem}
-        type={type}
-        isExpanded={isExpanded}
-        onToggle={handleToggleExpand}
-        isCollapsedHighlighted={isCollapsedHighlighted}
-      />
-    );
+    const imageUrl = 
+      displayItem.image_url || 
+      displayItem.thumbnail || 
+      (rawType === 'pin' && Array.isArray(displayItem.content)
+        ? displayItem.content.find((c: any) => c.type === 'image')?.url
+        : null) || 
+      null;
+
+    const feedItem: any = {
+      id: displayItem.id?.toString() || Math.random().toString(),
+      title: displayItem.question?.title || displayItem.title || '',
+      questionId: displayItem.question?.id?.toString() || (rawType === 'question' ? displayItem.id?.toString() : undefined),
+      author: {
+        id: displayItem.author?.id || user?.id || '',
+        url_token: displayItem.author?.url_token || user?.url_token || '',
+        name: displayItem.author?.name || user?.name || '匿名用户',
+        avatar: displayItem.author?.avatar_url || user?.avatar_url || 'https://picx.zhimg.com/v2-abed1a8c04702bc9e7ba3d3d82bc7591_s.jpg',
+        headline: displayItem.author?.headline || user?.headline || '',
+      },
+      excerpt: getExcerptText(),
+      image: imageUrl,
+      voteCount: displayItem.voteup_count || displayItem.like_count || displayItem.reaction_count || 0,
+      commentCount: displayItem.comment_count || 0,
+      favlistsCount: displayItem.favlists_count || 0,
+      voted: displayItem.relationship?.voting || 0,
+      type: mappedType,
+    };
+
+    return <FeedCard item={feedItem} />;
   };
 
   return (
@@ -702,7 +645,6 @@ export default function UserDetailScreen() {
           `user-item-${item.id || ''}-${index}`
         }
         {...({ estimatedItemSize: 250 } as any)}
-        onScroll={handleScroll}
         scrollEventThrottle={16}
         ListHeaderComponent={
           <View className="bg-transparent">
@@ -745,129 +687,6 @@ export default function UserDetailScreen() {
         refreshing={isRefetching}
       />
 
-      <ShareMenu
-        visible={isSharing}
-        onClose={() => {
-          setIsSharing(false);
-          setSelectedAnswer(null);
-        }}
-        type={
-          selectedAnswer?.type === 'article'
-            ? 'article'
-            : selectedAnswer?.type === 'pin'
-              ? 'pin'
-              : 'answer'
-        }
-        data={
-          selectedAnswer
-            ? {
-                id: selectedAnswer.id,
-                title:
-                  selectedAnswer.title ||
-                  selectedAnswer.question?.title ||
-                  '想法',
-                author: selectedAnswer.author?.name || user?.name,
-                authorHeadline:
-                  selectedAnswer.author?.headline || user?.headline,
-                content: selectedAnswer.excerpt || selectedAnswer.content || '',
-              }
-            : null
-        }
-      />
-
-      <Animated.View
-        className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
-        style={[
-          {
-            bottom: insets.bottom || 16,
-            transform: [
-              {
-                translateY: footerAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [100, 0],
-                }),
-              },
-            ],
-            opacity: footerAnim,
-          },
-        ]}
-      >
-        <BlurView
-          intensity={95}
-          tint={colorScheme}
-          className="flex-1"
-          style={{
-            backgroundColor:
-              colorScheme === 'dark'
-                ? 'rgba(26,26,26,0.8)'
-                : 'rgba(255,255,255,0.85)',
-          }}
-        >
-          <View className="flex-1 flex-row items-center px-5 justify-between bg-transparent">
-            <View className="flex-row items-center bg-transparent">
-              <LikeButton
-                id={activeItem?.id}
-                count={
-                  activeItem?.reaction?.statistics?.like_count ||
-                  activeItem?.voteup_count ||
-                  activeItem?.reaction_count ||
-                  0
-                }
-                voted={activeItem?.relationship?.voting || 0}
-                type={
-                  activeItem?.type === 'article'
-                    ? 'articles'
-                    : activeItem?.type === 'pin'
-                      ? 'pins'
-                      : 'answers'
-                }
-              />
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  setSelectedAnswer(activeItem);
-                  setIsSharing(true);
-                }}
-                className="flex-row items-center justify-center h-10 w-10 ml-3.5 bg-transparent"
-              >
-                <Ionicons
-                  name="share-social-outline"
-                  size={20}
-                  color={Colors[colorScheme].textSecondary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                if (activeItem?.id) {
-                  handleToggleExpand(activeItem.id.toString(), false);
-                }
-              }}
-              className="flex-row items-center px-4 py-2 rounded-full"
-              style={{
-                backgroundColor:
-                  colorScheme === 'dark'
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.05)',
-              }}
-            >
-              <Text
-                className="text-[13px] font-bold mr-1"
-                style={{ color: primaryColor }}
-              >
-                收起回答
-              </Text>
-              <Ionicons
-                name="chevron-up"
-                size={14}
-                color={Colors[colorScheme].primary}
-              />
-            </TouchableOpacity>
-          </View>
-        </BlurView>
-      </Animated.View>
     </View>
   );
 }
