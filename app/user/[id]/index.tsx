@@ -194,7 +194,6 @@ export default function UserDetailScreen() {
     pagerRef.current?.setPage(idx);
     const tab = PROFILE_TABS[idx].key;
     setActiveTab(tab);
-    setVisitedTabs((prev) => ({ ...prev, [tab]: true }));
     activeIndex.value = idx;
     activeIndexRef.current = idx;
   };
@@ -920,16 +919,21 @@ export default function UserDetailScreen() {
               pagerOffset.value = e.nativeEvent.offset;
             }}
             onPageScrollStateChanged={(e) => {
-              // 当检测到拖拽开始（用户开始左右划切屏）时，立刻将所有 Tab 列表对齐当前的折叠高度，消除跳跃感！
-              if (e.nativeEvent.pageScrollState === 'dragging') {
+              const state = e.nativeEvent.pageScrollState;
+              if (state === 'dragging') {
                 syncLists(activeIndexRef.current);
+              } else if (state === 'idle') {
+                const tab = PROFILE_TABS[activeIndexRef.current].key;
+                setVisitedTabs((prev) => {
+                  if (prev[tab]) return prev;
+                  return { ...prev, [tab]: true };
+                });
               }
             }}
             onPageSelected={(e) => {
               const idx = e.nativeEvent.position;
               const tab = PROFILE_TABS[idx].key;
               setActiveTab(tab);
-              setVisitedTabs((prev) => ({ ...prev, [tab]: true }));
               activeIndex.value = idx;
               activeIndexRef.current = idx;
 

@@ -121,6 +121,13 @@ const AnswerItem = forwardRef(
     const borderProgress = useSharedValue(0);
     const isFirstMount = useRef(true);
 
+    const itemRef = useRef(item);
+    itemRef.current = item;
+    const onSwipeStartRef = useRef(onSwipeStart);
+    onSwipeStartRef.current = onSwipeStart;
+    const onSwipeCompleteRef = useRef(onSwipeComplete);
+    onSwipeCompleteRef.current = onSwipeComplete;
+
     React.useEffect(() => {
       expandedProgress.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
 
@@ -169,14 +176,16 @@ const AnswerItem = forwardRef(
         onStartShouldSetPanResponderCapture: () => false,
         onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
           // 仅在向左滑动且存在 author.url_token 时拦截手势
+          const currentItem = itemRef.current;
           const isHorizontal =
             gestureState.dx < -15 &&
             Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5;
-          return isHorizontal && !!item.author?.url_token;
+          return isHorizontal && !!currentItem?.author?.url_token;
         },
         onPanResponderGrant: () => {
-          if (onSwipeStart) {
-            runOnJS(onSwipeStart)(item.author);
+          const currentItem = itemRef.current;
+          if (onSwipeStartRef.current && currentItem?.author) {
+            runOnJS(onSwipeStartRef.current)(currentItem.author);
           }
         },
         onPanResponderMove: (evt, gestureState) => {
@@ -184,10 +193,11 @@ const AnswerItem = forwardRef(
           screenTranslateX.value = Math.min(0, gestureState.dx);
         },
         onPanResponderRelease: (evt, gestureState) => {
+          const currentItem = itemRef.current;
           if (gestureState.dx < -120) {
             screenTranslateX.value = withTiming(-screenWidth, { duration: 250 }, () => {
-              if (onSwipeComplete) {
-                runOnJS(onSwipeComplete)(item.author);
+              if (onSwipeCompleteRef.current && currentItem?.author) {
+                runOnJS(onSwipeCompleteRef.current)(currentItem.author);
               }
             });
           } else {
