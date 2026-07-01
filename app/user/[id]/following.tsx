@@ -353,7 +353,7 @@ export default function FollowingScreen() {
 
       <PagerView
         ref={pagerRef}
-        className="flex-1"
+        style={{ flex: 1 }}
         initialPage={0}
         onPageSelected={(e) => {
           const idx = e.nativeEvent.position;
@@ -370,7 +370,7 @@ export default function FollowingScreen() {
               <FlashList
                 data={query.data}
                 renderItem={({ item }) => renderItem({ item, tabKey: tab.key })}
-                estimatedItemSize={80}
+                {...({ estimatedItemSize: 80 } as any)}
                 onEndReached={() => query.hasNextPage && query.fetchNextPage()}
                 onRefresh={query.refetch}
                 refreshing={query.isRefetching}
