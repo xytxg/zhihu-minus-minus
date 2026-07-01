@@ -39,6 +39,12 @@ export interface AppSettings {
   borderRadius: number;
   useWebView: boolean;
   enablePrivateMessaging: boolean;
+  /** iOS 按压时的不透明度 (0.5 ~ 1.0) */
+  pressOpacity: number;
+  /** iOS 按压时的缩放比例 (0.88 ~ 1.0) */
+  pressScale: number;
+  /** 安卓按压反馈类型: ripple (水波纹), scale-opacity (透明度+缩放) */
+  androidFeedbackType: 'ripple' | 'scale-opacity';
 }
 
 interface SettingsState extends AppSettings {
@@ -56,6 +62,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   borderRadius: 12,
   useWebView: false,
   enablePrivateMessaging: false,
+  pressOpacity: 0.82,
+  pressScale: 0.98,
+  androidFeedbackType: 'ripple',
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -81,11 +90,23 @@ export const useSettingsStore = create<SettingsState>()(
     {
       name: 'zhihu-settings-storage',
       storage: createJSONStorage(() => settingsStorage),
-      version: 2,
-      migrate: (persistedState: any, _version: number) => {
+      version: 4,
+      migrate: (persistedState: any, version: number) => {
         // 清理历史脏数据：null 或非法 hex 都退回默认蓝
         const sanitized = sanitizeColor(persistedState?.primaryColor);
         persistedState.primaryColor = sanitized ?? '#0084ff';
+        
+        // 升级到 v3 时兜底新增的按压反馈参数
+        if (version < 3) {
+          persistedState.pressOpacity = persistedState.pressOpacity ?? 0.82;
+          persistedState.pressScale = persistedState.pressScale ?? 0.98;
+        }
+        
+        // 升级到 v4 时兜底安卓按压反馈类型选择
+        if (version < 4) {
+          persistedState.androidFeedbackType = persistedState.androidFeedbackType ?? 'ripple';
+        }
+        
         return persistedState as SettingsState;
       },
     },

@@ -64,6 +64,7 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
+import { BouncyButton } from '@/components/BouncyButton';
 
 const AnswerItem = forwardRef(
   (
@@ -115,6 +116,7 @@ const AnswerItem = forwardRef(
 
     const primaryColor = useThemeColor({}, 'primary');
     const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+    const warningColor = useThemeColor({}, 'warning');
 
     const [measuredHeight, setMeasuredHeight] = useState(0);
     const expandedProgress = useSharedValue(isExpanded ? 1 : 0);
@@ -490,8 +492,8 @@ const AnswerItem = forwardRef(
               variant="ghost"
             />
           </View>
-          <Pressable
-            className="flex-row items-center ml-5 bg-transparent py-1"
+          <BouncyButton
+            className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
             onPress={() =>
               router.push({
                 pathname: '/comments/[id]',
@@ -507,43 +509,51 @@ const AnswerItem = forwardRef(
             <Text className="text-[#888] ml-1 text-xs font-semibold">
               {item.comment_count > 0 ? item.comment_count : '评论'}
             </Text>
-          </Pressable>
-          <Pressable
-            className="flex-row items-center ml-5 bg-transparent py-1"
+          </BouncyButton>
+          <BouncyButton
+            className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
             onPress={() => toggleCollect(item.id, 'answer', isCollected)}
           >
             <Ionicons
               name={isCollected ? 'star' : 'star-outline'}
               size={16}
-              color={isCollected ? useThemeColor({}, 'warning') : '#888'}
+              color={isCollected ? warningColor : '#888'}
             />
             {displayCount > 0 && (
               <Text
                 className="ml-1 text-xs font-semibold"
                 style={{
-                  color: isCollected ? useThemeColor({}, 'warning') : '#888',
+                  color: isCollected ? warningColor : '#888',
                 }}
               >
                 {displayCount}
               </Text>
             )}
-          </Pressable>
+          </BouncyButton>
           {item.relationship?.is_author && (
-            <Pressable className="ml-5 p-1" onPress={handleDelete}>
+            <BouncyButton
+              className="p-2 bg-transparent"
+              style={{ borderRadius: 99 }}
+              onPress={handleDelete}
+            >
               <Ionicons
                 name="trash-outline"
                 size={18}
                 color={Colors[colorScheme].danger}
               />
-            </Pressable>
+            </BouncyButton>
           )}
-          <Pressable className="ml-auto p-1" onPress={() => onShare?.(item)}>
+          <BouncyButton
+            className="ml-auto p-2 bg-transparent"
+            style={{ borderRadius: 99 }}
+            onPress={() => onShare?.(item)}
+          >
             <Ionicons
               name="share-social-outline"
               size={18}
               color={Colors[colorScheme].textSecondary}
             />
-          </Pressable>
+          </BouncyButton>
         </NativeView>
       </View>
     );
@@ -995,250 +1005,250 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title: question?.title,
-                author: selectedAnswer.author?.name,
-                authorHeadline: selectedAnswer.author?.headline,
-                url: getShareLink(selectedAnswer),
-              }
+              id: selectedAnswer.id,
+              title: question?.title,
+              author: selectedAnswer.author?.name,
+              authorHeadline: selectedAnswer.author?.headline,
+              url: getShareLink(selectedAnswer),
+            }
             : null
         }
       />
 
       <Reanimated.View style={[{ flex: 1 }, animatedScreenStyle]}>
         {/* 顶部标题栏 */}
-      <Animated.View
-        className="absolute left-0 right-0 z-10"
-        style={[
-          {
-            backgroundColor,
-            paddingTop: insets.top,
-            opacity: headerVisible,
-            transform: [
-              {
-                translateY: headerVisible.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-insets.top - 120, 0],
-                }),
-              },
-            ],
-          },
-        ]}
-      >
-        <View
-          className="flex-row items-start bg-transparent"
-          style={{
-            minHeight: 56,
-            paddingTop: 17,
-            paddingBottom: 8,
-            paddingLeft: 52,
-            paddingRight: 16,
-          }}
+        <Animated.View
+          className="absolute left-0 right-0 z-10"
+          style={[
+            {
+              backgroundColor,
+              paddingTop: insets.top,
+              opacity: headerVisible,
+              transform: [
+                {
+                  translateY: headerVisible.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-insets.top - 120, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
         >
-          <Text
-            className="flex-1 text-[16px] font-bold text-left"
-            style={{ color: textColor, lineHeight: 22 }}
+          <View
+            className="flex-row items-start bg-transparent"
+            style={{
+              minHeight: 56,
+              paddingTop: 17,
+              paddingBottom: 8,
+              paddingLeft: 52,
+              paddingRight: 16,
+            }}
           >
-            {question?.title || initialTitle}
-          </Text>
-        </View>
-      </Animated.View>
-
-      {/* 返回按钮 */}
-      <Pressable
-        onPress={() => router.back()}
-        className="absolute left-2.5 z-[100] w-10 h-10 justify-center items-center"
-        style={{ top: insets.top + 8 }}
-      >
-        <Ionicons name="chevron-back" size={28} color={textColor} />
-      </Pressable>
-
-      <FlashList
-        ref={flashListRef}
-        onScroll={handleScroll}
-        data={qLoading ? [] : answers}
-        ListHeaderComponent={renderHeader}
-        renderItem={({ item }) => (
-          <AnswerItem
-            ref={(r) => {
-              item?.id
-                ? itemRefs.current.set(item.id.toString(), r)
-                : itemRefs.current.delete(item.id?.toString() || '');
-            }}
-            item={item}
-            isExpanded={item?.id ? expandedIds.has(item.id.toString()) : false}
-            onToggle={handleToggleExpand}
-            onShare={(ans) => {
-              setSelectedAnswer(ans);
-              setIsSharing(true);
-            }}
-            questionId={id}
-            questionTitle={question?.title}
-            sortBy={sortBy}
-            screenTranslateX={screenTranslateX}
-            onSwipeStart={setSwipedAuthor}
-            onSwipeComplete={handleSwipeComplete}
-          />
-        )}
-        keyExtractor={(item: any, index: number) =>
-          `ans-${item?.id?.toString() || index}-${index}`
-        }
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        onEndReached={() =>
-          hasNextPage && !isFetchingNextPage && fetchNextPage()
-        }
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={() =>
-          isFetchingNextPage ? (
-            <ActivityIndicator
-              style={{ marginVertical: 20 }}
-              color={Colors[colorScheme].primary}
-            />
-          ) : answers?.length > 0 && !hasNextPage ? (
-            <Text type="secondary" className="text-center my-5">
-              — 没有更多回答了 —
+            <Text
+              className="flex-1 text-[16px] font-bold text-left"
+              style={{ color: textColor, lineHeight: 22 }}
+            >
+              {question?.title || initialTitle}
             </Text>
-          ) : null
-        }
-        onRefresh={handleRefresh}
-        refreshing={isRefetching}
-      />
+          </View>
+        </Animated.View>
 
-      <Animated.View
-        className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
-        style={[
-          {
-            bottom: insets.bottom,
-            transform: [
-              {
-                translateY: footerAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [100, 0],
-                }),
-              },
-            ],
-            opacity: footerAnim,
-          },
-        ]}
-      >
-        <BlurView
-          intensity={95}
-          tint={colorScheme}
-          className="flex-1"
-          style={{
-            backgroundColor:
-              colorScheme === 'dark'
-                ? 'rgba(26,26,26,0.8)'
-                : 'rgba(255,255,255,0.85)',
-          }}
+        {/* 返回按钮 */}
+        <Pressable
+          onPress={() => router.back()}
+          className="absolute left-2.5 z-[100] w-10 h-10 justify-center items-center"
+          style={{ top: insets.top + 8 }}
         >
-          <View className="flex-1 flex-row items-center px-5 justify-between bg-transparent">
-            <View className="flex-row items-center bg-transparent">
-              <LikeButton
-                id={activeItem?.id}
-                count={activeItem?.voteup_count || 0}
-                voted={activeItem?.relationship?.voting}
-                type="answers"
-                variant="ghost"
+          <Ionicons name="chevron-back" size={28} color={textColor} />
+        </Pressable>
+
+        <FlashList
+          ref={flashListRef}
+          onScroll={handleScroll}
+          data={qLoading ? [] : answers}
+          ListHeaderComponent={renderHeader}
+          renderItem={({ item }) => (
+            <AnswerItem
+              ref={(r) => {
+                item?.id
+                  ? itemRefs.current.set(item.id.toString(), r)
+                  : itemRefs.current.delete(item.id?.toString() || '');
+              }}
+              item={item}
+              isExpanded={item?.id ? expandedIds.has(item.id.toString()) : false}
+              onToggle={handleToggleExpand}
+              onShare={(ans) => {
+                setSelectedAnswer(ans);
+                setIsSharing(true);
+              }}
+              questionId={id}
+              questionTitle={question?.title}
+              sortBy={sortBy}
+              screenTranslateX={screenTranslateX}
+              onSwipeStart={setSwipedAuthor}
+              onSwipeComplete={handleSwipeComplete}
+            />
+          )}
+          keyExtractor={(item: any, index: number) =>
+            `ans-${item?.id?.toString() || index}-${index}`
+          }
+          onViewableItemsChanged={onViewableItemsChanged}
+          viewabilityConfig={viewabilityConfig}
+          onEndReached={() =>
+            hasNextPage && !isFetchingNextPage && fetchNextPage()
+          }
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={() =>
+            isFetchingNextPage ? (
+              <ActivityIndicator
+                style={{ marginVertical: 20 }}
+                color={Colors[colorScheme].primary}
               />
-              <Pressable
-                className="flex-row items-center ml-5 bg-transparent"
-                onPress={() =>
-                  router.push({
-                    pathname: '/comments/[id]',
-                    params: {
-                      id: activeItem?.id,
-                      type: 'answer',
-                      count: activeItem?.comment_count,
-                    },
-                  } as any)
-                }
-              >
-                <Ionicons
-                  name="chatbubble-outline"
-                  size={20}
-                  color={Colors[colorScheme].textSecondary}
-                />
-                <Text
-                  className="ml-1.5 text-sm font-bold"
-                  style={{ color: Colors[colorScheme].textSecondary }}
-                >
-                  {activeItem?.comment_count || 0}
-                </Text>
-              </Pressable>
+            ) : answers?.length > 0 && !hasNextPage ? (
+              <Text type="secondary" className="text-center my-5">
+                — 没有更多回答了 —
+              </Text>
+            ) : null
+          }
+          onRefresh={handleRefresh}
+          refreshing={isRefetching}
+        />
 
-              <Pressable
-                className="flex-row items-center ml-5 bg-transparent"
-                onPress={() =>
-                  activeItem?.id &&
-                  toggleFloatingCollect(
-                    activeItem.id,
-                    'answer',
-                    isFloatingCollected,
-                  )
-                }
-              >
-                <Ionicons
-                  name={isFloatingCollected ? 'star' : 'star-outline'}
-                  size={20}
-                  color={
-                    isFloatingCollected
-                      ? '#ffb400'
-                      : Colors[colorScheme].textSecondary
-                  }
+        <Animated.View
+          className="absolute left-5 right-5 h-[54px] rounded-[27px] overflow-hidden z-[1000] shadow-black/20 shadow-lg elevation-10"
+          style={[
+            {
+              bottom: insets.bottom,
+              transform: [
+                {
+                  translateY: footerAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [100, 0],
+                  }),
+                },
+              ],
+              opacity: footerAnim,
+            },
+          ]}
+        >
+          <BlurView
+            intensity={95}
+            tint={colorScheme}
+            className="flex-1"
+            style={{
+              backgroundColor:
+                colorScheme === 'dark'
+                  ? 'rgba(26,26,26,0.8)'
+                  : 'rgba(255,255,255,0.85)',
+            }}
+          >
+            <View className="flex-1 flex-row items-center px-5 justify-between bg-transparent">
+              <View className="flex-row items-center bg-transparent">
+                <LikeButton
+                  id={activeItem?.id}
+                  count={activeItem?.voteup_count || 0}
+                  voted={activeItem?.relationship?.voting}
+                  type="answers"
+                  variant="ghost"
                 />
-                {displayFloatingCount > 0 && (
-                  <Text
-                    className="ml-1.5 text-sm font-bold"
-                    style={{
-                      color: isFloatingCollected
-                        ? '#ffb400'
-                        : Colors[colorScheme].textSecondary,
-                    }}
-                  >
-                    {displayFloatingCount}
-                  </Text>
-                )}
-              </Pressable>
-
-              {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
                 <Pressable
                   className="flex-row items-center ml-5 bg-transparent"
                   onPress={() =>
-                    handleToggleExpand(activeItem.id.toString(), false)
+                    router.push({
+                      pathname: '/comments/[id]',
+                      params: {
+                        id: activeItem?.id,
+                        type: 'answer',
+                        count: activeItem?.comment_count,
+                      },
+                    } as any)
                   }
                 >
                   <Ionicons
-                    name="chevron-up-circle-outline"
+                    name="chatbubble-outline"
                     size={20}
-                    color={primaryColor}
+                    color={Colors[colorScheme].textSecondary}
                   />
                   <Text
-                    className="ml-1.5 text-sm font-bold"
-                    style={{ color: primaryColor }}
+                    className=" text-sm font-bold"
+                    style={{ color: Colors[colorScheme].textSecondary }}
                   >
-                    收起
+                    {activeItem?.comment_count || 0}
                   </Text>
                 </Pressable>
-              )}
+
+                <Pressable
+                  className="flex-row items-center ml-5 bg-transparent"
+                  onPress={() =>
+                    activeItem?.id &&
+                    toggleFloatingCollect(
+                      activeItem.id,
+                      'answer',
+                      isFloatingCollected,
+                    )
+                  }
+                >
+                  <Ionicons
+                    name={isFloatingCollected ? 'star' : 'star-outline'}
+                    size={20}
+                    color={
+                      isFloatingCollected
+                        ? '#ffb400'
+                        : Colors[colorScheme].textSecondary
+                    }
+                  />
+                  {displayFloatingCount > 0 && (
+                    <Text
+                      className=" text-sm font-bold"
+                      style={{
+                        color: isFloatingCollected
+                          ? '#ffb400'
+                          : Colors[colorScheme].textSecondary,
+                      }}
+                    >
+                      {displayFloatingCount}
+                    </Text>
+                  )}
+                </Pressable>
+
+                {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
+                  <Pressable
+                    className="flex-row items-center ml-5 bg-transparent"
+                    onPress={() =>
+                      handleToggleExpand(activeItem.id.toString(), false)
+                    }
+                  >
+                    <Ionicons
+                      name="chevron-up-circle-outline"
+                      size={20}
+                      color={primaryColor}
+                    />
+                    <Text
+                      className=" text-sm font-bold"
+                      style={{ color: primaryColor }}
+                    >
+                      收起
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+              <Pressable
+                className="flex-row items-center bg-transparent"
+                onPress={() => {
+                  setSelectedAnswer(activeItem);
+                  setIsSharing(true);
+                }}
+              >
+                <Ionicons
+                  name="share-outline"
+                  size={22}
+                  color={Colors[colorScheme].textSecondary}
+                />
+              </Pressable>
             </View>
-            <Pressable
-              className="flex-row items-center bg-transparent"
-              onPress={() => {
-                setSelectedAnswer(activeItem);
-                setIsSharing(true);
-              }}
-            >
-              <Ionicons
-                name="share-outline"
-                size={22}
-                color={Colors[colorScheme].textSecondary}
-              />
-            </Pressable>
-          </View>
-        </BlurView>
-      </Animated.View>
+          </BlurView>
+        </Animated.View>
       </Reanimated.View>
 
       {/* Immersive profile preview panel pulled from the right */}

@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { Text, View } from './Themed';
+import { BouncyButton } from './BouncyButton';
 
 export function CollectionToastOverlay() {
   const {
@@ -84,15 +85,12 @@ export function CollectionToastOverlay() {
         <Text style={[styles.text, { color: textColor }]} numberOfLines={1}>
           {toastMessage}
         </Text>
-        <Pressable
+        <BouncyButton
           onPress={handleModify}
-          style={({ pressed }) => [
-            styles.actionButton,
-            pressed && { opacity: 0.7 },
-          ]}
+          style={styles.actionButton}
         >
           <Text style={[styles.actionText, { color: actionColor }]}>修改</Text>
-        </Pressable>
+        </BouncyButton>
       </View>
     </Animated.View>
   );

@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { getNotifications, markAllNotificationsRead } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
+import { BouncyButton } from '@/components/BouncyButton';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { refreshInfiniteQuery } from '@/utils/query';
@@ -117,15 +118,12 @@ export default function NotificationScreen() {
     const iconConfig = getIconConfig(item);
 
     return (
-      <Pressable
+      <BouncyButton
         className="flex-row p-[15px]"
-        style={({ pressed }) => [
-          {
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: borderColor,
-          },
-          pressed && { opacity: 0.7 },
-        ]}
+        style={{
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: borderColor,
+        }}
         onPress={() => {
           const link = item.content?.target?.link;
           if (link) {
@@ -199,7 +197,7 @@ export default function NotificationScreen() {
             </View>
           )}
         </View>
-      </Pressable>
+      </BouncyButton>
     );
   };
 

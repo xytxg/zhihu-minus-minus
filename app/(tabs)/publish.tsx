@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View } from '@/components/Themed';
+import { BouncyButton } from '@/components/BouncyButton';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -64,9 +64,9 @@ export default function PublishView() {
 
       <View className="w-full bg-transparent">
         {PUBLISH_OPTIONS.map((item) => (
-          <Pressable
+          <BouncyButton
             key={item.id}
-            className="flex-row items-center p-5 rounded-[20px] mb-4 border bg-surface dark:bg-surface-dark active:opacity-80"
+            className="flex-row items-center p-5 rounded-[20px] mb-4 border bg-surface dark:bg-surface-dark"
             style={[
               { borderColor: colorScheme === 'dark' ? '#333' : '#f0f0f0' },
             ]}
@@ -93,7 +93,7 @@ export default function PublishView() {
                 color={secondaryColor}
               />
             </View>
-          </Pressable>
+          </BouncyButton>
         ))}
       </View>
     </View>

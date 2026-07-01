@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createPin } from '@/api/zhihu';
+import { BouncyButton } from '@/components/BouncyButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -62,14 +63,11 @@ export default function PublishPinScreen() {
           <Ionicons name="close" size={28} color={textColor} />
         </Pressable>
         <Text className="text-lg font-bold">发想法</Text>
-        <Pressable
+        <BouncyButton
           disabled={!isPublishEnabled}
           onPress={handlePublish}
           className="px-5 py-2 rounded-full min-w-[80px] items-center justify-center"
-          style={({ pressed }) => [
-            { backgroundColor: isPublishEnabled ? tintColor : borderCol },
-            pressed && { opacity: 0.8 },
-          ]}
+          style={{ backgroundColor: isPublishEnabled ? tintColor : borderCol }}
         >
           {mutation.isPending ? (
             <ActivityIndicator size="small" color="white" />
@@ -81,7 +79,7 @@ export default function PublishPinScreen() {
               发布
             </Text>
           )}
-        </Pressable>
+        </BouncyButton>
       </View>
 
       <KeyboardAvoidingView

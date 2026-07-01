@@ -4,6 +4,7 @@ import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {
   PanResponder,
+  Platform,
   Pressable,
   View as RNView,
   ScrollView,
@@ -12,6 +13,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BouncyButton } from '@/components/BouncyButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -37,6 +39,9 @@ export default function AppearanceSettings() {
     defaultTab,
     useWebView,
     enablePrivateMessaging,
+    pressOpacity,
+    pressScale,
+    androidFeedbackType,
     updateSettings,
     resetSettings,
     localCityName,
@@ -207,6 +212,127 @@ export default function AppearanceSettings() {
             primaryColor={primaryColor}
             onColorChange={(color) => updateSettings({ primaryColor: color })}
           />
+        </Section>
+
+        {/* 3. 按压反馈 */}
+        <Section title="按压反馈效果">
+          {Platform.OS === 'android' ? (
+            <SettingItem label="反馈类型">
+              <View style={styles.row}>
+                <Pressable
+                  onPress={() => updateSettings({ androidFeedbackType: 'ripple' })}
+                  style={[
+                    styles.tabChip,
+                    { backgroundColor: Colors[colorScheme].backgroundTertiary, marginRight: 8 },
+                    androidFeedbackType === 'ripple' && { backgroundColor: tintColor },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tabChipText,
+                      androidFeedbackType === 'ripple' && { color: '#fff', fontWeight: 'bold' },
+                    ]}
+                  >
+                    水波纹特效
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => updateSettings({ androidFeedbackType: 'scale-opacity' })}
+                  style={[
+                    styles.tabChip,
+                    { backgroundColor: Colors[colorScheme].backgroundTertiary },
+                    androidFeedbackType === 'scale-opacity' && { backgroundColor: tintColor },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.tabChipText,
+                      androidFeedbackType === 'scale-opacity' && { color: '#fff', fontWeight: 'bold' },
+                    ]}
+                  >
+                    透明度+缩放
+                  </Text>
+                </Pressable>
+              </View>
+            </SettingItem>
+          ) : null}
+          {(Platform.OS !== 'android' || androidFeedbackType === 'scale-opacity') && (
+            <>
+              <SettingItem label="按压不透明度">
+                <View style={styles.row}>
+                  <Pressable
+                    onPress={() =>
+                      updateSettings({
+                        pressOpacity: Math.max(0.5, parseFloat((pressOpacity - 0.05).toFixed(2))),
+                      })
+                    }
+                    style={[
+                      styles.smallBtn,
+                      { backgroundColor: Colors[colorScheme].backgroundTertiary },
+                    ]}
+                  >
+                    <Ionicons name="remove" size={20} color={Colors[colorScheme].text} />
+                  </Pressable>
+                  <Text style={styles.valueText}>{pressOpacity.toFixed(2)}</Text>
+                  <Pressable
+                    onPress={() =>
+                      updateSettings({
+                        pressOpacity: Math.min(1.0, parseFloat((pressOpacity + 0.05).toFixed(2))),
+                      })
+                    }
+                    style={[
+                      styles.smallBtn,
+                      { backgroundColor: Colors[colorScheme].backgroundTertiary },
+                    ]}
+                  >
+                    <Ionicons name="add" size={20} color={Colors[colorScheme].text} />
+                  </Pressable>
+                </View>
+              </SettingItem>
+              <SettingItem label="按压缩放比例">
+                <View style={styles.row}>
+                  <Pressable
+                    onPress={() =>
+                      updateSettings({
+                        pressScale: Math.max(0.88, parseFloat((pressScale - 0.01).toFixed(2))),
+                      })
+                    }
+                    style={[
+                      styles.smallBtn,
+                      { backgroundColor: Colors[colorScheme].backgroundTertiary },
+                    ]}
+                  >
+                    <Ionicons name="remove" size={20} color={Colors[colorScheme].text} />
+                  </Pressable>
+                  <Text style={styles.valueText}>{pressScale.toFixed(2)}</Text>
+                  <Pressable
+                    onPress={() =>
+                      updateSettings({
+                        pressScale: Math.min(1.0, parseFloat((pressScale + 0.01).toFixed(2))),
+                      })
+                    }
+                    style={[
+                      styles.smallBtn,
+                      { backgroundColor: Colors[colorScheme].backgroundTertiary },
+                    ]}
+                  >
+                    <Ionicons name="add" size={20} color={Colors[colorScheme].text} />
+                  </Pressable>
+                </View>
+              </SettingItem>
+            </>
+          )}
+          <SettingItem label="实时预览">
+            <BouncyButton
+              hapticFeedback={false}
+              style={[
+                styles.previewBtn,
+                { backgroundColor: tintColor },
+              ]}
+            >
+              <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>按我测试效果</Text>
+            </BouncyButton>
+          </SettingItem>
         </Section>
 
         {/* 实验性功能 */}
@@ -753,6 +879,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   tabChipText: { fontSize: 14 },
+  previewBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
   resetBtn: {
     marginTop: 20,
     padding: 16,

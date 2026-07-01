@@ -2,8 +2,9 @@ import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRouter } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { getInbox, type InboxThread } from '@/api/zhihu';
+import { BouncyButton } from '@/components/BouncyButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -50,15 +51,12 @@ export default function InboxScreen() {
     const time = new Date(item.updated_time * 1000).toLocaleString();
 
     return (
-      <Pressable
+      <BouncyButton
         className="flex-row p-[15px]"
-        style={({ pressed }) => [
-          {
-            borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: borderColor,
-          },
-          pressed && { opacity: 0.7 },
-        ]}
+        style={{
+          borderBottomWidth: StyleSheet.hairlineWidth,
+          borderBottomColor: borderColor,
+        }}
         onPress={() => {
           router.push({
             pathname: `/chat/[id]`,
@@ -100,7 +98,7 @@ export default function InboxScreen() {
             {item.snippet}
           </Text>
         </View>
-      </Pressable>
+      </BouncyButton>
     );
   };
 

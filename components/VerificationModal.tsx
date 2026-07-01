@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import React from 'react';
-import { Modal, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useVerificationStore } from '@/store/useVerificationStore';
 import { Text, View } from './Themed';
+import { BouncyButton } from './BouncyButton';
 
 export const VerificationModal = () => {
   const queryClient = useQueryClient();
@@ -41,9 +42,9 @@ export const VerificationModal = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>安全验证</Text>
-          <TouchableOpacity onPress={hide} style={styles.closeButton}>
+          <BouncyButton onPress={hide} style={styles.closeButton}>
             <Ionicons name="close" size={24} color="#666" />
-          </TouchableOpacity>
+          </BouncyButton>
         </View>
         <WebView
           source={{ uri: verificationUrl }}

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import Animated, { SharedTransition } from 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';

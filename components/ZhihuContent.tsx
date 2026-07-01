@@ -9,7 +9,6 @@ import {
   Modal,
   Pressable,
   StyleSheet,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   useWindowDimensions,
 } from 'react-native';
@@ -37,6 +36,7 @@ import {
 import MathView from './MathView';
 import { Text, useThemeColor, View } from './Themed';
 import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
+import { BouncyButton } from './BouncyButton';
 
 interface SegmentInfo {
   pid: string;
@@ -88,9 +88,8 @@ const LinkCard: React.FC<{
   };
 
   return (
-    <TouchableOpacity
+    <BouncyButton
       onPress={() => onPress(url)}
-      activeOpacity={0.7}
       className="flex-row items-center p-3 rounded-xl my-2.5"
       style={[
         {
@@ -130,7 +129,7 @@ const LinkCard: React.FC<{
           style={[{ backgroundColor: Colors[colorScheme].backgroundSecondary }]}
         />
       )}
-    </TouchableOpacity>
+    </BouncyButton>
   );
 });
 

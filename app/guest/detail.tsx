@@ -6,6 +6,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FeedItem } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
+import { BouncyButton } from '@/components/BouncyButton';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -215,13 +216,10 @@ export default function GuestDetailScreen() {
                 </View>
               )}
               {item.commentCount !== undefined && item.commentCount > 0 && (
-                <Pressable
+                <BouncyButton
                   onPress={navigateToComments}
                   className="flex-row items-center px-3 py-1.5 rounded-full"
-                  style={({ pressed }) => [
-                    { backgroundColor: `${secondaryTextColor}08` },
-                    pressed && { opacity: 0.7 },
-                  ]}
+                  style={{ backgroundColor: `${secondaryTextColor}08` }}
                 >
                   <Ionicons
                     name="chatbubble-ellipses-outline"
@@ -234,7 +232,7 @@ export default function GuestDetailScreen() {
                   >
                     {item.commentCount} 评论
                   </Text>
-                </Pressable>
+                </BouncyButton>
               )}
             </View>
           )}
@@ -274,16 +272,13 @@ export default function GuestDetailScreen() {
           {/* 4.5 查看全部评论大按钮 */}
           {item.commentCount !== undefined && item.commentCount > 0 && (
             <View className="px-5 mt-6 mb-2 bg-transparent">
-              <Pressable
+              <BouncyButton
                 onPress={navigateToComments}
                 className="w-full h-12 rounded-xl flex-row items-center justify-center border"
-                style={({ pressed }) => [
-                  {
-                    borderColor: tintColor,
-                    backgroundColor: `${tintColor}05`,
-                  },
-                  pressed && { opacity: 0.7 },
-                ]}
+                style={{
+                  borderColor: tintColor,
+                  backgroundColor: `${tintColor}05`,
+                }}
               >
                 <Ionicons
                   name="chatbubble-ellipses-outline"
@@ -297,7 +292,7 @@ export default function GuestDetailScreen() {
                 >
                   查看全部 {item.commentCount} 条评论
                 </Text>
-              </Pressable>
+              </BouncyButton>
             </View>
           )}
         </Animated.View>
@@ -327,32 +322,24 @@ export default function GuestDetailScreen() {
           </Text>
 
           {/* 登录按钮 */}
-          <Pressable
+          <BouncyButton
             onPress={() => router.push('/login' as any)}
             className="w-full h-12 rounded-full items-center justify-center mb-3.5"
-            style={({ pressed }) => [
-              {
-                backgroundColor: tintColor,
-                opacity: pressed ? 0.85 : 1.0,
-              },
-            ]}
+            style={{ backgroundColor: tintColor }}
           >
             <Text className="text-white text-base font-bold">
               立即登录参与互动
             </Text>
-          </Pressable>
+          </BouncyButton>
 
           {/* 返回首页 */}
-          <Pressable
+          <BouncyButton
             onPress={() => router.back()}
             className="w-full h-11 rounded-full items-center justify-center border"
-            style={({ pressed }) => [
-              {
-                borderColor,
-                backgroundColor: 'transparent',
-                opacity: pressed ? 0.7 : 1.0,
-              },
-            ]}
+            style={{
+              borderColor,
+              backgroundColor: 'transparent',
+            }}
           >
             <Text
               style={{ color: secondaryTextColor }}
@@ -360,7 +347,7 @@ export default function GuestDetailScreen() {
             >
               继续以游客身份浏览首页
             </Text>
-          </Pressable>
+          </BouncyButton>
         </Animated.View>
       </ScrollView>
     </View>

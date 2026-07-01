@@ -14,6 +14,8 @@ import { showToast } from '@/utils/toast';
 import { Text, useThemeColor } from './Themed';
 import { useColorScheme } from './useColorScheme';
 
+import { BouncyButton } from './BouncyButton';
+
 export const LikeButton = ({
   id,
   count: initialCount,
@@ -85,19 +87,22 @@ export const LikeButton = ({
   };
 
   return (
-    <Pressable
+    <BouncyButton
       onPress={handlePress}
       disabled={loading}
       className={
         variant === 'default'
           ? 'flex-row items-center px-3 py-1.5 rounded-md mr-2.5'
           : variant === 'ghost'
-            ? 'flex-row items-center bg-transparent py-1'
-            : 'flex-row items-center justify-center bg-transparent px-1'
+            ? 'flex-row items-center bg-transparent py-1 px-3.5 mr-0.5 rounded-full'
+            : 'flex-row items-center justify-center bg-transparent px-1.5 py-1.5 rounded-full'
       }
       style={[
         variant === 'default' && {
           backgroundColor: isUpvoted ? tintColor : borderColor,
+        },
+        (variant === 'ghost' || variant === 'minimal') && {
+          borderRadius: 99,
         },
         loading && { opacity: 0.7 },
       ]}
@@ -162,6 +167,6 @@ export const LikeButton = ({
               : '0'}
         </Text>
       )}
-    </Pressable>
+    </BouncyButton>
   );
 };

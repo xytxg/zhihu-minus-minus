@@ -1,8 +1,9 @@
-import * as Haptics from 'expo-haptics';
 import type React from 'react';
 import { useCallback } from 'react';
 import {
+  Platform,
   Pressable,
+  StyleSheet,
   type PressableProps,
   type StyleProp,
   type ViewStyle,
@@ -13,28 +14,42 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface BouncyButtonProps extends PressableProps {
   children: React.ReactNode;
-  activeScale?: number;
-  activeOpacity?: number;
   hapticFeedback?: boolean;
-  className?: string; // For NativeWind support
+  className?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export function BouncyButton({
   children,
-  activeScale = 0.98,
-  activeOpacity = 0.82,
-  hapticFeedback = true,
+  hapticFeedback = false,
   style,
   onPressIn,
   onPressOut,
   ...props
 }: BouncyButtonProps) {
+  const isAndroid = Platform.OS === 'android';
+  const settings = useSettingsStore();
+  const pressOpacity = settings.pressOpacity ?? 0.82;
+  const pressScale = settings.pressScale ?? 0.98;
+  const primaryColor = settings.primaryColor;
+  const androidFeedbackType = settings.androidFeedbackType ?? 'ripple';
+
+  // 是否启用物理动画（缩放与不透明度）
+  const enableAnimation = !isAndroid || androidFeedbackType === 'scale-opacity';
+  // 是否启用 Android 水波纹效果
+  const enableRipple = isAndroid && androidFeedbackType === 'ripple';
+
+  // Android 水波纹颜色：跟随主题色，带透明度
+  const rippleColor = primaryColor
+    ? `${primaryColor}1A` // 10% opacity
+    : 'rgba(0,0,0,0.06)';
+
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
@@ -47,33 +62,66 @@ export function BouncyButton({
 
   const handlePressIn = useCallback(
     (e: any) => {
-      if (hapticFeedback) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      console.log('[BouncyButton] PressIn:', {
+        isAndroid,
+        androidFeedbackType,
+        enableAnimation,
+        enableRipple,
+        rippleColor,
+      });
+      if (enableAnimation) {
+        scale.value = withSpring(pressScale, { damping: 35, stiffness: 800 });
+        opacity.value = withTiming(pressOpacity, { duration: 50 });
       }
-      scale.value = withSpring(activeScale, { damping: 35, stiffness: 800 });
-      opacity.value = withTiming(activeOpacity, { duration: 50 });
       if (onPressIn) onPressIn(e);
     },
-    [activeScale, activeOpacity, hapticFeedback, onPressIn, scale, opacity],
+    [pressScale, pressOpacity, enableAnimation, onPressIn, scale, opacity, isAndroid, androidFeedbackType, enableRipple, rippleColor],
   );
 
   const handlePressOut = useCallback(
     (e: any) => {
-      scale.value = withSpring(1, { damping: 35, stiffness: 800 });
-      opacity.value = withTiming(1, { duration: 100 });
+      console.log('[BouncyButton] PressOut');
+      if (enableAnimation) {
+        scale.value = withSpring(1, { damping: 35, stiffness: 800 });
+        opacity.value = withTiming(1, { duration: 100 });
+      }
       if (onPressOut) onPressOut(e);
     },
-    [onPressOut, scale, opacity],
+    [enableAnimation, onPressOut, scale, opacity],
   );
 
+  if (enableAnimation) {
+    return (
+      <AnimatedPressable
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[animatedStyle, style]}
+        {...props}
+      >
+        {children}
+      </AnimatedPressable>
+    );
+  }
+
+  const flatStyle = StyleSheet.flatten(style) || {};
+  const borderRadius = flatStyle.borderRadius ?? 8; // 保底默认圆角以避免水波纹变成大方块
+
   return (
-    <AnimatedPressable
+    <Pressable
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[animatedStyle, style]}
+      style={[
+        enableRipple ? { overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.01)', borderRadius } : undefined,
+        style,
+      ]}
+      android_ripple={{
+        color: rippleColor,
+        borderless: false,
+        foreground: true, // 强制在前层绘制，避免被子组件背景色覆盖
+      }}
       {...props}
     >
       {children}
-    </AnimatedPressable>
+    </Pressable>
   );
 }

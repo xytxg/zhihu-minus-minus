@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { View as NativeView, Pressable, TouchableOpacity } from 'react-native';
+import { View as NativeView, Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -12,6 +12,7 @@ import { useSettingsStore } from '@/store/useSettingsStore';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
+import { BouncyButton } from './BouncyButton';
 
 export const CreationCard = React.forwardRef(
   (
@@ -166,8 +167,7 @@ export const CreationCard = React.forwardRef(
       type === 'answer' ? 'answer' : type === 'article' ? 'article' : 'pin';
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.82}
+      <BouncyButton
         onPress={handlePress}
         style={[
           {
@@ -186,8 +186,7 @@ export const CreationCard = React.forwardRef(
         ]}
         className="p-4 mb-2.5 shadow-sm"
       >
-        <TouchableOpacity
-          activeOpacity={0.6}
+        <BouncyButton
           onPress={() => {
             if (type === 'answer' && item.question?.id) {
               router.push(`/question/${item.question.id}`);
@@ -208,7 +207,7 @@ export const CreationCard = React.forwardRef(
               {getTitle()}
             </Text>
           </Animated.View>
-        </TouchableOpacity>
+        </BouncyButton>
 
         <View className="bg-transparent mt-1">
           {expanded &&
@@ -466,13 +465,12 @@ export const CreationCard = React.forwardRef(
                   ).toLocaleDateString()
                 : ''}
             </Text>
-            <TouchableOpacity
-              activeOpacity={0.6}
-              onPress={() => setMenuVisible(true)}
+            <BouncyButton
+                  onPress={() => setMenuVisible(true)}
               className="p-1 -mr-1 bg-transparent"
             >
               <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
-            </TouchableOpacity>
+            </BouncyButton>
           </View>
         </NativeView>
 
@@ -490,7 +488,7 @@ export const CreationCard = React.forwardRef(
             } as any
           }
         />
-      </TouchableOpacity>
+      </BouncyButton>
     );
   },
 );

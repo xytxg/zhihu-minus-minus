@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import type React from 'react';
 import { useState } from 'react';
-import { Image, Modal, Pressable } from 'react-native';
+import { Image, Modal } from 'react-native';
+import { BouncyButton } from './BouncyButton';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 import { Text, useThemeColor, View } from './Themed';
 
 interface CommentContentProps {
@@ -66,9 +68,9 @@ export const CommentContent: React.FC<CommentContentProps> = ({
       {/* 渲染提取出的图片卡片（独占整行） */}
       {imageUrls.map((url, idx) => (
         <View key={`${url}-${idx}`} className="bg-transparent my-1.5 w-full">
-          <Pressable
+          <BouncyButton
             onPress={() => handleOpenImage(url)}
-            className="flex-row items-center p-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20 active:opacity-70"
+            className="flex-row items-center p-2 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/20"
           >
             <Image
               source={{ uri: url }}
@@ -89,7 +91,7 @@ export const CommentContent: React.FC<CommentContentProps> = ({
               size={16}
               color={Colors[colorScheme].textSecondary}
             />
-          </Pressable>
+          </BouncyButton>
         </View>
       ))}
 

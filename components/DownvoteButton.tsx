@@ -67,7 +67,7 @@ export const DownvoteButton = ({
       disabled={loading}
       className={
         variant === 'default'
-          ? 'w-9 h-9 rounded-lg justify-center items-center ml-1.5'
+          ? 'w-9 h-9 rounded-lg justify-center items-center '
           : 'flex-row items-center justify-center bg-transparent px-1'
       }
       style={[

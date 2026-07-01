@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import Animated, { SharedTransition } from 'react-native-reanimated';
 import type { FeedItem } from '@/api/zhihu';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -9,6 +9,7 @@ import Colors from '@/constants/Colors';
 import { useCollectionAction } from '@/hooks/useCollectionAction';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCollectionStore } from '@/store/useCollectionStore';
+import { BouncyButton } from './BouncyButton';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { Text, useThemeColor, View } from './Themed';
@@ -37,8 +38,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const warningColor = useThemeColor({}, 'warning');
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.82}
+    <BouncyButton
       onPress={() => {
         if (isGuest) {
           router.push({
@@ -83,8 +83,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
       )}
 
       {/* 热区1：点击作者头像/姓名 -> 用户页 */}
-      <TouchableOpacity
-        activeOpacity={0.6}
+      <BouncyButton
         onPress={() =>
           router.push({
             pathname: `/user/${item.author.url_token || item.author.id}`,
@@ -101,14 +100,13 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         <Text type="secondary" className="ml-2 text-[13px]">
           {item.author.name}
         </Text>
-      </TouchableOpacity>
+      </BouncyButton>
 
       {/* 话题标签 */}
       {item.topics && item.topics.length > 0 && (
         <View className="flex-row flex-wrap mb-2 bg-transparent">
           {item.topics.map((topic: any) => (
-            <TouchableOpacity
-              activeOpacity={0.6}
+            <BouncyButton
               key={topic.id}
               onPress={() => router.push(`/topic/${topic.id}` as any)}
               className="px-2 py-0.5 rounded-sm mr-2 mb-1"
@@ -117,15 +115,14 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
               <Text className="text-[11px] text-tertiary dark:text-tertiary-dark">
                 {topic.name}
               </Text>
-            </TouchableOpacity>
+            </BouncyButton>
           ))}
         </View>
       )}
 
       {/* 标题 - 统一为主卡片点击，但点击标题跳转问题 */}
       {item.title ? (
-        <TouchableOpacity
-          activeOpacity={0.6}
+        <BouncyButton
           onPress={() => {
             if (isGuest) {
               router.push({
@@ -169,7 +166,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
               {item.title}
             </Text>
           </Animated.View>
-        </TouchableOpacity>
+        </BouncyButton>
       ) : null}
 
       {/* 摘要与图片 - 统一为主卡片点击，完美穿透 */}
@@ -205,8 +202,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           />
 
           {/* 点击评论按钮 -> 评论页 */}
-          <TouchableOpacity
-            activeOpacity={0.6}
+          <BouncyButton
             onPress={() => {
               const type =
                 item.type === 'articles'
@@ -218,22 +214,21 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                 `/comments/${item.id}?type=${type}&count=${item.commentCount}`,
               );
             }}
-            className="flex-row items-center ml-5 bg-transparent py-1"
+            className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
           >
             <Ionicons name="chatbubble-outline" size={16} color="#888" />
             <Text className="text-[#888] ml-1 text-xs font-semibold">
               {item.commentCount > 0 ? item.commentCount : '评论'}
             </Text>
-          </TouchableOpacity>
+          </BouncyButton>
 
           {isCollectable && (
-            <TouchableOpacity
-              activeOpacity={0.6}
+            <BouncyButton
               onPress={() => {
                 const typeStr = item.type === 'answers' ? 'answer' : 'article';
                 toggleCollect(item.id, typeStr, isCollected);
               }}
-              className="flex-row items-center ml-5 bg-transparent py-1"
+              className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
             >
               <Ionicons
                 name={isCollected ? 'star' : 'star-outline'}
@@ -248,16 +243,16 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                   {displayCount}
                 </Text>
               )}
-            </TouchableOpacity>
+            </BouncyButton>
           )}
 
-          <TouchableOpacity
-            activeOpacity={0.6}
+          <BouncyButton
             onPress={() => setMenuVisible(true)}
             className="ml-auto p-2 -mr-2 bg-transparent"
+            style={{ borderRadius: 99 }}
           >
             <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
-          </TouchableOpacity>
+          </BouncyButton>
         </View>
       )}
 
@@ -273,6 +268,6 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           excerpt: item.excerpt,
         }}
       />
-    </TouchableOpacity>
+    </BouncyButton>
   );
 };

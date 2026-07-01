@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { getDailyBefore, getDailyLatest } from '@/api/zhihu';
+import { BouncyButton } from './BouncyButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -204,8 +205,7 @@ export const DailyList = React.forwardRef<
           }
           const story = item.data;
           return (
-            <Pressable
-              style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+            <BouncyButton
               onPress={() =>
                 router.push({
                   pathname: `/article/${story.id}`,
@@ -233,7 +233,7 @@ export const DailyList = React.forwardRef<
                   </Text>
                 </View>
               </View>
-            </Pressable>
+            </BouncyButton>
           );
         }}
         ListFooterComponent={

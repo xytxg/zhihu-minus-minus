@@ -20,6 +20,7 @@ import {
   getTopicParents,
   unfollowTopic,
 } from '@/api/zhihu/topic';
+import { BouncyButton } from '@/components/BouncyButton';
 import { FeedCard } from '@/components/FeedCard';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -325,9 +326,9 @@ function TopicStructureView({
           </View>
           <View className="bg-transparent">
             {bestAnswerers.map((item: any) => (
-              <Pressable
+              <BouncyButton
                 key={item.member.id}
-                className="flex-row items-center mb-4 active:opacity-70"
+                className="flex-row items-center mb-4"
                 onPress={() => router.push(`/user/${item.member.url_token}`)}
               >
                 <Image
@@ -358,7 +359,7 @@ function TopicStructureView({
                     赞同
                   </Text>
                 </View>
-              </Pressable>
+              </BouncyButton>
             ))}
           </View>
         </View>

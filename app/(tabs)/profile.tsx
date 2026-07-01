@@ -16,6 +16,7 @@ import {
   Switch,
 } from 'react-native';
 import { getMe, getMember } from '@/api/zhihu';
+import { BouncyButton } from '@/components/BouncyButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -294,7 +295,7 @@ export default function ProfileScreen() {
       {/* 我的资产 */}
       <View
         type="surface"
-        className="px-4 rounded-2xl mx-3 mt-3 overflow-hidden"
+        className="rounded-2xl mx-3 mt-3 overflow-hidden"
       >
         <MenuItem
           icon="bookmark-outline"
@@ -313,9 +314,9 @@ export default function ProfileScreen() {
       {/* 通用设置 */}
       <View
         type="surface"
-        className="px-4 rounded-2xl mx-3 mt-3 overflow-hidden"
+        className="rounded-2xl mx-3 mt-3 overflow-hidden"
       >
-        <View className="flex-row items-center justify-between py-[15px] bg-transparent">
+        <View className="flex-row items-center justify-between py-[15px] px-4 bg-transparent">
           <View className="flex-row items-center bg-transparent">
             <View
               className="w-9 h-9 rounded-lg justify-center items-center"
@@ -566,10 +567,9 @@ function StatItem({ count, label, onPress }: any) {
 
 function MenuItem({ icon, title, color = '#666', right, onPress }: any) {
   return (
-    <Pressable
+    <BouncyButton
       onPress={onPress}
-      className="flex-row items-center justify-between py-[15px]"
-      style={({ pressed }) => pressed && { opacity: 0.7 }}
+      className="flex-row items-center justify-between py-[15px] px-4"
     >
       <View className="flex-row items-center bg-transparent">
         <View
@@ -585,6 +585,6 @@ function MenuItem({ icon, title, color = '#666', right, onPress }: any) {
       ) : (
         <Ionicons name="chevron-forward" size={16} color="#ccc" />
       )}
-    </Pressable>
+    </BouncyButton>
   );
 }

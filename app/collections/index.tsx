@@ -24,6 +24,7 @@ import {
   updateCollection,
 } from '@/api/zhihu';
 import { Text, useThemeColor, View } from '@/components/Themed';
+import { BouncyButton } from '@/components/BouncyButton';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -142,15 +143,12 @@ export default function MyCollectionsScreen() {
   const collections = data?.pages.flatMap((page) => page.data) || [];
 
   const renderItem = ({ item }: { item: any }) => (
-    <Pressable
+    <BouncyButton
       className="flex-row p-[15px] items-center"
-      style={({ pressed }) => [
-        {
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: borderColor,
-        },
-        pressed && { opacity: 0.7 },
-      ]}
+      style={{
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: borderColor,
+      }}
       onPress={() => router.push(`/collections/${item.id}`)}
       onLongPress={() => {
         Alert.alert(item.title, '选择操作', [
@@ -204,7 +202,7 @@ export default function MyCollectionsScreen() {
       <Pressable onPress={() => openModal(item)} className="p-2.5">
         <Ionicons name="ellipsis-horizontal" size={18} color="#ccc" />
       </Pressable>
-    </Pressable>
+    </BouncyButton>
   );
 
   return (

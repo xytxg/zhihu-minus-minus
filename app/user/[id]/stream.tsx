@@ -22,7 +22,6 @@ import {
   Pressable,
   SafeAreaView,
   StyleSheet,
-  TouchableOpacity,
   UIManager,
   useWindowDimensions,
 } from 'react-native';
@@ -33,6 +32,7 @@ import {
   getMemberActivities,
   getMemberRelations,
 } from '@/api/zhihu';
+import { BouncyButton } from '@/components/BouncyButton';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
 import { Text, View } from '@/components/Themed';
@@ -171,7 +171,7 @@ const StreamItem = forwardRef(
       type === 'answer' ? 'answer' : type === 'article' ? 'article' : 'pin';
 
     return (
-      <TouchableOpacity
+      <BouncyButton
         activeOpacity={0.82}
         onPress={handlePress}
         style={[
@@ -429,27 +429,27 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-              item.updated ||
-              item.created_time ||
-              item.created
+                item.updated ||
+                item.created_time ||
+                item.created
                 ? new Date(
-                    (item.updated_time ||
-                      item.updated ||
-                      item.created_time ||
-                      item.created) * 1000,
-                  ).toLocaleDateString()
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
                 : ''}
             </Text>
-            <TouchableOpacity
+            <BouncyButton
               activeOpacity={0.6}
               onPress={() => onShare(item)}
               className="p-1 -mr-1 bg-transparent"
             >
               <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
-            </TouchableOpacity>
+            </BouncyButton>
           </View>
         </NativeView>
-      </TouchableOpacity>
+      </BouncyButton>
     );
   },
 );
@@ -774,7 +774,7 @@ export default function UserStreamScreen() {
           backgroundColor: Colors[colorScheme].background,
         }}
       >
-        <TouchableOpacity
+        <BouncyButton
           onPress={() => router.back()}
           className="p-1 -ml-1 bg-transparent"
         >
@@ -783,7 +783,7 @@ export default function UserStreamScreen() {
             size={24}
             color={Colors[colorScheme].text}
           />
-        </TouchableOpacity>
+        </BouncyButton>
 
         {/* User Mini Profile */}
         <Pressable
@@ -878,16 +878,16 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title:
-                  selectedAnswer.title ||
-                  selectedAnswer.question?.title ||
-                  '想法',
-                author: selectedAnswer.author?.name || user?.name,
-                authorHeadline:
-                  selectedAnswer.author?.headline || user?.headline,
-                content: selectedAnswer.excerpt || selectedAnswer.content || '',
-              }
+              id: selectedAnswer.id,
+              title:
+                selectedAnswer.title ||
+                selectedAnswer.question?.title ||
+                '想法',
+              author: selectedAnswer.author?.name || user?.name,
+              authorHeadline:
+                selectedAnswer.author?.headline || user?.headline,
+              content: selectedAnswer.excerpt || selectedAnswer.content || '',
+            }
             : null
         }
       />
@@ -961,7 +961,7 @@ export default function UserStreamScreen() {
                 />
                 <Text
                   type="primary"
-                  className="ml-1.5 text-sm font-bold"
+                  className=" text-sm font-bold"
                   style={{ color: Colors[colorScheme].primary }}
                 >
                   {activeItem?.comment_count || 0}
@@ -982,7 +982,7 @@ export default function UserStreamScreen() {
                   />
                   <Text
                     type="primary"
-                    className="ml-1.5 text-sm font-bold"
+                    className=" text-sm font-bold"
                     style={{ color: Colors[colorScheme].primary }}
                   >
                     收起
