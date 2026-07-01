@@ -142,7 +142,8 @@ export const getMemberFollowingColumns = async (
   offset = 0,
   limit = 20,
 ): Promise<ZhihuFollowingColumnsResponse> => {
-  const include = 'data[*].intro,followers,articles_count,voteup_count,items_count';
+  const include =
+    'data[*].intro,followers,articles_count,voteup_count,items_count';
   const res = await apiClient.get(`/members/${memberId}/following-columns`, {
     params: {
       include,
@@ -235,7 +236,8 @@ export const getMemberFollowingFavlists = async (
   offset = 0,
   limit = 20,
 ): Promise<ZhihuFollowingFavlistsResponse> => {
-  const include = 'data[*].updated_time,answer_count,follower_count,creator,description,is_following,comment_count,created_time';
+  const include =
+    'data[*].updated_time,answer_count,follower_count,creator,description,is_following,comment_count,created_time';
   const res = await apiClient.get(`/members/${memberId}/following-favlists`, {
     params: {
       include,

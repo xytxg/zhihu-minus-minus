@@ -167,7 +167,9 @@ export const getFeed = async (url: string): Promise<ZhihuFeedResponse> => {
       if (localSection && localSection.section_id) {
         finalUrl = `https://api.zhihu.com/feed-root/section/${localSection.section_id}?channelStyle=0`;
         if (localSection.section_name) {
-          useSettingsStore.getState().updateSettings({ localCityName: localSection.section_name });
+          useSettingsStore
+            .getState()
+            .updateSettings({ localCityName: localSection.section_name });
         }
       } else {
         throw new Error('未找到同城版块');

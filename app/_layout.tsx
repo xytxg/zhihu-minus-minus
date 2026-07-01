@@ -26,9 +26,8 @@ import '../global.css';
 import * as Clipboard from 'expo-clipboard';
 import { Alert, AppState, type AppStateStatus, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-import { useSettingsStore } from '@/store/useSettingsStore';
 import Colors from '@/constants/Colors';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();

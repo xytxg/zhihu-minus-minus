@@ -212,7 +212,7 @@ export const CreationCard = React.forwardRef(
 
         <View className="bg-transparent mt-1">
           {expanded &&
-            (type === 'answer' || type === 'article' || type === 'pin') ? (
+          (type === 'answer' || type === 'article' || type === 'pin') ? (
             <View className="flex-1 bg-transparent mt-1">
               <ZhihuContent
                 objectId={item.id?.toString()}
@@ -426,7 +426,11 @@ export const CreationCard = React.forwardRef(
                   {displayCount > 0 && (
                     <Text
                       className="ml-1 text-xs font-semibold"
-                      style={{ color: isCollected ? useThemeColor({}, 'warning') : '#888' }}
+                      style={{
+                        color: isCollected
+                          ? useThemeColor({}, 'warning')
+                          : '#888',
+                      }}
                     >
                       {displayCount}
                     </Text>
@@ -451,15 +455,15 @@ export const CreationCard = React.forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-                item.updated ||
-                item.created_time ||
-                item.created
+              item.updated ||
+              item.created_time ||
+              item.created
                 ? new Date(
-                  (item.updated_time ||
-                    item.updated ||
-                    item.created_time ||
-                    item.created) * 1000,
-                ).toLocaleDateString()
+                    (item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created) * 1000,
+                  ).toLocaleDateString()
                 : ''}
             </Text>
             <TouchableOpacity

@@ -27,7 +27,7 @@ export type ViewProps = ThemeProps & DefaultView['props'];
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark | string,
+  colorName: (keyof typeof Colors.light & keyof typeof Colors.dark) | string,
 ) {
   const theme = useColorScheme();
   const { primaryColor } = useSettingsStore();
@@ -39,7 +39,11 @@ export function useThemeColor(
 
   // Support dynamic transparent variations of the primaryColor via 'primary_XX' where XX is hex opacity
   if (primaryColor) {
-    if (colorName === 'primary' || colorName === 'tint' || colorName === 'tabIconSelected') {
+    if (
+      colorName === 'primary' ||
+      colorName === 'tint' ||
+      colorName === 'tabIconSelected'
+    ) {
       return primaryColor;
     }
     if (colorName === 'primaryTransparent') {
@@ -56,7 +60,11 @@ export function useThemeColor(
     }
   } else {
     // If primaryColor is null, use the default theme primary/tint color from constants
-    if (colorName === 'primary' || colorName === 'tint' || colorName === 'tabIconSelected') {
+    if (
+      colorName === 'primary' ||
+      colorName === 'tint' ||
+      colorName === 'tabIconSelected'
+    ) {
       return Colors[theme].primary;
     }
     if (colorName === 'primaryTransparent') {
@@ -69,7 +77,8 @@ export function useThemeColor(
   }
 
   // Fallback to static mapping
-  const staticKey = colorName as keyof typeof Colors.light & keyof typeof Colors.dark;
+  const staticKey = colorName as keyof typeof Colors.light &
+    keyof typeof Colors.dark;
   if (staticKey && Colors[theme][staticKey]) {
     return Colors[theme][staticKey];
   }

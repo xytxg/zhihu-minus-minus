@@ -18,7 +18,11 @@ import {
   getArticleCollectionStatus,
   removeArticleFromCollection,
 } from '@/api/zhihu/collection';
-import { followColumn, getArticleColumnCard, unfollowColumn } from '@/api/zhihu/column';
+import {
+  followColumn,
+  getArticleColumnCard,
+  unfollowColumn,
+} from '@/api/zhihu/column';
 import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
@@ -375,7 +379,11 @@ export default function ArticleDetail() {
                 <Text className="text-base font-bold" numberOfLines={1}>
                   {columnCard.title}
                 </Text>
-                <Text type="secondary" className="text-xs mt-1" numberOfLines={1}>
+                <Text
+                  type="secondary"
+                  className="text-xs mt-1"
+                  numberOfLines={1}
+                >
                   {columnCard.extra || `${columnCard.intro || '知乎专栏'}`}
                 </Text>
               </View>
@@ -387,7 +395,9 @@ export default function ArticleDetail() {
                 className="px-4 py-1.5 rounded-full"
                 style={[
                   {
-                    backgroundColor: columnCard.is_following ? 'transparent' : tintColor,
+                    backgroundColor: columnCard.is_following
+                      ? 'transparent'
+                      : tintColor,
                   },
                   columnCard.is_following && {
                     borderWidth: 1,
@@ -397,7 +407,9 @@ export default function ArticleDetail() {
               >
                 <Text
                   style={{
-                    color: columnCard.is_following ? Colors[colorScheme].textSecondary : '#fff',
+                    color: columnCard.is_following
+                      ? Colors[colorScheme].textSecondary
+                      : '#fff',
                   }}
                   className="font-bold text-sm"
                 >

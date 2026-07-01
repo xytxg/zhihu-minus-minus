@@ -2,7 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { PanResponder, Pressable, ScrollView, StyleSheet, Switch, TextInput, View as RNView } from 'react-native';
+import {
+  PanResponder,
+  Pressable,
+  View as RNView,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  TextInput,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -17,8 +25,6 @@ const PRESET_COLORS = [
   '#9b59b6', // Purple
   '#34495e', // Navy
 ];
-
-
 
 export default function AppearanceSettings() {
   const insets = useSafeAreaInsets();
@@ -203,7 +209,6 @@ export default function AppearanceSettings() {
           />
         </Section>
 
-
         {/* 实验性功能 */}
         <Section title="实验性功能 (默认关闭)">
           <SettingItem label="启用 WebView 渲染">
@@ -312,7 +317,10 @@ function SettingItem({
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
   let cleanHex = hex.replace('#', '');
   if (cleanHex.length === 3) {
-    cleanHex = cleanHex.split('').map((x) => x + x).join('');
+    cleanHex = cleanHex
+      .split('')
+      .map((x) => x + x)
+      .join('');
   }
   if (cleanHex.length !== 6) return { h: 211, s: 100, l: 50 };
   const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
@@ -329,13 +337,23 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
     switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
     }
     h /= 6;
   }
-  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100),
+  };
 }
 
 // Convert HSL to Hex
@@ -345,13 +363,34 @@ function hslToHex(h: number, s: number, l: number): string {
   const c = (1 - Math.abs(2 * lFrac - 1)) * sFrac;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = lFrac - c / 2;
-  let r = 0; let g = 0; let b = 0;
-  if (0 <= h && h < 60) { r = c; g = x; b = 0; }
-  else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
-  else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
-  else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
-  else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
-  else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (0 <= h && h < 60) {
+    r = c;
+    g = x;
+    b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x;
+    g = c;
+    b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0;
+    g = c;
+    b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0;
+    g = x;
+    b = c;
+  } else if (240 <= h && h < 300) {
+    r = x;
+    g = 0;
+    b = c;
+  } else if (300 <= h && h < 360) {
+    r = c;
+    g = 0;
+    b = x;
+  }
   const toHex = (val: number) => {
     const s = Math.round((val + m) * 255).toString(16);
     return s.length === 1 ? `0${s}` : s;
@@ -422,9 +461,8 @@ function HslSlider({
     }),
   ).current;
 
-  const ratio = trackWidth > 0
-    ? Math.max(0, Math.min(1, (value - min) / (max - min)))
-    : 0;
+  const ratio =
+    trackWidth > 0 ? Math.max(0, Math.min(1, (value - min) / (max - min))) : 0;
 
   return (
     <RNView
@@ -434,7 +472,14 @@ function HslSlider({
       {...panResponder.panHandlers}
     >
       {/* Gradient track */}
-      <RNView style={{ height: 12, borderRadius: 6, overflow: 'hidden', flexDirection: 'row' }}>
+      <RNView
+        style={{
+          height: 12,
+          borderRadius: 6,
+          overflow: 'hidden',
+          flexDirection: 'row',
+        }}
+      >
         {gradientColors.map((color, i) => (
           <RNView key={i} style={{ flex: 1, backgroundColor: color }} />
         ))}
@@ -475,7 +520,8 @@ function ColorPickerSection({
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].border;
 
-  const getInitialHsl = () => (primaryColor ? hexToHsl(primaryColor) : hexToHsl('#0084ff'));
+  const getInitialHsl = () =>
+    primaryColor ? hexToHsl(primaryColor) : hexToHsl('#0084ff');
   const [hsl, setHsl] = useState(getInitialHsl);
   // Local text state for hex input — allows typing without jumping back
   const [hexText, setHexText] = useState(primaryColor || '#0084ff');
@@ -501,9 +547,18 @@ function ColorPickerSection({
   const previewColor = hslToHex(hsl.h, hsl.s, hsl.l);
 
   // Build gradient arrays
-  const hueGradient = Array.from({ length: 36 }, (_, i) => `hsl(${i * 10}, 100%, 50%)`);
-  const satGradient = Array.from({ length: 10 }, (_, i) => `hsl(${hsl.h}, ${i * 11}%, ${hsl.l}%)`);
-  const litGradient = Array.from({ length: 10 }, (_, i) => `hsl(${hsl.h}, ${hsl.s}%, ${i * 11}%)`);
+  const hueGradient = Array.from(
+    { length: 36 },
+    (_, i) => `hsl(${i * 10}, 100%, 50%)`,
+  );
+  const satGradient = Array.from(
+    { length: 10 },
+    (_, i) => `hsl(${hsl.h}, ${i * 11}%, ${hsl.l}%)`,
+  );
+  const litGradient = Array.from(
+    { length: 10 },
+    (_, i) => `hsl(${hsl.h}, ${hsl.s}%, ${i * 11}%)`,
+  );
 
   return (
     <RNView style={{ padding: 14, paddingTop: 6, gap: 14 }}>
@@ -556,7 +611,9 @@ function ColorPickerSection({
 
       {/* Hue slider */}
       <RNView style={{ gap: 2 }}>
-        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>色相 (Hue)  {hsl.h}°</Text>
+        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>
+          色相 (Hue) {hsl.h}°
+        </Text>
         <HslSlider
           value={hsl.h}
           min={0}
@@ -569,7 +626,9 @@ function ColorPickerSection({
 
       {/* Saturation slider */}
       <RNView style={{ gap: 2 }}>
-        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>饱和度 (Saturation)  {hsl.s}%</Text>
+        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>
+          饱和度 (Saturation) {hsl.s}%
+        </Text>
         <HslSlider
           value={hsl.s}
           min={10}
@@ -582,7 +641,9 @@ function ColorPickerSection({
 
       {/* Lightness slider */}
       <RNView style={{ gap: 2 }}>
-        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>亮度 (Lightness)  {hsl.l}%</Text>
+        <Text style={{ fontSize: 13, fontWeight: 'bold' }}>
+          亮度 (Lightness) {hsl.l}%
+        </Text>
         <HslSlider
           value={hsl.l}
           min={10}
@@ -596,9 +657,7 @@ function ColorPickerSection({
   );
 }
 
-
 const styles = StyleSheet.create({
-
   container: { flex: 1 },
   section: { marginBottom: 24 },
   sectionTitle: {

@@ -21,11 +21,11 @@ import {
   getChildComments,
   getComment,
 } from '@/api/zhihu';
+import { CommentContent } from '@/components/CommentContent';
 import { LikeButton } from '@/components/LikeButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-import { CommentContent } from '@/components/CommentContent';
 
 export default function ReplyDetailScreen() {
   const { id, parent } = useLocalSearchParams<{
@@ -137,8 +137,8 @@ export default function ReplyDetailScreen() {
                   onPress={() =>
                     goToProfile(
                       item.reply_to_author?.member.url_token ||
-                      item.reply_to_author?.member.id ||
-                      0,
+                        item.reply_to_author?.member.id ||
+                        0,
                     )
                   }
                 >
@@ -200,7 +200,7 @@ export default function ReplyDetailScreen() {
             onPress={() =>
               goToProfile(
                 parentComment.author.member.url_token ||
-                parentComment.author.member.id,
+                  parentComment.author.member.id,
               )
             }
           >
@@ -216,7 +216,7 @@ export default function ReplyDetailScreen() {
                 onPress={() =>
                   goToProfile(
                     parentComment.author.member.url_token ||
-                    parentComment.author.member.id,
+                      parentComment.author.member.id,
                   )
                 }
               >
@@ -231,8 +231,8 @@ export default function ReplyDetailScreen() {
               <Text type="secondary" className="text-xs">
                 {parentComment.created_time
                   ? new Date(
-                    parentComment.created_time * 1000,
-                  ).toLocaleDateString()
+                      parentComment.created_time * 1000,
+                    ).toLocaleDateString()
                   : ''}
               </Text>
               <View className="flex-row items-center">

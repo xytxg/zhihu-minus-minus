@@ -253,11 +253,7 @@ const AnswerItem = forwardRef(
                 >
                   收起回答
                 </Text>
-                <Ionicons
-                  name="chevron-up"
-                  size={14}
-                  color={primaryColor}
-                />
+                <Ionicons name="chevron-up" size={14} color={primaryColor} />
               </Pressable>
             </View>
           ) : (
@@ -383,7 +379,9 @@ const AnswerItem = forwardRef(
             {displayCount > 0 && (
               <Text
                 className="ml-1 text-xs font-semibold"
-                style={{ color: isCollected ? useThemeColor({}, 'warning') : '#888' }}
+                style={{
+                  color: isCollected ? useThemeColor({}, 'warning') : '#888',
+                }}
               >
                 {displayCount}
               </Text>
@@ -669,10 +667,7 @@ export default function QuestionDetail() {
         </Reanimated.View>
         {qLoading ? (
           <View className="h-[100px] justify-center bg-transparent">
-            <ActivityIndicator
-              size="small"
-              color={primaryColor}
-            />
+            <ActivityIndicator size="small" color={primaryColor} />
           </View>
         ) : (
           <>
@@ -685,7 +680,9 @@ export default function QuestionDetail() {
                     className="px-2.5 py-1 rounded-[15px] mr-2 mb-1"
                     style={{ backgroundColor: primaryTransparent }}
                   >
-                    <Text className="text-xs" style={{ color: primaryColor }}>{t.name}</Text>
+                    <Text className="text-xs" style={{ color: primaryColor }}>
+                      {t.name}
+                    </Text>
                   </Pressable>
                 ))}
               </View>

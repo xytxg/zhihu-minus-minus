@@ -50,14 +50,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   fontSizeScale: 1.0,
   lineHeightScale: 1.5,
   primaryColor: '#0084ff', // Zhihu Blue — the canonical default
-  visibleTabs: [
-    'following',
-    'recommend',
-    'hot',
-    'daily',
-    'publish',
-    'profile',
-  ],
+  visibleTabs: ['following', 'recommend', 'hot', 'daily', 'publish', 'profile'],
   defaultTab: 'recommend',
   localCityName: null,
   borderRadius: 12,

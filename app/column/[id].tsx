@@ -5,7 +5,12 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { followColumn, getColumn, getColumnItems, unfollowColumn } from '@/api/zhihu/column';
+import {
+  followColumn,
+  getColumn,
+  getColumnItems,
+  unfollowColumn,
+} from '@/api/zhihu/column';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -85,7 +90,8 @@ export default function ColumnDetail() {
           <View className="ml-4 flex-1 bg-transparent">
             <Text className="text-xl font-bold">{column.title}</Text>
             <Text type="secondary" className="text-sm mt-1">
-              {column.followers || 0} 关注者 · {column.items_count || column.articles_count || 0} 文章
+              {column.followers || 0} 关注者 ·{' '}
+              {column.items_count || column.articles_count || 0} 文章
             </Text>
           </View>
           <Pressable
@@ -93,7 +99,9 @@ export default function ColumnDetail() {
             className="px-4 py-1.5 rounded-full"
             style={[
               {
-                backgroundColor: column.is_following ? 'transparent' : tintColor,
+                backgroundColor: column.is_following
+                  ? 'transparent'
+                  : tintColor,
               },
               column.is_following && {
                 borderWidth: 1,
@@ -103,7 +111,9 @@ export default function ColumnDetail() {
           >
             <Text
               style={{
-                color: column.is_following ? Colors[colorScheme].textSecondary : '#fff',
+                color: column.is_following
+                  ? Colors[colorScheme].textSecondary
+                  : '#fff',
               }}
               className="font-bold text-sm"
             >
@@ -123,14 +133,21 @@ export default function ColumnDetail() {
         {column.author ? (
           <Pressable
             className="flex-row items-center px-5 py-2 mt-2 bg-transparent"
-            onPress={() => router.push(`/user/${column.author.url_token || column.author.id}`)}
+            onPress={() =>
+              router.push(
+                `/user/${column.author.url_token || column.author.id}`,
+              )
+            }
           >
             <Image
               source={{ uri: column.author.avatar_url }}
               className="w-6 h-6 rounded-full"
             />
             <Text type="secondary" className="text-xs ml-2">
-              创建人: <Text className="font-semibold text-xs">{column.author.name}</Text>
+              创建人:{' '}
+              <Text className="font-semibold text-xs">
+                {column.author.name}
+              </Text>
             </Text>
           </Pressable>
         ) : null}
@@ -148,10 +165,17 @@ export default function ColumnDetail() {
         {item.title_image ? (
           <View className="flex-row bg-transparent">
             <View className="flex-1 pr-3 bg-transparent">
-              <Text className="text-[16px] font-bold leading-5" numberOfLines={2}>
+              <Text
+                className="text-[16px] font-bold leading-5"
+                numberOfLines={2}
+              >
                 {item.title}
               </Text>
-              <Text type="secondary" className="text-[13px] mt-1.5 leading-5" numberOfLines={2}>
+              <Text
+                type="secondary"
+                className="text-[13px] mt-1.5 leading-5"
+                numberOfLines={2}
+              >
                 {item.excerpt}
               </Text>
             </View>
@@ -166,7 +190,11 @@ export default function ColumnDetail() {
             <Text className="text-[16px] font-bold leading-5" numberOfLines={2}>
               {item.title}
             </Text>
-            <Text type="secondary" className="text-[13px] mt-1.5 leading-5" numberOfLines={2}>
+            <Text
+              type="secondary"
+              className="text-[13px] mt-1.5 leading-5"
+              numberOfLines={2}
+            >
               {item.excerpt}
             </Text>
           </View>
@@ -210,7 +238,9 @@ export default function ColumnDetail() {
         renderItem={renderItem}
         estimatedItemSize={120}
         ListHeaderComponent={renderHeader}
-        onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
+        onEndReached={() =>
+          hasNextPage && !isFetchingNextPage && fetchNextPage()
+        }
         onEndReachedThreshold={0.5}
         onRefresh={refetch}
         refreshing={isRefetching}
@@ -221,7 +251,10 @@ export default function ColumnDetail() {
         )}
         ListFooterComponent={() =>
           isFetchingNextPage ? (
-            <ActivityIndicator style={{ marginVertical: 20 }} color={tintColor} />
+            <ActivityIndicator
+              style={{ marginVertical: 20 }}
+              color={tintColor}
+            />
           ) : articles.length > 0 && !hasNextPage ? (
             <Text type="secondary" className="text-center my-5">
               — 没有更多内容了 —

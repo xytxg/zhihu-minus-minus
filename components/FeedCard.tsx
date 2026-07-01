@@ -25,8 +25,8 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
 
   const isCollectable = item.type === 'answers' || item.type === 'articles';
   const itemIdStr = item.id != null ? item.id.toString() : '';
-  const storeCollected = useCollectionStore(
-    (state) => (itemIdStr ? state.collectedStatusMap[itemIdStr] : undefined),
+  const storeCollected = useCollectionStore((state) =>
+    itemIdStr ? state.collectedStatusMap[itemIdStr] : undefined,
   );
   const isCollected = storeCollected !== undefined ? storeCollected : false;
   const storeOffset = useCollectionStore(

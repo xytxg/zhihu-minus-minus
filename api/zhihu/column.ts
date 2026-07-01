@@ -1,8 +1,11 @@
 import type { ZhihuColumnDetail } from '../../types/zhihu';
 import apiClient from '../client';
 
-export const getColumn = async (id: string | number): Promise<ZhihuColumnDetail> => {
-  const include = 'intro,followers,articles_count,items_count,author,is_following';
+export const getColumn = async (
+  id: string | number,
+): Promise<ZhihuColumnDetail> => {
+  const include =
+    'intro,followers,articles_count,items_count,author,is_following';
   const res = await apiClient.get(`/columns/${id}`, {
     params: { include },
   });

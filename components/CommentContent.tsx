@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Image, Modal, Pressable } from 'react-native';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -10,7 +11,9 @@ interface CommentContentProps {
   width: number;
 }
 
-export const CommentContent: React.FC<CommentContentProps> = ({ htmlContent }) => {
+export const CommentContent: React.FC<CommentContentProps> = ({
+  htmlContent,
+}) => {
   const colorScheme = useColorScheme();
   const tint = useThemeColor({}, 'primary');
   const textColor = useThemeColor({}, 'text');
@@ -21,12 +24,13 @@ export const CommentContent: React.FC<CommentContentProps> = ({ htmlContent }) =
   // 1. 解析出所有的 HTML 标签，提取出 comment_img 的超链接，并将它们从主文本中拆分
   // 匹配形式：<a href="URL" class="comment_img"...>查看图片</a>
   // 考虑到 class 和 href 顺序不固定，或者有些其他微小差异，采用更宽泛的正则，但一定要捞到 comment_img
-  const imageRegex = /<a[^>]+class="comment_img"[^>]*href="([^"]+)"[^>]*>.*?<\/a>|<a[^>]+href="([^"]+)"[^>]*class="comment_img"[^>]*>.*?<\/a>/gi;
-  
+  const imageRegex =
+    /<a[^>]+class="comment_img"[^>]*href="([^"]+)"[^>]*>.*?<\/a>|<a[^>]+href="([^"]+)"[^>]*class="comment_img"[^>]*>.*?<\/a>/gi;
+
   // 提取图片链接
   const imageUrls: string[] = [];
   let match: RegExpExecArray | null;
-  
+
   // 循环匹配所有图片链接
   // biome-ignore lint/suspicious/noAssignInExpressions: safe to use inside regex matching loops
   while ((match = imageRegex.exec(htmlContent)) !== null) {
@@ -51,7 +55,10 @@ export const CommentContent: React.FC<CommentContentProps> = ({ htmlContent }) =
     <View className="bg-transparent w-full">
       {/* 渲染纯文本 */}
       {cleanText ? (
-        <Text className="text-[15px] leading-5 mb-2" style={{ color: textColor }}>
+        <Text
+          className="text-[15px] leading-5 mb-2"
+          style={{ color: textColor }}
+        >
           {cleanText}
         </Text>
       ) : null}
@@ -70,14 +77,18 @@ export const CommentContent: React.FC<CommentContentProps> = ({ htmlContent }) =
             />
             <View className="flex-1 bg-transparent">
               <Text className="text-sm font-semibold flex-row items-center">
-                <Ionicons name="image-outline" size={16} color={tint} />
-                {' '}查看图片
+                <Ionicons name="image-outline" size={16} color={tint} />{' '}
+                查看图片
               </Text>
               <Text type="secondary" className="text-xs mt-1">
                 点击展开大图
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={Colors[colorScheme].textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={Colors[colorScheme].textSecondary}
+            />
           </Pressable>
         </View>
       ))}

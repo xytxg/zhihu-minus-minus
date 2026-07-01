@@ -27,12 +27,11 @@ import {
   getPinCommentsV5 as getPinComments,
   getQuestionCommentsV5 as getQuestionComments,
 } from '@/api/zhihu';
+import { CommentContent } from '@/components/CommentContent';
 import { LikeButton } from '@/components/LikeButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
-
-import { CommentContent } from '@/components/CommentContent';
 
 export default function CommentScreen() {
   const { id, type, segmentId, count } = useLocalSearchParams<{
@@ -186,7 +185,10 @@ export default function CommentScreen() {
                         className="w-[18px] h-[18px] rounded-full mr-2"
                       />
                       <View className="flex-1 bg-transparent">
-                        <CommentContent htmlContent={`<a href="/user/${child.author?.member?.url_token || child.author?.member?.id}">${child.author?.member?.name}</a>：${child.content}`} width={280} />
+                        <CommentContent
+                          htmlContent={`<a href="/user/${child.author?.member?.url_token || child.author?.member?.id}">${child.author?.member?.name}</a>：${child.content}`}
+                          width={280}
+                        />
                       </View>
                     </View>
                   ))}

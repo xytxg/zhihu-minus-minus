@@ -29,7 +29,11 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { showToast } from '@/utils/toast';
-import { extractZhihuRedirectTarget, isInternalZhihuLink, parseZhihuUrl } from '@/utils/url';
+import {
+  extractZhihuRedirectTarget,
+  isInternalZhihuLink,
+  parseZhihuUrl,
+} from '@/utils/url';
 import MathView from './MathView';
 import { Text, useThemeColor, View } from './Themed';
 import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
@@ -319,7 +323,8 @@ const A_Renderer: CustomBlockRenderer = ({
   const rendererProps = useRendererProps('a');
 
   if (!rendererProps) return <TDefaultRenderer tnode={tnode} {...props} />;
-  const { onPress, onLinkCardPress, surfaceColor, colorScheme } = rendererProps as any;
+  const { onPress, onLinkCardPress, surfaceColor, colorScheme } =
+    rendererProps as any;
 
   // 解码 link.zhihu.com 跳转链接，拿到真实 URL
   const url = rawUrl ? extractZhihuRedirectTarget(rawUrl) : rawUrl;
@@ -699,7 +704,15 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
           fontSize: 14 * fontSizeScale,
         },
       }),
-      [textColor, surfaceColor, colorScheme, fontSizeScale, lineHeightScale, primaryColor, primaryTransparent],
+      [
+        textColor,
+        surfaceColor,
+        colorScheme,
+        fontSizeScale,
+        lineHeightScale,
+        primaryColor,
+        primaryTransparent,
+      ],
     );
 
     const systemFonts = [...defaultSystemFonts, 'Inter', 'Roboto'];
