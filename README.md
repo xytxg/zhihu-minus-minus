@@ -163,4 +163,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.1.1 | **Last Updated**: 2026-06-30
+**Version**: v0.1.2 | **Last Updated**: 2026-07-01
