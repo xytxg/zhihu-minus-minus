@@ -407,6 +407,7 @@ function HslSlider({
   thumbColor,
   gradientColors,
   onChange,
+  onComplete,
 }: {
   value: number;
   min: number;
@@ -414,6 +415,7 @@ function HslSlider({
   thumbColor: string;
   gradientColors: string[];
   onChange: (v: number) => void;
+  onComplete?: (v: number) => void;
 }) {
   const [trackWidth, setTrackWidth] = useState(0);
   const viewRef = useRef<any>(null);
@@ -422,11 +424,13 @@ function HslSlider({
   const trackWidthRef = useRef(0);
   const trackPageXRef = useRef(0);
   const onChangeRef = useRef(onChange);
+  const onCompleteRef = useRef(onComplete);
   const minRef = useRef(min);
   const maxRef = useRef(max);
 
   // Sync every render
   onChangeRef.current = onChange;
+  onCompleteRef.current = onComplete;
   minRef.current = min;
   maxRef.current = max;
 
@@ -457,6 +461,20 @@ function HslSlider({
       },
       onPanResponderMove: (evt) => {
         onChangeRef.current(computeValue(evt.nativeEvent.pageX));
+      },
+      onPanResponderRelease: (evt) => {
+        const finalVal = computeValue(evt.nativeEvent.pageX);
+        onChangeRef.current(finalVal);
+        if (onCompleteRef.current) {
+          onCompleteRef.current(finalVal);
+        }
+      },
+      onPanResponderTerminate: (evt) => {
+        const finalVal = computeValue(evt.nativeEvent.pageX);
+        onChangeRef.current(finalVal);
+        if (onCompleteRef.current) {
+          onCompleteRef.current(finalVal);
+        }
       },
     }),
   ).current;
@@ -537,7 +555,13 @@ function ColorPickerSection({
     }
   }, [primaryColor]);
 
-  const applyHsl = (newHsl: { h: number; s: number; l: number }) => {
+  const applyHslLocal = (newHsl: { h: number; s: number; l: number }) => {
+    setHsl(newHsl);
+    const hex = hslToHex(newHsl.h, newHsl.s, newHsl.l);
+    setHexText(hex);
+  };
+
+  const applyHslComplete = (newHsl: { h: number; s: number; l: number }) => {
     setHsl(newHsl);
     const hex = hslToHex(newHsl.h, newHsl.s, newHsl.l);
     setHexText(hex);
@@ -620,7 +644,8 @@ function ColorPickerSection({
           max={359}
           thumbColor={previewColor}
           gradientColors={hueGradient}
-          onChange={(v) => applyHsl({ ...hsl, h: v })}
+          onChange={(v) => applyHslLocal({ ...hsl, h: v })}
+          onComplete={(v) => applyHslComplete({ ...hsl, h: v })}
         />
       </RNView>
 
@@ -635,7 +660,8 @@ function ColorPickerSection({
           max={100}
           thumbColor={previewColor}
           gradientColors={satGradient}
-          onChange={(v) => applyHsl({ ...hsl, s: v })}
+          onChange={(v) => applyHslLocal({ ...hsl, s: v })}
+          onComplete={(v) => applyHslComplete({ ...hsl, s: v })}
         />
       </RNView>
 
@@ -650,7 +676,8 @@ function ColorPickerSection({
           max={90}
           thumbColor={previewColor}
           gradientColors={litGradient}
-          onChange={(v) => applyHsl({ ...hsl, l: v })}
+          onChange={(v) => applyHslLocal({ ...hsl, l: v })}
+          onComplete={(v) => applyHslComplete({ ...hsl, l: v })}
         />
       </RNView>
     </RNView>
