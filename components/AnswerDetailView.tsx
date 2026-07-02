@@ -36,6 +36,7 @@ import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useScrollHeaderAnim } from '@/hooks/useScrollAnimation';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { showToast } from '@/utils/toast';
+import { formatDate } from '@/utils/date';
 
 const _slowTransition = SharedTransition.duration(600);
 
@@ -324,10 +325,10 @@ export const AnswerDetailView = ({
               !answer?.author?.is_following
                 ? { backgroundColor: primaryTransparent }
                 : {
-                    backgroundColor: 'transparent',
-                    borderWidth: 1,
-                    borderColor: Colors[colorScheme].border,
-                  },
+                  backgroundColor: 'transparent',
+                  borderWidth: 1,
+                  borderColor: Colors[colorScheme].border,
+                },
             ]}
             onPress={() => followMutation.mutate()}
             disabled={followMutation.isPending}
@@ -376,7 +377,7 @@ export const AnswerDetailView = ({
             >
               发布于{' '}
               {answer?.created_time
-                ? new Date(answer.created_time * 1000).toLocaleDateString()
+                ? formatDate(answer.created_time)
                 : answer?.created_time_name || '不久前'}{' '}
               {answer?.ip_info ? `· ${answer.ip_info} ` : ''}
             </Text>
@@ -386,7 +387,9 @@ export const AnswerDetailView = ({
                 className="text-[#bbb] text-[13px] italic pb-5 mt-1"
               >
                 最后编辑{' '}
-                {new Date(answer.updated_time * 1000).toLocaleDateString()}
+                {
+                  answer?.updated_time ? formatDate(answer.updated_time) : ''
+                }
               </Text>
             )}
           </View>
@@ -459,12 +462,12 @@ export const AnswerDetailView = ({
         data={
           answer
             ? {
-                id: answer.id,
-                title: answer.question?.title,
-                author: answer.author?.name,
-                authorHeadline: answer.author?.headline,
-                url: getShareLink(),
-              }
+              id: answer.id,
+              title: answer.question?.title,
+              author: answer.author?.name,
+              authorHeadline: answer.author?.headline,
+              url: getShareLink(),
+            }
             : null
         }
       />

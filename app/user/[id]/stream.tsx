@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, {
   forwardRef,
@@ -35,12 +36,12 @@ import {
 import { BouncyButton } from '@/components/BouncyButton';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View, useThemeColor } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { ZhihuMemberRelation } from '@/types/zhihu';
-import { LinearGradient } from 'expo-linear-gradient';
+import { formatDate } from '@/utils/date';
 
 const StreamItem = forwardRef(
   (
@@ -261,11 +262,7 @@ const StreamItem = forwardRef(
                       ? '文章'
                       : '想法'}
                 </Text>
-                <Ionicons
-                  name="chevron-up"
-                  size={14}
-                  color={primaryColor}
-                />
+                <Ionicons name="chevron-up" size={14} color={primaryColor} />
               </Pressable>
             </View>
           ) : (
@@ -293,8 +290,12 @@ const StreamItem = forwardRef(
               >
                 <LinearGradient
                   colors={[
-                    colorScheme === 'dark' ? 'rgba(30, 30, 34, 0)' : 'rgba(255, 255, 255, 0)',
-                    colorScheme === 'dark' ? 'rgba(30, 30, 34, 1)' : 'rgba(255, 255, 255, 1)',
+                    colorScheme === 'dark'
+                      ? 'rgba(30, 30, 34, 0)'
+                      : 'rgba(255, 255, 255, 0)',
+                    colorScheme === 'dark'
+                      ? 'rgba(30, 30, 34, 1)'
+                      : 'rgba(255, 255, 255, 1)',
                   ]}
                   style={{
                     position: 'absolute',
@@ -401,15 +402,15 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-                item.updated ||
-                item.created_time ||
-                item.created
-                ? new Date(
-                  (item.updated_time ||
-                    item.updated ||
-                    item.created_time ||
-                    item.created) * 1000,
-                ).toLocaleDateString()
+              item.updated ||
+              item.created_time ||
+              item.created
+                ? formatDate(
+                    item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created,
+                  )
                 : ''}
             </Text>
             <BouncyButton
@@ -822,10 +823,7 @@ export default function UserStreamScreen() {
         }
         ListFooterComponent={
           isFetchingNextPage ? (
-            <ActivityIndicator
-              style={{ margin: 20 }}
-              color={primaryColor}
-            />
+            <ActivityIndicator style={{ margin: 20 }} color={primaryColor} />
           ) : streamItems.length > 0 && !hasNextPage ? (
             <Text type="secondary" className="text-center p-5 text-xs">
               — 已经到底了喵 —
@@ -850,16 +848,16 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title:
-                selectedAnswer.title ||
-                selectedAnswer.question?.title ||
-                '想法',
-              author: selectedAnswer.author?.name || user?.name,
-              authorHeadline:
-                selectedAnswer.author?.headline || user?.headline,
-              content: selectedAnswer.excerpt || selectedAnswer.content || '',
-            }
+                id: selectedAnswer.id,
+                title:
+                  selectedAnswer.title ||
+                  selectedAnswer.question?.title ||
+                  '想法',
+                author: selectedAnswer.author?.name || user?.name,
+                authorHeadline:
+                  selectedAnswer.author?.headline || user?.headline,
+                content: selectedAnswer.excerpt || selectedAnswer.content || '',
+              }
             : null
         }
       />
@@ -969,11 +967,7 @@ export default function UserStreamScreen() {
                 setIsSharing(true);
               }}
             >
-              <Ionicons
-                name="share-outline"
-                size={22}
-                color={primaryColor}
-              />
+              <Ionicons name="share-outline" size={22} color={primaryColor} />
             </Pressable>
           </View>
         </BlurView>

@@ -32,6 +32,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { formatDate } from '@/utils/date';
 
 export default function CommentScreen() {
   const { id, type, segmentId, count } = useLocalSearchParams<{
@@ -131,9 +132,7 @@ export default function CommentScreen() {
 
             <View className="flex-row justify-between items-center mt-2 bg-transparent">
               <Text type="secondary" className="text-xs">
-                {item.created_time
-                  ? new Date(item.created_time * 1000).toLocaleDateString()
-                  : ''}
+                {item.created_time ? formatDate(item.created_time) : ''}
                 {item.address_text ? ` · ${item.address_text}` : ''}
               </Text>
               <View className="flex-row items-center bg-transparent">

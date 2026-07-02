@@ -16,9 +16,10 @@ import {
 } from 'react-native';
 import { getNotifications, markAllNotificationsRead } from '@/api/zhihu';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View, useThemeColor, ThemedIcon } from '@/components/Themed';
+import { Text, ThemedIcon, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { formatDateTime } from '@/utils/date';
 import { refreshInfiniteQuery } from '@/utils/query';
 
 const NOTIFICATION_TYPES = [
@@ -138,7 +139,7 @@ export default function NotificationScreen() {
   const renderItem = ({ item }: { item: any }) => {
     const actor = item.content?.actors?.[0] || item.actors?.[0] || {};
     const target = item.content?.target || item.target || {};
-    const time = new Date(item.create_time * 1000).toLocaleString();
+    const time = formatDateTime(item.create_time);
     const iconConfig = getIconConfig(item);
 
     return (

@@ -16,11 +16,12 @@ import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { getPin } from '@/api/zhihu/pin';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View, useThemeColor, ThemedIcon } from '@/components/Themed';
+import { Text, ThemedIcon, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
+import { formatDateTime } from '@/utils/date';
 
 export default function PinDetailScreen() {
   const colorScheme = useColorScheme();
@@ -173,10 +174,7 @@ export default function PinDetailScreen() {
             type="secondary"
             className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
           >
-            发布于{' '}
-            {pin?.created
-              ? new Date(pin.created * 1000).toLocaleString()
-              : '不久前'}{' '}
+            发布于 {pin?.created ? formatDateTime(pin.created) : '不久前'}{' '}
           </Text>
         </View>
       </ScrollView>
@@ -214,7 +212,11 @@ export default function PinDetailScreen() {
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => router.push(`/comments/${id}?type=pin`)}
               >
-                <ThemedIcon name="chatbubble-outline" size={24} colorType="secondary" />
+                <ThemedIcon
+                  name="chatbubble-outline"
+                  size={24}
+                  colorType="secondary"
+                />
                 {pin?.comment_count > 0 && (
                   <Text
                     type="secondary"
@@ -228,7 +230,11 @@ export default function PinDetailScreen() {
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => setIsSharing(true)}
               >
-                <ThemedIcon name="share-social-outline" size={24} colorType="secondary" />
+                <ThemedIcon
+                  name="share-social-outline"
+                  size={24}
+                  colorType="secondary"
+                />
               </Pressable>
             </View>
           </View>

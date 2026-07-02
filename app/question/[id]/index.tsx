@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, {
@@ -63,9 +64,9 @@ import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
+import { formatDate } from '@/utils/date';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const AnswerItem = forwardRef(
   (
@@ -378,11 +379,7 @@ const AnswerItem = forwardRef(
                       className="text-[#bbb] text-[13px] italic"
                     >
                       发布于{' '}
-                      {item.created_time
-                        ? new Date(
-                          item.created_time * 1000,
-                        ).toLocaleDateString()
-                        : ''}{' '}
+                      {item.created_time ? formatDate(item.created_time) : ''}{' '}
                       {item.ip_info ? `· ${item.ip_info} ` : ''}
                     </Text>
                     {item.updated_time && (
@@ -390,10 +387,7 @@ const AnswerItem = forwardRef(
                         type="secondary"
                         className="text-[#bbb] text-[13px] italic mt-1"
                       >
-                        最后编辑{' '}
-                        {new Date(
-                          item.updated_time * 1000,
-                        ).toLocaleDateString()}
+                        最后编辑 {formatDate(item.updated_time)}
                       </Text>
                     )}
                   </View>
@@ -438,8 +432,12 @@ const AnswerItem = forwardRef(
                 >
                   <LinearGradient
                     colors={[
-                      colorScheme === 'dark' ? 'rgba(30, 30, 34, 0)' : 'rgba(255, 255, 255, 0)',
-                      colorScheme === 'dark' ? 'rgba(30, 30, 34, 1)' : 'rgba(255, 255, 255, 1)',
+                      colorScheme === 'dark'
+                        ? 'rgba(30, 30, 34, 0)'
+                        : 'rgba(255, 255, 255, 0)',
+                      colorScheme === 'dark'
+                        ? 'rgba(30, 30, 34, 1)'
+                        : 'rgba(255, 255, 255, 1)',
                     ]}
                     style={{
                       position: 'absolute',
@@ -992,12 +990,12 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title: question?.title,
-              author: selectedAnswer.author?.name,
-              authorHeadline: selectedAnswer.author?.headline,
-              url: getShareLink(selectedAnswer),
-            }
+                id: selectedAnswer.id,
+                title: question?.title,
+                author: selectedAnswer.author?.name,
+                authorHeadline: selectedAnswer.author?.headline,
+                url: getShareLink(selectedAnswer),
+              }
             : null
         }
       />

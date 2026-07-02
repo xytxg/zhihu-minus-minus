@@ -26,6 +26,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { formatDate } from '@/utils/date';
 
 export default function ReplyDetailScreen() {
   const { id, parent } = useLocalSearchParams<{
@@ -153,9 +154,7 @@ export default function ReplyDetailScreen() {
 
           <View className="flex-row justify-between items-center mt-2 bg-transparent">
             <Text type="secondary" className="text-xs">
-              {item.created_time
-                ? new Date(item.created_time * 1000).toLocaleDateString()
-                : ''}
+              {item.created_time ? formatDate(item.created_time) : ''}
             </Text>
             <View className="flex-row items-center bg-transparent">
               <LikeButton
@@ -230,9 +229,7 @@ export default function ReplyDetailScreen() {
             <View className="flex-row justify-between items-center mt-1 bg-transparent">
               <Text type="secondary" className="text-xs">
                 {parentComment.created_time
-                  ? new Date(
-                      parentComment.created_time * 1000,
-                    ).toLocaleDateString()
+                  ? formatDate(parentComment.created_time)
                   : ''}
               </Text>
               <View className="flex-row items-center">

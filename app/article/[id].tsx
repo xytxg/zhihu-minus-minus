@@ -28,12 +28,13 @@ import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, useThemeColor, View, ThemedIcon } from '@/components/Themed';
+import { Text, ThemedIcon, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
 import { useCollectionStore } from '@/store/useCollectionStore';
+import { formatDate } from '@/utils/date';
 import { showToast } from '@/utils/toast';
 
 export default function ArticleDetail() {
@@ -428,7 +429,7 @@ export default function ArticleDetail() {
               type="secondary"
               className="text-[#bbb] text-[13px] mt-[30px] italic pb-5"
             >
-              发布于 {new Date(data.created * 1000).toLocaleDateString()}
+              发布于 {formatDate(data.created)}
             </Text>
           </View>
         )}
@@ -474,7 +475,11 @@ export default function ArticleDetail() {
                   className="items-center ml-5 flex-row bg-transparent"
                   onPress={() => router.push(`/comments/${id}?type=article`)}
                 >
-                  <ThemedIcon name="chatbubble-outline" size={24} colorType="secondary" />
+                  <ThemedIcon
+                    name="chatbubble-outline"
+                    size={24}
+                    colorType="secondary"
+                  />
                   {data.comment_count > 0 && (
                     <Text
                       type="secondary"
@@ -488,7 +493,11 @@ export default function ArticleDetail() {
                   className="items-center ml-5 flex-row bg-transparent"
                   onPress={() => setMenuVisible(true)}
                 >
-                  <ThemedIcon name="ellipsis-horizontal" size={24} colorType="secondary" />
+                  <ThemedIcon
+                    name="ellipsis-horizontal"
+                    size={24}
+                    colorType="secondary"
+                  />
                 </Pressable>
               </View>
             </View>

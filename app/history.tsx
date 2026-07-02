@@ -5,6 +5,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable } from 'react-native';
 import { getReadHistory } from '@/api/zhihu';
 import { Text, View } from '@/components/Themed';
+import { formatDate } from '@/utils/date';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function HistoryScreen() {
             </Text>
             <Text type="secondary" className="text-xs">
               {mappedItem.updated_time
-                ? new Date(mappedItem.updated_time * 1000).toLocaleDateString()
+                ? formatDate(mappedItem.updated_time)
                 : ''}
             </Text>
           </View>

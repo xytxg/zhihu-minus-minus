@@ -15,6 +15,7 @@ import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useOptimisticToggle } from '@/hooks/useOptimisticToggle';
+import { formatDate } from '@/utils/date';
 
 export default function ColumnDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -209,7 +210,7 @@ export default function ColumnDetail() {
           </Text>
           {item.updated && (
             <Text type="secondary" className="text-xs ml-auto">
-              {new Date(item.updated * 1000).toLocaleDateString()}
+              {formatDate(item.updated)}
             </Text>
           )}
         </View>

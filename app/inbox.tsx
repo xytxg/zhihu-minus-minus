@@ -5,9 +5,10 @@ import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { getInbox, type InboxThread } from '@/api/zhihu';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View, useThemeColor } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { formatDateTime } from '@/utils/date';
 import { refreshInfiniteQuery } from '@/utils/query';
 
 export default function InboxScreen() {
@@ -48,7 +49,7 @@ export default function InboxScreen() {
 
   const renderItem = ({ item }: { item: InboxThread }) => {
     const participant = item.participant;
-    const time = new Date(item.updated_time * 1000).toLocaleString();
+    const time = formatDateTime(item.updated_time);
 
     return (
       <BouncyButton
