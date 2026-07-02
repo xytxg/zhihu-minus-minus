@@ -1,9 +1,8 @@
 # 🐱 知乎 -- (Zhihu Minus Minus)
 
 > [!IMPORTANT]
-> **🚧 项目声明**：本项目目前仍处于**比较早期且不稳定的开发阶段**，部分功能可能不完整且存在不稳定的 API。
-
-快去看看 <https://github.com/zhihulite/Hydrogen> 和 <https://github.com/zly2006/zhihu-plus-plus>
+> **🚧 项目声明**：本项目**依然没有很完善**，差不多可以用了，但部分功能可能不完整且存在不稳定的 API。  
+欢迎 pr，也可以去看看它们 <https://github.com/zhihulite/Hydrogen> 和 <https://github.com/zly2006/zhihu-plus-plus>
 
 ![zhihu--](./assets/images/favicon.svg)
 
@@ -163,4 +162,4 @@ npm run ios
 
 ---
 **Author**: [huamurui](https://github.com/huamurui) & [Antigravity Agent] 🐱
-**Version**: v0.1.2 | **Last Updated**: 2026-07-01
+**Version**: v0.1.3 | **Last Updated**: 2026-07-02
