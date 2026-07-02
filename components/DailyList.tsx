@@ -12,11 +12,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { getDailyBefore, getDailyLatest } from '@/api/zhihu';
-import { BouncyButton } from './BouncyButton';
 import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { refreshInfiniteQuery } from '@/utils/query';
+import { BouncyButton } from './BouncyButton';
 
 const { width } = Dimensions.get('window');
 

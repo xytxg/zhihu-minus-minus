@@ -429,15 +429,15 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-                item.updated ||
-                item.created_time ||
-                item.created
+              item.updated ||
+              item.created_time ||
+              item.created
                 ? new Date(
-                  (item.updated_time ||
-                    item.updated ||
-                    item.created_time ||
-                    item.created) * 1000,
-                ).toLocaleDateString()
+                    (item.updated_time ||
+                      item.updated ||
+                      item.created_time ||
+                      item.created) * 1000,
+                  ).toLocaleDateString()
                 : ''}
             </Text>
             <BouncyButton
@@ -878,16 +878,16 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title:
-                selectedAnswer.title ||
-                selectedAnswer.question?.title ||
-                '想法',
-              author: selectedAnswer.author?.name || user?.name,
-              authorHeadline:
-                selectedAnswer.author?.headline || user?.headline,
-              content: selectedAnswer.excerpt || selectedAnswer.content || '',
-            }
+                id: selectedAnswer.id,
+                title:
+                  selectedAnswer.title ||
+                  selectedAnswer.question?.title ||
+                  '想法',
+                author: selectedAnswer.author?.name || user?.name,
+                authorHeadline:
+                  selectedAnswer.author?.headline || user?.headline,
+                content: selectedAnswer.excerpt || selectedAnswer.content || '',
+              }
             : null
         }
       />

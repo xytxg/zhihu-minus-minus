@@ -4,8 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useCollectionStore } from '@/store/useCollectionStore';
-import { Text, View } from './Themed';
 import { BouncyButton } from './BouncyButton';
+import { Text, View } from './Themed';
 
 export function CollectionToastOverlay() {
   const {
@@ -85,10 +85,7 @@ export function CollectionToastOverlay() {
         <Text style={[styles.text, { color: textColor }]} numberOfLines={1}>
           {toastMessage}
         </Text>
-        <BouncyButton
-          onPress={handleModify}
-          style={styles.actionButton}
-        >
+        <BouncyButton onPress={handleModify} style={styles.actionButton}>
           <Text style={[styles.actionText, { color: actionColor }]}>修改</Text>
         </BouncyButton>
       </View>

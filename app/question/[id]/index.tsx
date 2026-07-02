@@ -20,23 +20,23 @@ import {
   LayoutAnimation,
   Modal,
   View as NativeView,
+  PanResponder,
   Platform,
   Pressable,
   Share,
   StyleSheet,
   UIManager,
   useWindowDimensions,
-  PanResponder,
 } from 'react-native';
 import Reanimated, {
-  SharedTransition,
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
   interpolate,
   runOnJS,
+  SharedTransition,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '@/api/client';
@@ -47,6 +47,7 @@ import {
   getQuestion,
   unfollowQuestion,
 } from '@/api/zhihu/question';
+import { BouncyButton } from '@/components/BouncyButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
@@ -64,7 +65,6 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
-import { BouncyButton } from '@/components/BouncyButton';
 
 const AnswerItem = forwardRef(
   (
@@ -131,7 +131,9 @@ const AnswerItem = forwardRef(
     onSwipeCompleteRef.current = onSwipeComplete;
 
     React.useEffect(() => {
-      expandedProgress.value = withTiming(isExpanded ? 1 : 0, { duration: 300 });
+      expandedProgress.value = withTiming(isExpanded ? 1 : 0, {
+        duration: 300,
+      });
 
       if (isFirstMount.current) {
         isFirstMount.current = false;
@@ -140,7 +142,7 @@ const AnswerItem = forwardRef(
       if (!isExpanded) {
         borderProgress.value = withSequence(
           withTiming(1, { duration: 150 }),
-          withDelay(600, withTiming(0, { duration: 250 }))
+          withDelay(600, withTiming(0, { duration: 250 })),
         );
       }
     }, [isExpanded]);
@@ -152,17 +154,13 @@ const AnswerItem = forwardRef(
       const height = interpolate(
         expandedProgress.value,
         [0, 1],
-        [150, measuredHeight]
+        [150, measuredHeight],
       );
       return { height };
     });
 
     const animatedReadMoreStyle = useAnimatedStyle(() => {
-      const opacity = interpolate(
-        expandedProgress.value,
-        [0, 1],
-        [1, 0]
-      );
+      const opacity = interpolate(expandedProgress.value, [0, 1], [1, 0]);
       return { opacity };
     });
 
@@ -197,11 +195,15 @@ const AnswerItem = forwardRef(
         onPanResponderRelease: (evt, gestureState) => {
           const currentItem = itemRef.current;
           if (gestureState.dx < -120) {
-            screenTranslateX.value = withTiming(-screenWidth, { duration: 250 }, () => {
-              if (onSwipeCompleteRef.current && currentItem?.author) {
-                runOnJS(onSwipeCompleteRef.current)(currentItem.author);
-              }
-            });
+            screenTranslateX.value = withTiming(
+              -screenWidth,
+              { duration: 250 },
+              () => {
+                if (onSwipeCompleteRef.current && currentItem?.author) {
+                  runOnJS(onSwipeCompleteRef.current)(currentItem.author);
+                }
+              },
+            );
           } else {
             screenTranslateX.value = withTiming(0, { duration: 250 });
           }
@@ -209,7 +211,7 @@ const AnswerItem = forwardRef(
         onPanResponderTerminate: () => {
           screenTranslateX.value = withTiming(0, { duration: 250 });
         },
-      })
+      }),
     ).current;
 
     useImperativeHandle(ref, () => ({
@@ -346,8 +348,14 @@ const AnswerItem = forwardRef(
               />
             </View>
           ) : (
-            <View className="flex-1 bg-transparent" style={{ position: 'relative' }}>
-              <Reanimated.View style={[animatedContentStyle, { overflow: 'hidden' }]} className="bg-transparent">
+            <View
+              className="flex-1 bg-transparent"
+              style={{ position: 'relative' }}
+            >
+              <Reanimated.View
+                style={[animatedContentStyle, { overflow: 'hidden' }]}
+                className="bg-transparent"
+              >
                 <View
                   onLayout={(e) => {
                     const h = e.nativeEvent.layout.height;
@@ -370,7 +378,9 @@ const AnswerItem = forwardRef(
                     >
                       发布于{' '}
                       {item.created_time
-                        ? new Date(item.created_time * 1000).toLocaleDateString()
+                        ? new Date(
+                            item.created_time * 1000,
+                          ).toLocaleDateString()
                         : ''}{' '}
                       {item.ip_info ? `· ${item.ip_info} ` : ''}
                     </Text>
@@ -380,12 +390,16 @@ const AnswerItem = forwardRef(
                         className="text-[#bbb] text-[13px] italic mt-1"
                       >
                         最后编辑{' '}
-                        {new Date(item.updated_time * 1000).toLocaleDateString()}
+                        {new Date(
+                          item.updated_time * 1000,
+                        ).toLocaleDateString()}
                       </Text>
                     )}
                   </View>
                   <Pressable
-                    onPress={() => item?.id && onToggle(item.id.toString(), false)}
+                    onPress={() =>
+                      item?.id && onToggle(item.id.toString(), false)
+                    }
                     className="flex-row items-center justify-center py-2.5 mt-[20px] bg-transparent"
                   >
                     <Text
@@ -395,7 +409,11 @@ const AnswerItem = forwardRef(
                     >
                       收起回答
                     </Text>
-                    <Ionicons name="chevron-up" size={14} color={primaryColor} />
+                    <Ionicons
+                      name="chevron-up"
+                      size={14}
+                      color={primaryColor}
+                    />
                   </Pressable>
                 </View>
               </Reanimated.View>
@@ -1005,12 +1023,12 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-              id: selectedAnswer.id,
-              title: question?.title,
-              author: selectedAnswer.author?.name,
-              authorHeadline: selectedAnswer.author?.headline,
-              url: getShareLink(selectedAnswer),
-            }
+                id: selectedAnswer.id,
+                title: question?.title,
+                author: selectedAnswer.author?.name,
+                authorHeadline: selectedAnswer.author?.headline,
+                url: getShareLink(selectedAnswer),
+              }
             : null
         }
       />
@@ -1076,7 +1094,9 @@ export default function QuestionDetail() {
                   : itemRefs.current.delete(item.id?.toString() || '');
               }}
               item={item}
-              isExpanded={item?.id ? expandedIds.has(item.id.toString()) : false}
+              isExpanded={
+                item?.id ? expandedIds.has(item.id.toString()) : false
+              }
               onToggle={handleToggleExpand}
               onShare={(ans) => {
                 setSelectedAnswer(ans);
@@ -1212,26 +1232,27 @@ export default function QuestionDetail() {
                   )}
                 </Pressable>
 
-                {activeItem?.id && expandedIds.has(activeItem.id.toString()) && (
-                  <Pressable
-                    className="flex-row items-center ml-5 bg-transparent"
-                    onPress={() =>
-                      handleToggleExpand(activeItem.id.toString(), false)
-                    }
-                  >
-                    <Ionicons
-                      name="chevron-up-circle-outline"
-                      size={20}
-                      color={primaryColor}
-                    />
-                    <Text
-                      className=" text-sm font-bold"
-                      style={{ color: primaryColor }}
+                {activeItem?.id &&
+                  expandedIds.has(activeItem.id.toString()) && (
+                    <Pressable
+                      className="flex-row items-center ml-5 bg-transparent"
+                      onPress={() =>
+                        handleToggleExpand(activeItem.id.toString(), false)
+                      }
                     >
-                      收起
-                    </Text>
-                  </Pressable>
-                )}
+                      <Ionicons
+                        name="chevron-up-circle-outline"
+                        size={20}
+                        color={primaryColor}
+                      />
+                      <Text
+                        className=" text-sm font-bold"
+                        style={{ color: primaryColor }}
+                      >
+                        收起
+                      </Text>
+                    </Pressable>
+                  )}
               </View>
               <Pressable
                 className="flex-row items-center bg-transparent"
@@ -1273,7 +1294,10 @@ export default function QuestionDetail() {
               source={{ uri: swipedAuthor.avatar_url }}
               style={{ width: 90, height: 90, borderRadius: 45 }}
             />
-            <Text className="text-xl font-bold mt-4" style={{ color: textColor }}>
+            <Text
+              className="text-xl font-bold mt-4"
+              style={{ color: textColor }}
+            >
               {swipedAuthor.name}
             </Text>
             {swipedAuthor.headline ? (
@@ -1288,7 +1312,9 @@ export default function QuestionDetail() {
 
             <View
               className="mt-10 px-5 py-2.5 rounded-full flex-row items-center"
-              style={{ backgroundColor: Colors[colorScheme].backgroundTertiary }}
+              style={{
+                backgroundColor: Colors[colorScheme].backgroundTertiary,
+              }}
             >
               <Text
                 style={{
@@ -1300,7 +1326,11 @@ export default function QuestionDetail() {
               >
                 正在载入个人主页
               </Text>
-              <Ionicons name="arrow-forward" size={16} color={Colors[colorScheme].textSecondary} />
+              <Ionicons
+                name="arrow-forward"
+                size={16}
+                color={Colors[colorScheme].textSecondary}
+              />
             </View>
           </View>
         </Reanimated.View>

@@ -95,18 +95,19 @@ export const useSettingsStore = create<SettingsState>()(
         // 清理历史脏数据：null 或非法 hex 都退回默认蓝
         const sanitized = sanitizeColor(persistedState?.primaryColor);
         persistedState.primaryColor = sanitized ?? '#0084ff';
-        
+
         // 升级到 v3 时兜底新增的按压反馈参数
         if (version < 3) {
           persistedState.pressOpacity = persistedState.pressOpacity ?? 0.82;
           persistedState.pressScale = persistedState.pressScale ?? 0.98;
         }
-        
+
         // 升级到 v4 时兜底安卓按压反馈类型选择
         if (version < 4) {
-          persistedState.androidFeedbackType = persistedState.androidFeedbackType ?? 'ripple';
+          persistedState.androidFeedbackType =
+            persistedState.androidFeedbackType ?? 'ripple';
         }
-        
+
         return persistedState as SettingsState;
       },
     },

@@ -15,8 +15,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { getNotifications, markAllNotificationsRead } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
 import { BouncyButton } from '@/components/BouncyButton';
+import { Text, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { refreshInfiniteQuery } from '@/utils/query';

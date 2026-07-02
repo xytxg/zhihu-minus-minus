@@ -7,16 +7,16 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  View as NativeView,
   Pressable,
   TextInput,
-  View as NativeView,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import Reanimated, {
-  useAnimatedStyle,
-  useSharedValue,
   interpolate,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -44,7 +44,7 @@ const PROFILE_TABS = [
   { key: 'pins', label: '想法', countKey: 'pins_count' },
 ] as const;
 
-type ProfileTabKey = typeof PROFILE_TABS[number]['key'];
+type ProfileTabKey = (typeof PROFILE_TABS)[number]['key'];
 
 export default function UserDetailScreen() {
   const colorScheme = useColorScheme();
@@ -54,7 +54,9 @@ export default function UserDetailScreen() {
   const navigation = useNavigation();
 
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('answers');
-  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({ answers: true });
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({
+    answers: true,
+  });
   const [sortBy, setSortBy] = useState<'created' | 'voteups'>('created');
   const [followLoading, setFollowLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,18 +130,26 @@ export default function UserDetailScreen() {
     const idx2 = Math.max(0, Math.min(4, Math.ceil(p + o)));
 
     const y1 =
-      idx1 === 0 ? scrollYActivities.value :
-        idx1 === 1 ? scrollYAnswers.value :
-          idx1 === 2 ? scrollYArticles.value :
-            idx1 === 3 ? scrollYQuestions.value :
-              scrollYPins.value;
+      idx1 === 0
+        ? scrollYActivities.value
+        : idx1 === 1
+          ? scrollYAnswers.value
+          : idx1 === 2
+            ? scrollYArticles.value
+            : idx1 === 3
+              ? scrollYQuestions.value
+              : scrollYPins.value;
 
     const y2 =
-      idx2 === 0 ? scrollYActivities.value :
-        idx2 === 1 ? scrollYAnswers.value :
-          idx2 === 2 ? scrollYArticles.value :
-            idx2 === 3 ? scrollYQuestions.value :
-              scrollYPins.value;
+      idx2 === 0
+        ? scrollYActivities.value
+        : idx2 === 1
+          ? scrollYAnswers.value
+          : idx2 === 2
+            ? scrollYArticles.value
+            : idx2 === 3
+              ? scrollYQuestions.value
+              : scrollYPins.value;
 
     // 滑动过程中平滑插值
     const currentScrollY = y1 + (y2 - y1) * o;
@@ -148,7 +158,7 @@ export default function UserDetailScreen() {
       currentScrollY,
       [0, maxScroll.value],
       [0, -maxScroll.value],
-      'clamp' as any
+      'clamp' as any,
     );
 
     return {
@@ -248,7 +258,8 @@ export default function UserDetailScreen() {
       const match = lastPage.paging?.next?.match(/offset=(\d+)/);
       return match ? parseInt(match[1]) : undefined;
     },
-    enabled: !!user && (visitedTabs['activities'] || activeTab === 'activities'),
+    enabled:
+      !!user && (visitedTabs['activities'] || activeTab === 'activities'),
   });
 
   // 2. 回答 Query
@@ -256,7 +267,8 @@ export default function UserDetailScreen() {
     queryKey: ['user-answers', id, sortBy],
     queryFn: async ({ pageParam = 0 }) => {
       const targetId = (user?.url_token || id) as string;
-      const include = 'data[*].content,data[*].voteup_count,data[*].comment_count,data[*].favlists_count,data[*].created_time,data[*].updated_time,data[*].excerpt,data[*].question.title,data[*].relationship.voting,data[*].relationship.is_thanked';
+      const include =
+        'data[*].content,data[*].voteup_count,data[*].comment_count,data[*].favlists_count,data[*].created_time,data[*].updated_time,data[*].excerpt,data[*].question.title,data[*].relationship.voting,data[*].relationship.is_thanked';
       try {
         return await getMemberRelations(targetId, 'answers', {
           limit: 20,
@@ -283,7 +295,8 @@ export default function UserDetailScreen() {
     queryKey: ['user-questions', id],
     queryFn: async ({ pageParam = 0 }) => {
       const targetId = (user?.url_token || id) as string;
-      const include = 'data[*].created,data[*].answer_count,data[*].follower_count,data[*].author,data[*].admin_closed_comment,data[*].relationship.is_following';
+      const include =
+        'data[*].created,data[*].answer_count,data[*].follower_count,data[*].author,data[*].admin_closed_comment,data[*].relationship.is_following';
       try {
         return await getMemberRelations(targetId, 'questions', {
           limit: 20,
@@ -309,7 +322,8 @@ export default function UserDetailScreen() {
     queryKey: ['user-articles', id],
     queryFn: async ({ pageParam = 0 }) => {
       const targetId = (user?.url_token || id) as string;
-      const include = 'data[*].comment_count,data[*].content,data[*].voteup_count,data[*].favlists_count,data[*].created,data[*].updated,data[*].title,data[*].excerpt,data[*].relationship.voting';
+      const include =
+        'data[*].comment_count,data[*].content,data[*].voteup_count,data[*].favlists_count,data[*].created,data[*].updated,data[*].title,data[*].excerpt,data[*].relationship.voting';
       try {
         return await getMemberRelations(targetId, 'articles', {
           limit: 20,
@@ -335,7 +349,8 @@ export default function UserDetailScreen() {
     queryKey: ['user-pins', id],
     queryFn: async ({ pageParam = 0 }) => {
       const targetId = (user?.url_token || id) as string;
-      const include = 'data[*].content,data[*].reaction_count,data[*].comment_count,data[*].created,data[*].relationship.voting';
+      const include =
+        'data[*].content,data[*].reaction_count,data[*].comment_count,data[*].created,data[*].relationship.voting';
       try {
         return await getMemberRelations(targetId, 'pins', {
           limit: 20,
@@ -360,7 +375,9 @@ export default function UserDetailScreen() {
     switch (tabKey) {
       case 'activities':
         return {
-          data: activitiesQuery.data?.pages.flatMap((page) => page.data || []) || [],
+          data:
+            activitiesQuery.data?.pages.flatMap((page) => page.data || []) ||
+            [],
           isLoading: activitiesQuery.isLoading,
           isFetchingNextPage: activitiesQuery.isFetchingNextPage,
           hasNextPage: activitiesQuery.hasNextPage,
@@ -370,7 +387,8 @@ export default function UserDetailScreen() {
         };
       case 'answers':
         return {
-          data: answersQuery.data?.pages.flatMap((page) => page.data || []) || [],
+          data:
+            answersQuery.data?.pages.flatMap((page) => page.data || []) || [],
           isLoading: answersQuery.isLoading,
           isFetchingNextPage: answersQuery.isFetchingNextPage,
           hasNextPage: answersQuery.hasNextPage,
@@ -380,7 +398,8 @@ export default function UserDetailScreen() {
         };
       case 'articles':
         return {
-          data: articlesQuery.data?.pages.flatMap((page) => page.data || []) || [],
+          data:
+            articlesQuery.data?.pages.flatMap((page) => page.data || []) || [],
           isLoading: articlesQuery.isLoading,
           isFetchingNextPage: articlesQuery.isFetchingNextPage,
           hasNextPage: articlesQuery.hasNextPage,
@@ -390,7 +409,8 @@ export default function UserDetailScreen() {
         };
       case 'questions':
         return {
-          data: questionsQuery.data?.pages.flatMap((page) => page.data || []) || [],
+          data:
+            questionsQuery.data?.pages.flatMap((page) => page.data || []) || [],
           isLoading: questionsQuery.isLoading,
           isFetchingNextPage: questionsQuery.isFetchingNextPage,
           hasNextPage: questionsQuery.hasNextPage,
@@ -502,8 +522,8 @@ export default function UserDetailScreen() {
   const isSearching = debouncedSearchQuery.length > 0;
   const currentListItems = isSearching
     ? searchResults?.pages.flatMap(
-      (page) => page.data?.map(parseSearchResult).filter(Boolean) || [],
-    ) || []
+        (page) => page.data?.map(parseSearchResult).filter(Boolean) || [],
+      ) || []
     : [];
 
   const handleFollow = async () => {
@@ -545,10 +565,10 @@ export default function UserDetailScreen() {
               style={[
                 user?.is_following
                   ? {
-                    backgroundColor: 'transparent',
-                    borderColor: borderColor,
-                    borderWidth: 1,
-                  }
+                      backgroundColor: 'transparent',
+                      borderColor: borderColor,
+                      borderWidth: 1,
+                    }
                   : { backgroundColor: primaryColor },
               ]}
               onPress={handleFollow}
@@ -713,7 +733,8 @@ export default function UserDetailScreen() {
                   : Colors[colorScheme].textSecondary,
               }}
             >
-              {tab.label}{countStr}
+              {tab.label}
+              {countStr}
             </Text>
           </Pressable>
         );
@@ -766,7 +787,8 @@ export default function UserDetailScreen() {
     if (rawType === 'article') mappedType = 'articles';
     else if (rawType === 'question') mappedType = 'questions';
     else if (rawType === 'pin') mappedType = 'pins';
-    else if (rawType === 'zvideo' || rawType === 'video') mappedType = 'answers';
+    else if (rawType === 'zvideo' || rawType === 'video')
+      mappedType = 'answers';
 
     const getExcerptText = () => {
       if (rawType === 'pin') {
@@ -779,11 +801,14 @@ export default function UserDetailScreen() {
             .substring(0, 150);
         }
         if (typeof displayItem.content === 'string') {
-          return (displayItem.content as string).replace(/<[^>]+>/g, '').substring(0, 150);
+          return (displayItem.content as string)
+            .replace(/<[^>]+>/g, '')
+            .substring(0, 150);
         }
       }
       const raw = (displayItem as any).excerpt || displayItem.content || '';
-      if (typeof raw === 'string') return raw.replace(/<[^>]+>/g, '').substring(0, 150);
+      if (typeof raw === 'string')
+        return raw.replace(/<[^>]+>/g, '').substring(0, 150);
       return '';
     };
 
@@ -798,17 +823,26 @@ export default function UserDetailScreen() {
     const feedItem: any = {
       id: displayItem.id?.toString() || Math.random().toString(),
       title: displayItem.question?.title || displayItem.title || '',
-      questionId: displayItem.question?.id?.toString() || (rawType === 'question' ? displayItem.id?.toString() : undefined),
+      questionId:
+        displayItem.question?.id?.toString() ||
+        (rawType === 'question' ? displayItem.id?.toString() : undefined),
       author: {
         id: displayItem.author?.id || user?.id || '',
         url_token: displayItem.author?.url_token || user?.url_token || '',
         name: displayItem.author?.name || user?.name || '匿名用户',
-        avatar: displayItem.author?.avatar_url || user?.avatar_url || 'https://picx.zhimg.com/v2-abed1a8c04702bc9e7ba3d3d82bc7591_s.jpg',
+        avatar:
+          displayItem.author?.avatar_url ||
+          user?.avatar_url ||
+          'https://picx.zhimg.com/v2-abed1a8c04702bc9e7ba3d3d82bc7591_s.jpg',
         headline: displayItem.author?.headline || user?.headline || '',
       },
       excerpt: getExcerptText(),
       image: imageUrl,
-      voteCount: displayItem.voteup_count || displayItem.like_count || displayItem.reaction_count || 0,
+      voteCount:
+        displayItem.voteup_count ||
+        displayItem.like_count ||
+        displayItem.reaction_count ||
+        0,
       commentCount: displayItem.comment_count || 0,
       favlistsCount: displayItem.favlists_count || 0,
       voted: displayItem.relationship?.voting || 0,
@@ -828,7 +862,8 @@ export default function UserDetailScreen() {
           data={currentListItems}
           renderItem={({ item }: { item: any }) => {
             const rawType = item.type;
-            let mappedType: 'answers' | 'articles' | 'questions' | 'pins' = 'answers';
+            let mappedType: 'answers' | 'articles' | 'questions' | 'pins' =
+              'answers';
             if (rawType === 'articles') mappedType = 'articles';
             else if (rawType === 'questions') mappedType = 'questions';
             else if (rawType === 'pins') mappedType = 'pins';
@@ -897,8 +932,12 @@ export default function UserDetailScreen() {
               return false;
             }}
             onMoveShouldSetResponder={(evt) => {
-              const deltaX = Math.abs(evt.nativeEvent.pageX - panStart.current.x);
-              const deltaY = Math.abs(evt.nativeEvent.pageY - panStart.current.y);
+              const deltaX = Math.abs(
+                evt.nativeEvent.pageX - panStart.current.x,
+              );
+              const deltaY = Math.abs(
+                evt.nativeEvent.pageY - panStart.current.y,
+              );
               // 拦截横向手势，使得在 Header 上的左滑右滑完全不发生切屏
               return deltaX > deltaY && deltaX > 10;
             }}
@@ -958,7 +997,9 @@ export default function UserDetailScreen() {
                       listRefs.current[idx] = ref;
                     }}
                     data={query.data}
-                    renderItem={({ item }: any) => renderItemContent(item, tab.key)}
+                    renderItem={({ item }: any) =>
+                      renderItemContent(item, tab.key)
+                    }
                     keyExtractor={(item: any, index: number) =>
                       `user-item-${tab.key}-${item.id || ''}-${index}`
                     }
@@ -968,13 +1009,19 @@ export default function UserDetailScreen() {
                     drawDistance={1000}
                     removeClippedSubviews={false}
                     onScroll={
-                      idx === 0 ? scrollHandler0 :
-                        idx === 1 ? scrollHandler1 :
-                          idx === 2 ? scrollHandler2 :
-                            idx === 3 ? scrollHandler3 :
-                              scrollHandler4
+                      idx === 0
+                        ? scrollHandler0
+                        : idx === 1
+                          ? scrollHandler1
+                          : idx === 2
+                            ? scrollHandler2
+                            : idx === 3
+                              ? scrollHandler3
+                              : scrollHandler4
                     }
-                    ListHeaderComponent={tab.key === 'answers' ? renderAnswersSortSelector() : null}
+                    ListHeaderComponent={
+                      tab.key === 'answers' ? renderAnswersSortSelector() : null
+                    }
                     ListFooterComponent={
                       <View className="bg-transparent">
                         {query.isLoading || query.isFetchingNextPage ? (
@@ -983,7 +1030,10 @@ export default function UserDetailScreen() {
                             color={primaryColor}
                           />
                         ) : query.data.length > 0 && !query.hasNextPage ? (
-                          <Text type="secondary" className="text-center p-5 text-xs">
+                          <Text
+                            type="secondary"
+                            className="text-center p-5 text-xs"
+                          >
                             — 已经到底了喵 —
                           </Text>
                         ) : null}

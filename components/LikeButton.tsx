@@ -11,10 +11,9 @@ import Animated, {
 import { voteContent } from '@/api/zhihu';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
+import { BouncyButton } from './BouncyButton';
 import { Text, useThemeColor } from './Themed';
 import { useColorScheme } from './useColorScheme';
-
-import { BouncyButton } from './BouncyButton';
 
 export const LikeButton = ({
   id,

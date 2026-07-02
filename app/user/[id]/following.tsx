@@ -1,16 +1,21 @@
+import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useRef } from 'react';
-import { ActivityIndicator, Image, Pressable, View as NativeView } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  View as NativeView,
+  Pressable,
+} from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { Ionicons } from '@expo/vector-icons';
 import {
   getMemberFollowing,
   getMemberFollowingColumns,
+  getMemberFollowingFavlists,
   getMemberFollowingQuestions,
   getMemberFollowingTopics,
-  getMemberFollowingFavlists,
 } from '@/api/zhihu';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { UserCard } from '@/components/UserCard';
@@ -30,9 +35,11 @@ export default function FollowingScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('users');
   const [currentPage, setCurrentPage] = useState(0);
-  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({ users: true });
+  const [visitedTabs, setVisitedTabs] = useState<Record<string, boolean>>({
+    users: true,
+  });
   const pagerRef = useRef<PagerView>(null);
-  
+
   const colorScheme = useColorScheme();
   const borderColor = Colors[colorScheme].border;
   const tint = useThemeColor({}, 'primary');
@@ -171,8 +178,8 @@ export default function FollowingScreen() {
           isLoading: false,
           isFetchingNextPage: false,
           hasNextPage: false,
-          fetchNextPage: () => { },
-          refetch: async () => { },
+          fetchNextPage: () => {},
+          refetch: async () => {},
           isRefetching: false,
         };
     }
@@ -205,7 +212,11 @@ export default function FollowingScreen() {
             <Text className="text-base font-semibold" numberOfLines={1}>
               {item.title}
             </Text>
-            <Text type="secondary" className="text-[13px] mt-0.5" numberOfLines={1}>
+            <Text
+              type="secondary"
+              className="text-[13px] mt-0.5"
+              numberOfLines={1}
+            >
               {item.intro || item.excerpt || '这个专栏没有简介喵'}
             </Text>
             <View className="flex-row mt-1 bg-transparent">
@@ -237,7 +248,11 @@ export default function FollowingScreen() {
             <Text className="text-base font-semibold" numberOfLines={1}>
               {topic.name}
             </Text>
-            <Text type="secondary" className="text-[13px] mt-0.5" numberOfLines={1}>
+            <Text
+              type="secondary"
+              className="text-[13px] mt-0.5"
+              numberOfLines={1}
+            >
               {topic.introduction || topic.excerpt || '这个话题没有简介喵'}
             </Text>
             <View className="flex-row mt-1 bg-transparent">
@@ -299,7 +314,11 @@ export default function FollowingScreen() {
             <Text className="text-base font-semibold" numberOfLines={1}>
               {item.title}
             </Text>
-            <Text type="secondary" className="text-[13px] mt-0.5" numberOfLines={1}>
+            <Text
+              type="secondary"
+              className="text-[13px] mt-0.5"
+              numberOfLines={1}
+            >
               {item.description || `创建者: ${item.creator?.name || '匿名'}`}
             </Text>
             <View className="flex-row mt-1 bg-transparent">

@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 import {
   Platform,
   Pressable,
-  StyleSheet,
   type PressableProps,
   type StyleProp,
+  StyleSheet,
   type ViewStyle,
 } from 'react-native';
 import Animated, {
@@ -75,7 +75,18 @@ export function BouncyButton({
       }
       if (onPressIn) onPressIn(e);
     },
-    [pressScale, pressOpacity, enableAnimation, onPressIn, scale, opacity, isAndroid, androidFeedbackType, enableRipple, rippleColor],
+    [
+      pressScale,
+      pressOpacity,
+      enableAnimation,
+      onPressIn,
+      scale,
+      opacity,
+      isAndroid,
+      androidFeedbackType,
+      enableRipple,
+      rippleColor,
+    ],
   );
 
   const handlePressOut = useCallback(
@@ -111,7 +122,13 @@ export function BouncyButton({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[
-        enableRipple ? { overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.01)', borderRadius } : undefined,
+        enableRipple
+          ? {
+              overflow: 'hidden',
+              backgroundColor: 'rgba(0,0,0,0.01)',
+              borderRadius,
+            }
+          : undefined,
         style,
       ]}
       android_ripple={{

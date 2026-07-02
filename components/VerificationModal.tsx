@@ -5,8 +5,8 @@ import { Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { useVerificationStore } from '@/store/useVerificationStore';
-import { Text, View } from './Themed';
 import { BouncyButton } from './BouncyButton';
+import { Text, View } from './Themed';
 
 export const VerificationModal = () => {
   const queryClient = useQueryClient();

@@ -33,10 +33,10 @@ import {
   isInternalZhihuLink,
   parseZhihuUrl,
 } from '@/utils/url';
+import { BouncyButton } from './BouncyButton';
 import MathView from './MathView';
 import { Text, useThemeColor, View } from './Themed';
 import ZhihuDOMContent, { type TextSelectionInfo } from './ZhihuDOMContent';
-import { BouncyButton } from './BouncyButton';
 
 interface SegmentInfo {
   pid: string;

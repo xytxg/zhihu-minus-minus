@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import type React from 'react';
 import { useState } from 'react';
 import { Image, Modal } from 'react-native';
-import { BouncyButton } from './BouncyButton';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
+import { BouncyButton } from './BouncyButton';
 import { Text, useThemeColor, View } from './Themed';
 
 interface CommentContentProps {

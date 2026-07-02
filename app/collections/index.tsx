@@ -23,8 +23,8 @@ import {
   getMyCollections,
   updateCollection,
 } from '@/api/zhihu';
-import { Text, useThemeColor, View } from '@/components/Themed';
 import { BouncyButton } from '@/components/BouncyButton';
+import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 

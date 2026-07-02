@@ -9,10 +9,10 @@ import Colors from '@/constants/Colors';
 import { useCollectionAction } from '@/hooks/useCollectionAction';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { BouncyButton } from './BouncyButton';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
-import { BouncyButton } from './BouncyButton';
 
 export const CreationCard = React.forwardRef(
   (
@@ -466,7 +466,7 @@ export const CreationCard = React.forwardRef(
                 : ''}
             </Text>
             <BouncyButton
-                  onPress={() => setMenuVisible(true)}
+              onPress={() => setMenuVisible(true)}
               className="p-1 -mr-1 bg-transparent"
             >
               <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
