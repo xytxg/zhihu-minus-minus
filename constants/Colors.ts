@@ -43,7 +43,7 @@ export default {
 
     // Text
     text: '#ffffff',
-    textSecondary: '#888888',
+    textSecondary: '#bbb',
     textTertiary: '#cccccc',
 
     // Backgrounds & Surface

@@ -36,7 +36,7 @@ export default function ChatScreen() {
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
   const surfaceColor = Colors[colorScheme].surface;
   const isDark = colorScheme === 'dark';
@@ -139,12 +139,13 @@ export default function ChatScreen() {
           <View
             className={`px-4 py-2.5 rounded-2xl ${
               isMe
-                ? 'bg-[#0084ff] rounded-tr-sm'
+                ? 'rounded-tr-sm'
                 : isDark
                   ? 'bg-gray-800 rounded-tl-sm'
                   : 'bg-white rounded-tl-sm'
             }`}
-            style={
+            style={[
+              isMe && { backgroundColor: primaryColor },
               !isMe && !isDark
                 ? {
                     shadowColor: '#000',
@@ -154,7 +155,7 @@ export default function ChatScreen() {
                     elevation: 2,
                   }
                 : {}
-            }
+            ]}
           >
             {messageInfo.content_type === 0 ? (
               <Text

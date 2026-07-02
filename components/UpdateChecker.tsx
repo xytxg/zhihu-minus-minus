@@ -19,7 +19,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Text } from '@/components/Themed';
+import { Text, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { showToast } from '@/utils/toast';
@@ -247,6 +247,7 @@ export const UpdateChecker: React.FC = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const colorScheme = useColorScheme();
+  const primaryColor = useThemeColor({}, 'primary');
 
   useCheckUpdate((url, version) => {
     downloadAndInstallApk(url, version, setDownloadProgress, setIsDownloading);
@@ -270,7 +271,7 @@ export const UpdateChecker: React.FC = () => {
                 styles.progressBar,
                 {
                   width: `${downloadProgress * 100}%`,
-                  backgroundColor: Colors[colorScheme].primary,
+                  backgroundColor: primaryColor,
                 },
               ]}
             />

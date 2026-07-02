@@ -447,8 +447,14 @@ export default function ProfileScreen() {
                           {account.me?.name}
                         </Text>
                         {index === activeAccountIndex && (
-                          <View className="ml-2 bg-[#0084ff20] px-1.5 py-0.5 rounded">
-                            <Text className="text-[#0084ff] text-[10px] font-bold">
+                          <View
+                            className="ml-2 px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: useThemeColor({}, 'primaryTransparent') }}
+                          >
+                            <Text
+                              className="text-[10px] font-bold"
+                              style={{ color: accentColor }}
+                            >
                               当前
                             </Text>
                           </View>
@@ -466,7 +472,7 @@ export default function ProfileScreen() {
                       <Ionicons
                         name="checkmark-circle"
                         size={22}
-                        color="#0084ff"
+                        color={accentColor}
                       />
                     )}
                   </Pressable>
@@ -494,8 +500,14 @@ export default function ProfileScreen() {
                         游客模式 (未登录)
                       </Text>
                       {activeAccountIndex === -1 && (
-                        <View className="ml-2 bg-[#0084ff20] px-1.5 py-0.5 rounded">
-                          <Text className="text-[#0084ff] text-[10px] font-bold">
+                        <View
+                          className="ml-2 px-1.5 py-0.5 rounded"
+                          style={{ backgroundColor: useThemeColor({}, 'primaryTransparent') }}
+                        >
+                          <Text
+                            className="text-[10px] font-bold"
+                            style={{ color: accentColor }}
+                          >
                             当前
                           </Text>
                         </View>
@@ -513,7 +525,7 @@ export default function ProfileScreen() {
                     <Ionicons
                       name="checkmark-circle"
                       size={22}
-                      color="#0084ff"
+                      color={accentColor}
                     />
                   )}
                 </Pressable>

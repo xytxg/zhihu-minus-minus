@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import React, { useEffect } from 'react';
 import { Animated, Modal, Pressable, StyleSheet } from 'react-native';
-import { Text, View } from './Themed';
+import { Text, View, ThemedIcon, useThemeColor } from './Themed';
 import { useColorScheme } from './useColorScheme';
 
 export function ClipboardLinkModal({
@@ -21,6 +21,9 @@ export function ClipboardLinkModal({
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const scaleAnim = React.useRef(new Animated.Value(0.95)).current;
   const [internalVisible, setInternalVisible] = React.useState(visible);
+
+  const primaryColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
 
   useEffect(() => {
     if (visible) {
@@ -91,9 +94,9 @@ export function ClipboardLinkModal({
             <View className="p-6 items-center bg-transparent">
               <View
                 className="w-14 h-14 rounded-full items-center justify-center mb-4"
-                style={{ backgroundColor: 'rgba(0,132,255,0.1)' }}
+                style={{ backgroundColor: primaryTransparent }}
               >
-                <Ionicons name="link" size={28} color="#0084ff" />
+                <ThemedIcon name="link" size={28} colorType="primary" />
               </View>
               <Text className="text-[19px] font-bold mb-2">发现知乎链接</Text>
               <Text
@@ -104,7 +107,7 @@ export function ClipboardLinkModal({
                 是否要打开剪贴板中的链接？{'\n'}
                 <Text
                   type="secondary"
-                  style={{ color: '#0084ff' }}
+                  style={{ color: primaryColor }}
                   className="text-[13px]"
                 >
                   {url}
@@ -126,7 +129,7 @@ export function ClipboardLinkModal({
                 <Pressable
                   onPress={onOpen}
                   className="flex-1 py-3.5 rounded-[16px] items-center justify-center"
-                  style={{ backgroundColor: '#0084ff' }}
+                  style={{ backgroundColor: primaryColor }}
                 >
                   <Text className="font-bold text-[16px] text-white">
                     立即打开

@@ -4,7 +4,7 @@ import React from 'react';
 import { Image, Pressable, ScrollView } from 'react-native';
 import { fetchRecentMoments } from '@/api/zhihu';
 import Colors from '@/constants/Colors';
-import { Text, View } from './Themed';
+import { Text, View, useThemeColor } from './Themed';
 import { useColorScheme } from './useColorScheme';
 
 /**
@@ -13,6 +13,8 @@ import { useColorScheme } from './useColorScheme';
 export function RecentMoments() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const primaryColor = useThemeColor({}, 'primary');
+  const dangerColor = useThemeColor({}, 'danger');
 
   const { data, isLoading } = useQuery({
     queryKey: ['recent-moments'],
@@ -53,7 +55,7 @@ export function RecentMoments() {
                 style={{
                   borderColor:
                     item.unread_count > 0
-                      ? Colors[colorScheme].primary
+                      ? primaryColor
                       : 'transparent',
                 }}
               >
@@ -67,7 +69,7 @@ export function RecentMoments() {
               {item.unread_count > 0 && (
                 <View
                   className="absolute -right-1 -top-1 bg-danger rounded-full min-w-[20px] h-[20px] justify-center items-center px-1 border-2 border-white dark:border-[#1a1a1a]"
-                  style={{ backgroundColor: Colors[colorScheme].danger }}
+                  style={{ backgroundColor: dangerColor }}
                 >
                   <Text
                     className="text-white font-bold text-center"

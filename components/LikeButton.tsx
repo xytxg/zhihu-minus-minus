@@ -91,10 +91,10 @@ export const LikeButton = ({
       disabled={loading}
       className={
         variant === 'default'
-          ? 'flex-row items-center px-3 py-1.5 rounded-md mr-2.5'
+          ? 'flex-row items-center px-2 py-1.5 rounded-md'
           : variant === 'ghost'
-            ? 'flex-row items-center bg-transparent py-1 px-3.5 mr-0.5 rounded-full'
-            : 'flex-row items-center justify-center bg-transparent px-1.5 py-1.5 rounded-full'
+            ? 'flex-row items-center bg-transparent py-1 px-1 rounded-full'
+            : 'flex-row items-center justify-center bg-transparent px-1.5 py-1 rounded-full'
       }
       style={[
         variant === 'default' && {

@@ -36,6 +36,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
   const displayCount = (item.favlistsCount || 0) + storeOffset;
   const { toggleCollect } = useCollectionAction();
   const warningColor = useThemeColor({}, 'warning');
+  const secondaryColor = useThemeColor({}, 'textSecondary');
 
   return (
     <BouncyButton
@@ -70,7 +71,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         },
         isQuestionType ? { paddingBottom: 10 } : undefined,
       ]}
-      className="p-4 mb-2 shadow-sm"
+      className="p-4 pb-2 mb-2 mx-1.5 shadow-sm"
     >
       {/* 动态动作提示 (针对关注流) */}
       {item.actionText && (
@@ -184,7 +185,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
         {item.image && (
           <Animated.Image
             source={{ uri: item.image }}
-            className="w-[100px] h-[70px] rounded-md ml-2.5"
+            className="w-[100px] h-[75px] rounded-md ml-2.5 mt-1"
             sharedTransitionTag={`image-${item.id}`}
           />
         )}
@@ -192,7 +193,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
 
       {/* 热区4：底部操作栏 - 问题关注类动态不显示 */}
       {!isQuestionType && (
-        <View className="flex-row mt-4 items-center bg-transparent">
+        <View className="flex-row items-center bg-transparen">
           <LikeButton
             id={item.id}
             count={item.voteCount}
@@ -214,10 +215,10 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                 `/comments/${item.id}?type=${type}&count=${item.commentCount}`,
               );
             }}
-            className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
+            className="flex-row items-center  bg-transparent ml-4 py-1 px-3 rounded-full"
           >
-            <Ionicons name="chatbubble-outline" size={16} color="#888" />
-            <Text className="text-[#888] ml-1 text-xs font-semibold">
+            <Ionicons name="chatbubble-outline" size={16} color={secondaryColor} />
+            <Text type="secondary" className="ml-1 text-xs font-semibold">
               {item.commentCount > 0 ? item.commentCount : '评论'}
             </Text>
           </BouncyButton>
@@ -228,17 +229,17 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
                 const typeStr = item.type === 'answers' ? 'answer' : 'article';
                 toggleCollect(item.id, typeStr, isCollected);
               }}
-              className="flex-row items-center  bg-transparent py-1.5 px-3 rounded-full"
+              className="flex-row items-center  bg-transparent ml-4 py-1 px-3 rounded-full"
             >
               <Ionicons
                 name={isCollected ? 'star' : 'star-outline'}
                 size={16}
-                color={isCollected ? warningColor : '#888'}
+                color={isCollected ? warningColor : secondaryColor}
               />
               {displayCount > 0 && (
                 <Text
                   className="ml-1 text-xs font-semibold"
-                  style={{ color: isCollected ? warningColor : '#888' }}
+                  style={{ color: isCollected ? warningColor : secondaryColor }}
                 >
                   {displayCount}
                 </Text>
@@ -251,7 +252,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
             className="ml-auto p-2 -mr-2 bg-transparent"
             style={{ borderRadius: 99 }}
           >
-            <Ionicons name="ellipsis-horizontal" size={18} color="#888" />
+            <Ionicons name="ellipsis-horizontal" size={18} color={secondaryColor} />
           </BouncyButton>
         </View>
       )}

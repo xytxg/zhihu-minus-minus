@@ -961,7 +961,7 @@ export default function QuestionDetail() {
                   style={[
                     sortBy === 'default' && {
                       borderBottomWidth: 2,
-                      borderBottomColor: Colors[colorScheme].primary,
+                      borderBottomColor: primaryColor,
                     },
                   ]}
                 >
@@ -979,7 +979,7 @@ export default function QuestionDetail() {
                   style={[
                     sortBy === 'created' && {
                       borderBottomWidth: 2,
-                      borderBottomColor: Colors[colorScheme].primary,
+                      borderBottomColor: primaryColor,
                     },
                   ]}
                 >
@@ -1123,7 +1123,7 @@ export default function QuestionDetail() {
             isFetchingNextPage ? (
               <ActivityIndicator
                 style={{ marginVertical: 20 }}
-                color={Colors[colorScheme].primary}
+                color={primaryColor}
               />
             ) : answers?.length > 0 && !hasNextPage ? (
               <Text type="secondary" className="text-center my-5">

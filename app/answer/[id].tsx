@@ -15,7 +15,7 @@ import client from '@/api/client';
 import { getAnswer } from '@/api/zhihu';
 import { AnswerDetailView } from '@/components/AnswerDetailView';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
@@ -34,6 +34,7 @@ export default function AnswerDetailScreen() {
   const queryClient = useQueryClient();
   const colorScheme = useColorScheme();
   const textColor = Colors[colorScheme].text;
+  const primaryColor = useThemeColor({}, 'primary');
 
   // 锁定初始 ID，避免滑动时 URL 参数改变导致重新触发 top-level loading
   const [initialId] = useState(id as string);
@@ -155,7 +156,7 @@ export default function AnswerDetailScreen() {
   if (loadingInitial && !initialAnswer) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator color={Colors[colorScheme].primary} />
+        <ActivityIndicator color={primaryColor} />
       </View>
     );
   }

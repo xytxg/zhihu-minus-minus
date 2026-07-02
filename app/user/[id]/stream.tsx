@@ -35,7 +35,7 @@ import {
 import { BouncyButton } from '@/components/BouncyButton';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -66,11 +66,11 @@ const StreamItem = forwardRef(
     const router = useRouter();
     const footerRef = useRef<NativeView>(null);
 
-    const { useThemeColor } = require('@/components/Themed');
     const { useCollectionStore } = require('@/store/useCollectionStore');
     const { useCollectionAction } = require('@/hooks/useCollectionAction');
 
     const warningColor = useThemeColor({}, 'warning');
+    const primaryColor = useThemeColor({}, 'primary');
     const isCollectable = type === 'answer' || type === 'article';
     const storeCollected = useCollectionStore((state: any) =>
       item?.id ? state.collectedStatusMap[item.id.toString()] : false,
@@ -179,10 +179,10 @@ const StreamItem = forwardRef(
             backgroundColor: Colors[colorScheme].backgroundSecondary,
             borderRadius: 12,
             borderWidth: 1.5,
-            borderColor: isCollapsedHighlighted ? '#0084ff' : 'transparent',
+            borderColor: isCollapsedHighlighted ? primaryColor : 'transparent',
           },
           isCollapsedHighlighted && {
-            shadowColor: '#0084ff',
+            shadowColor: primaryColor,
             shadowOffset: { width: 0, height: 0 },
             shadowOpacity: 0.3,
             shadowRadius: 6,
@@ -252,7 +252,7 @@ const StreamItem = forwardRef(
                 <Text
                   type="primary"
                   className="text-[13px] font-bold mr-1"
-                  style={{ color: '#0084ff' }}
+                  style={{ color: primaryColor }}
                 >
                   收起
                   {type === 'answer'
@@ -264,7 +264,7 @@ const StreamItem = forwardRef(
                 <Ionicons
                   name="chevron-up"
                   size={14}
-                  color={Colors[colorScheme].primary}
+                  color={primaryColor}
                 />
               </Pressable>
             </View>
@@ -338,7 +338,7 @@ const StreamItem = forwardRef(
                   <Text
                     type="primary"
                     className="text-[13px] font-bold"
-                    style={{ color: '#0084ff' }}
+                    style={{ color: primaryColor }}
                   >
                     展开全文
                   </Text>
@@ -429,15 +429,15 @@ const StreamItem = forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-              item.updated ||
-              item.created_time ||
-              item.created
+                item.updated ||
+                item.created_time ||
+                item.created
                 ? new Date(
-                    (item.updated_time ||
-                      item.updated ||
-                      item.created_time ||
-                      item.created) * 1000,
-                  ).toLocaleDateString()
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
                 : ''}
             </Text>
             <BouncyButton
@@ -462,6 +462,7 @@ export default function UserStreamScreen() {
   }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const primaryColor = useThemeColor({}, 'primary');
   const insets = useSafeAreaInsets();
   const flashListRef = useRef<any>(null);
   const [hasScrolledToInitial, setHasScrolledToInitial] = useState(false);
@@ -712,7 +713,7 @@ export default function UserStreamScreen() {
         style={
           isHighlighted && {
             borderLeftWidth: 3,
-            borderLeftColor: '#0084ff',
+            borderLeftColor: useThemeColor({}, 'primary'),
           }
         }
         onLayout={(event) => {
@@ -840,7 +841,7 @@ export default function UserStreamScreen() {
           streamLoading ? (
             <ActivityIndicator
               style={{ marginTop: 100 }}
-              color={Colors[colorScheme].primary}
+              color={primaryColor}
             />
           ) : (
             <Text type="secondary" className="text-center mt-20 text-sm">
@@ -852,7 +853,7 @@ export default function UserStreamScreen() {
           isFetchingNextPage ? (
             <ActivityIndicator
               style={{ margin: 20 }}
-              color={Colors[colorScheme].primary}
+              color={primaryColor}
             />
           ) : streamItems.length > 0 && !hasNextPage ? (
             <Text type="secondary" className="text-center p-5 text-xs">
@@ -878,16 +879,16 @@ export default function UserStreamScreen() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title:
-                  selectedAnswer.title ||
-                  selectedAnswer.question?.title ||
-                  '想法',
-                author: selectedAnswer.author?.name || user?.name,
-                authorHeadline:
-                  selectedAnswer.author?.headline || user?.headline,
-                content: selectedAnswer.excerpt || selectedAnswer.content || '',
-              }
+              id: selectedAnswer.id,
+              title:
+                selectedAnswer.title ||
+                selectedAnswer.question?.title ||
+                '想法',
+              author: selectedAnswer.author?.name || user?.name,
+              authorHeadline:
+                selectedAnswer.author?.headline || user?.headline,
+              content: selectedAnswer.excerpt || selectedAnswer.content || '',
+            }
             : null
         }
       />
@@ -957,12 +958,12 @@ export default function UserStreamScreen() {
                 <Ionicons
                   name="chatbubble-outline"
                   size={20}
-                  color={Colors[colorScheme].primary}
+                  color={primaryColor}
                 />
                 <Text
                   type="primary"
                   className=" text-sm font-bold"
-                  style={{ color: Colors[colorScheme].primary }}
+                  style={{ color: primaryColor }}
                 >
                   {activeItem?.comment_count || 0}
                 </Text>
@@ -978,12 +979,12 @@ export default function UserStreamScreen() {
                   <Ionicons
                     name="chevron-up-circle-outline"
                     size={20}
-                    color={Colors[colorScheme].primary}
+                    color={primaryColor}
                   />
                   <Text
                     type="primary"
                     className=" text-sm font-bold"
-                    style={{ color: Colors[colorScheme].primary }}
+                    style={{ color: primaryColor }}
                   >
                     收起
                   </Text>
@@ -1000,7 +1001,7 @@ export default function UserStreamScreen() {
               <Ionicons
                 name="share-outline"
                 size={22}
-                color={Colors[colorScheme].primary}
+                color={primaryColor}
               />
             </Pressable>
           </View>

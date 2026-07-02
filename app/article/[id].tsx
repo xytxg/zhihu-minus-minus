@@ -28,7 +28,7 @@ import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, useThemeColor, View } from '@/components/Themed';
+import { Text, useThemeColor, View, ThemedIcon } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -38,6 +38,7 @@ import { showToast } from '@/utils/toast';
 
 export default function ArticleDetail() {
   const colorScheme = useColorScheme();
+  const primaryColor = useThemeColor({}, 'primary');
   const { id, source } = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -183,7 +184,7 @@ export default function ArticleDetail() {
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color={Colors[colorScheme].primary} />
+        <ActivityIndicator size="large" color={primaryColor} />
         <Text className="mt-3">正赶往知识的荒原...喵</Text>
       </View>
     );
@@ -329,7 +330,7 @@ export default function ArticleDetail() {
                     : {
                         backgroundColor: 'transparent',
                         borderWidth: 1,
-                        borderColor: '#eee',
+                        borderColor: Colors[colorScheme].border,
                       },
                 ]}
                 onPress={() => followMutation.mutate()}
@@ -339,7 +340,7 @@ export default function ArticleDetail() {
                   className="text-sm font-bold"
                   style={[
                     data.author?.is_following
-                      ? { color: '#999' }
+                      ? { color: Colors[colorScheme].textSecondary }
                       : { color: tintColor },
                   ]}
                 >
@@ -473,11 +474,11 @@ export default function ArticleDetail() {
                   className="items-center ml-5 flex-row bg-transparent"
                   onPress={() => router.push(`/comments/${id}?type=article`)}
                 >
-                  <Ionicons name="chatbubble-outline" size={24} color="#888" />
+                  <ThemedIcon name="chatbubble-outline" size={24} colorType="secondary" />
                   {data.comment_count > 0 && (
                     <Text
                       type="secondary"
-                      className="ml-1 text-[13px] font-medium text-[#888]"
+                      className="ml-1 text-[13px] font-medium"
                     >
                       {data.comment_count}
                     </Text>
@@ -487,7 +488,7 @@ export default function ArticleDetail() {
                   className="items-center ml-5 flex-row bg-transparent"
                   onPress={() => setMenuVisible(true)}
                 >
-                  <Ionicons name="ellipsis-horizontal" size={24} color="#888" />
+                  <ThemedIcon name="ellipsis-horizontal" size={24} colorType="secondary" />
                 </Pressable>
               </View>
             </View>
@@ -540,7 +541,7 @@ export default function ArticleDetail() {
                 <MenuOption
                   icon={isLiked ? 'heart' : 'heart-outline'}
                   label={isLiked ? '取消喜欢' : '加入喜欢'}
-                  color={isLiked ? '#ff4d4f' : undefined}
+                  color={isLiked ? Colors[colorScheme].danger : undefined}
                   onPress={() => {
                     setIsLiked(!isLiked);
                     setMenuVisible(false);

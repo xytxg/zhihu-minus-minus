@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import { getMyLikes } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useZhihuInfiniteQuery } from '@/hooks/useZhihuInfiniteQuery';
@@ -16,7 +16,7 @@ export default function MyLikesScreen() {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState<'answers' | 'articles'>('answers');
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function MyLikesScreen() {
           className="flex-1 py-[15px] items-center"
           style={
             activeTab === 'answers'
-              ? { borderBottomWidth: 2, borderBottomColor: '#0084ff' }
+              ? { borderBottomWidth: 2, borderBottomColor: primaryColor }
               : undefined
           }
           onPress={() => setActiveTab('answers')}
@@ -73,7 +73,7 @@ export default function MyLikesScreen() {
           className="flex-1 py-[15px] items-center"
           style={
             activeTab === 'articles'
-              ? { borderBottomWidth: 2, borderBottomColor: '#0084ff' }
+              ? { borderBottomWidth: 2, borderBottomColor: primaryColor }
               : undefined
           }
           onPress={() => setActiveTab('articles')}

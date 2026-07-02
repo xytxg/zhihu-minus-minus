@@ -171,15 +171,18 @@ const P_Renderer: CustomBlockRenderer = ({ TDefaultRenderer, ...props }) => {
     return content;
   }
 
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
+  const primaryLight = useThemeColor({}, 'primary_0d');
+
   return (
     <Pressable
       onPress={handlePress}
       className="flex-row items-start bg-transparent overflow-visible rounded-xl py-1.5 px-2 -mx-2 my-1"
       style={[
         isActive && {
-          backgroundColor: Colors[colorScheme].primaryTransparent,
+          backgroundColor: primaryTransparent,
         },
-        !isActive && isLiked && { backgroundColor: 'rgba(0, 132, 255, 0.05)' },
+        !isActive && isLiked && { backgroundColor: primaryLight },
       ]}
     >
       {content}
@@ -948,7 +951,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
                         <Ionicons
                           name="chatbubble-outline"
                           size={22}
-                          color={Colors[colorScheme].primary}
+                          color={primaryColor}
                         />
                         <Text className="text-[15px] font-semibold ml-2">
                           {activeSegment?.comment_count || 0} 评论
@@ -972,7 +975,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
                       <Ionicons
                         name="chevron-forward"
                         size={16}
-                        color={Colors[colorScheme].primary}
+                        color={primaryColor}
                       />
                     </Pressable>
                   </View>
@@ -1053,7 +1056,7 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
               <Pressable
                 className="flex-row items-center rounded-full px-4 py-1.5"
                 style={{
-                  backgroundColor: Colors[colorScheme].primary,
+                  backgroundColor: primaryColor,
                 }}
                 onPress={() => createReactionMutation.mutate()}
                 disabled={createReactionMutation.isPending}

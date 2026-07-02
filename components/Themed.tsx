@@ -13,6 +13,7 @@ import {
   StyleSheet,
   type TextStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useColorScheme } from './useColorScheme';
@@ -87,7 +88,15 @@ export function useThemeColor(
 
 export function Text(
   props: TextProps & {
-    type?: 'default' | 'secondary' | 'tertiary' | 'primary' | 'danger';
+    type?:
+      | 'default'
+      | 'secondary'
+      | 'tertiary'
+      | 'primary'
+      | 'danger'
+      | 'title'
+      | 'subtitle'
+      | 'caption';
   },
 ) {
   const {
@@ -99,10 +108,29 @@ export function Text(
   } = props;
 
   let colorName: keyof typeof Colors.light & keyof typeof Colors.dark = 'text';
-  if (type === 'secondary') colorName = 'textSecondary';
-  else if (type === 'tertiary') colorName = 'textTertiary';
-  else if (type === 'primary') colorName = 'primary';
-  else if (type === 'danger') colorName = 'danger';
+  let defaultFontSize = 15;
+  let defaultFontWeight: TextStyle['fontWeight'] = 'normal';
+
+  if (type === 'secondary') {
+    colorName = 'textSecondary';
+  } else if (type === 'tertiary') {
+    colorName = 'textTertiary';
+  } else if (type === 'primary') {
+    colorName = 'primary';
+  } else if (type === 'danger') {
+    colorName = 'danger';
+  } else if (type === 'title') {
+    colorName = 'text';
+    defaultFontSize = 20;
+    defaultFontWeight = 'bold';
+  } else if (type === 'subtitle') {
+    colorName = 'text';
+    defaultFontSize = 17;
+    defaultFontWeight = '600';
+  } else if (type === 'caption') {
+    colorName = 'textSecondary';
+    defaultFontSize = 12;
+  }
 
   const color = useThemeColor(
     { light: lightColor, dark: darkColor },
@@ -111,10 +139,8 @@ export function Text(
 
   const { fontSizeScale, lineHeightScale } = useSettingsStore();
 
-  // 基础字号逻辑
-  const baseStyle: TextStyle = { color };
   const flattenedStyle = StyleSheet.flatten(style) || {};
-  const currentFontSize = flattenedStyle.fontSize || 15; // 默认 15
+  const currentFontSize = flattenedStyle.fontSize || defaultFontSize;
   const currentLineHeight = flattenedStyle.lineHeight || currentFontSize * 1.5;
 
   const finalStyle: TextStyle = {
@@ -123,6 +149,10 @@ export function Text(
     fontSize: currentFontSize * fontSizeScale,
     lineHeight: (currentLineHeight * lineHeightScale) / 1.5, // 修正比例
   };
+
+  if (flattenedStyle.fontWeight || type === 'title' || type === 'subtitle') {
+    finalStyle.fontWeight = flattenedStyle.fontWeight || defaultFontWeight;
+  }
 
   return <DefaultText style={finalStyle} {...otherProps} />;
 }
@@ -160,4 +190,38 @@ export function View(
   }
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
+
+export function ThemedIcon(
+  props: Omit<React.ComponentProps<typeof Ionicons>, 'color'> & {
+    colorType?:
+      | 'default'
+      | 'secondary'
+      | 'tertiary'
+      | 'primary'
+      | 'danger'
+      | 'warning'
+      | 'success';
+    lightColor?: string;
+    darkColor?: string;
+  },
+) {
+  const { colorType = 'default', lightColor, darkColor, name, size = 24, ...otherProps } = props;
+
+  let colorName: keyof typeof Colors.light & keyof typeof Colors.dark = 'text';
+  if (colorType === 'secondary') colorName = 'textSecondary';
+  else if (colorType === 'tertiary') colorName = 'textTertiary';
+  else if (colorType === 'primary') colorName = 'primary';
+  else if (colorType === 'danger') colorName = 'danger';
+  else if (colorType === 'warning') colorName = 'warning';
+  else if (colorType === 'success') colorName = 'success';
+
+  const color = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    colorName,
+  );
+
+  return <Ionicons name={name} size={size} color={color} {...otherProps} />;
 }

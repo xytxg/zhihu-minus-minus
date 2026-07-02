@@ -6,7 +6,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FeedItem } from '@/api/zhihu';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -22,7 +22,7 @@ export default function GuestDetailScreen() {
   const borderColor = Colors[colorScheme].border;
   const backgroundColor = Colors[colorScheme].background;
   const cardBg = Colors[colorScheme].backgroundSecondary;
-  const tintColor = Colors[colorScheme].primary;
+  const tintColor = useThemeColor({}, 'primary');
 
   // 安全解析传递进来的 Feed 项数据
   const item = useMemo<FeedItem | null>(() => {

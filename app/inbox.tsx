@@ -5,7 +5,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { getInbox, type InboxThread } from '@/api/zhihu';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { refreshInfiniteQuery } from '@/utils/query';
@@ -15,7 +15,7 @@ export default function InboxScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
 
   useEffect(() => {

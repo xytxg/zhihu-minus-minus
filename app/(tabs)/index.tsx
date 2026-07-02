@@ -39,6 +39,7 @@ import { DailyList } from '@/components/DailyList';
 import { FeedCard } from '@/components/FeedCard';
 import { HotCard, type HotItem } from '@/components/HotCard';
 import { RecentMoments } from '@/components/RecentMoments';
+import { BouncyButton } from '@/components/BouncyButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -84,9 +85,22 @@ export default function HomeScreen() {
         'daily',
         'publish',
         'profile',
-      ] as TabKey[]
-    ).filter((tab) => visibleTabs.includes(tab));
+      ].filter((tab) => {
+        if (tab === 'publish' || tab === 'profile') return true;
+        return visibleTabs.includes(tab as any);
+      }) as TabType[]
+    );
   }, [visibleTabs]);
+
+  const bottomCapsuleWidth = useMemo(() => {
+    const homeTabsCount = currentTabs.filter(
+      (t) => !['publish', 'profile'].includes(t),
+    ).length;
+    const hasPublish = currentTabs.includes('publish');
+    const hasProfile = currentTabs.includes('profile');
+    const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
+    return containerWidth / (totalBottomIcons || 1) - 20;
+  }, [currentTabs, containerWidth]);
 
   // 计算初始页码
   const initialPageIndex = useMemo(() => {
@@ -306,10 +320,10 @@ export default function HomeScreen() {
                     daily: '日报',
                   };
                   return (
-                    <Pressable
+                    <BouncyButton
                       key={tab}
                       onPress={() => handleTabPress(index)}
-                      style={styles.navItem}
+                      style={[styles.navItem, { width: 54, paddingHorizontal: 0 }]}
                     >
                       <Text
                         style={[
@@ -323,7 +337,7 @@ export default function HomeScreen() {
                       >
                         {labels[tab]}
                       </Text>
-                    </Pressable>
+                    </BouncyButton>
                   );
                 })}
             </View>
@@ -430,13 +444,13 @@ export default function HomeScreen() {
                   backgroundColor: useThemeColor({}, 'primary_26'),
                   width:
                     containerWidth /
-                      ((currentTabs.filter(
-                        (t) => !['publish', 'profile'].includes(t),
-                      ).length > 0
-                        ? 1
-                        : 0) +
-                        (currentTabs.includes('publish') ? 1 : 0) +
-                        (currentTabs.includes('profile') ? 1 : 0)) -
+                    ((currentTabs.filter(
+                      (t) => !['publish', 'profile'].includes(t),
+                    ).length > 0
+                      ? 1
+                      : 0) +
+                      (currentTabs.includes('publish') ? 1 : 0) +
+                      (currentTabs.includes('profile') ? 1 : 0)) -
                     20,
                 },
                 bottomIndicatorStyle,
@@ -448,14 +462,14 @@ export default function HomeScreen() {
                 // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
                 isScrollTop={
                   currentPage <
-                    currentTabs.filter(
-                      (t) => !['publish', 'profile'].includes(t),
-                    ).length && scrolledTabs[currentPage]
+                  currentTabs.filter(
+                    (t) => !['publish', 'profile'].includes(t),
+                  ).length && scrolledTabs[currentPage]
                 }
                 icon={
                   currentPage <
-                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                    .length
+                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                      .length
                     ? 'home'
                     : 'home-outline'
                 }
@@ -467,11 +481,12 @@ export default function HomeScreen() {
                 onPress={handleHomeTabPress}
                 color={
                   currentPage <
-                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                    .length
+                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                      .length
                     ? tintColor
                     : Colors[colorScheme].textSecondary
                 }
+                width={bottomCapsuleWidth}
               />
             )}
 
@@ -488,6 +503,7 @@ export default function HomeScreen() {
                     : Colors[colorScheme].textSecondary
                 }
                 size={currentTabs[currentPage] === 'publish' ? 28 : 24}
+                width={bottomCapsuleWidth}
               />
             )}
 
@@ -505,6 +521,7 @@ export default function HomeScreen() {
                     ? tintColor
                     : Colors[colorScheme].textSecondary
                 }
+                width={bottomCapsuleWidth}
               />
             )}
           </View>
@@ -555,6 +572,7 @@ function BottomTabIcon({
   color,
   size = 24,
   isScrollTop,
+  width,
 }: any) {
   // 动画状态
   const scale = useSharedValue(1);
@@ -574,15 +592,26 @@ function BottomTabIcon({
   }));
 
   return (
-    <Pressable onPress={onPress} style={styles.bottomTabItem}>
-      <Animated.View style={animatedStyle}>
-        <Ionicons
-          name={isScrollTop ? 'arrow-up-circle' : icon}
-          size={isScrollTop ? size + 4 : size}
-          color={isScrollTop ? color : color}
-        />
-      </Animated.View>
-    </Pressable>
+    <View style={styles.bottomTabItem} className="bg-transparent">
+      <BouncyButton
+        onPress={onPress}
+        style={{
+          width: width || 44,
+          height: 44,
+          borderRadius: 22,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Animated.View style={animatedStyle}>
+          <Ionicons
+            name={isScrollTop ? 'arrow-up-circle' : icon}
+            size={isScrollTop ? size + 4 : size}
+            color={isScrollTop ? color : color}
+          />
+        </Animated.View>
+      </BouncyButton>
+    </View>
   );
 }
 

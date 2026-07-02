@@ -37,8 +37,7 @@ export const CreationCard = React.forwardRef(
   ) => {
     const router = useRouter();
     const colorScheme = useColorScheme();
-    const { primaryColor: customPrimaryColor } = useSettingsStore();
-    const primaryColor = customPrimaryColor || '#0084ff';
+    const primaryColor = useThemeColor({}, 'primary');
     const [localExpanded, setLocalExpanded] = React.useState(false);
     const [menuVisible, setMenuVisible] = React.useState(false);
     const footerRef = React.useRef<NativeView>(null);
@@ -241,7 +240,7 @@ export const CreationCard = React.forwardRef(
                 <Ionicons
                   name="chevron-up"
                   size={14}
-                  color={Colors[colorScheme].primary}
+                  color={primaryColor}
                 />
               </Pressable>
             </View>

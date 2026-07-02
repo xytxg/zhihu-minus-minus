@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { getCollection, getCollectionDetail } from '@/api/zhihu';
 import { CreationCard } from '@/components/CreationCard';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -13,7 +13,7 @@ export default function CollectionDetailScreen() {
   const colorScheme = useColorScheme();
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
   const borderColor = Colors[colorScheme].border;
 
   useEffect(() => {

@@ -16,7 +16,7 @@ import { followMember, unfollowMember } from '@/api/zhihu/member';
 import { getPin } from '@/api/zhihu/pin';
 import { LikeButton } from '@/components/LikeButton';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor, ThemedIcon } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -32,6 +32,9 @@ export default function PinDetailScreen() {
   const textColor = Colors[colorScheme].text;
   const borderColor = Colors[colorScheme].border;
   const backgroundColor = Colors[colorScheme].background;
+
+  const primaryColor = useThemeColor({}, 'primary');
+  const primaryTransparent = useThemeColor({}, 'primaryTransparent');
 
   const [isSharing, setIsSharing] = React.useState(false);
 
@@ -63,7 +66,7 @@ export default function PinDetailScreen() {
   if (isLoading)
     return (
       <View type="default" className="flex-1 justify-center items-center">
-        <ActivityIndicator size="large" color={Colors[colorScheme].primary} />
+        <ActivityIndicator size="large" color={primaryColor} />
         <Text type="secondary" className="mt-2.5">
           载入想法中...喵
         </Text>
@@ -83,7 +86,7 @@ export default function PinDetailScreen() {
               onPress={() => setIsSharing(true)}
               style={{ marginRight: 10 }}
             >
-              <Ionicons name="share-outline" size={24} color={textColor} />
+              <ThemedIcon name="share-outline" size={24} colorType="default" />
             </Pressable>
           ),
         }}
@@ -135,7 +138,7 @@ export default function PinDetailScreen() {
             className="px-[15px] py-1.5 rounded-[20px]"
             style={[
               !pin?.author?.is_following
-                ? { backgroundColor: '#0084ff15' }
+                ? { backgroundColor: primaryTransparent }
                 : {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
@@ -149,8 +152,8 @@ export default function PinDetailScreen() {
               className="text-sm font-bold"
               style={[
                 pin?.author?.is_following
-                  ? { color: '#999' }
-                  : { color: '#0084ff' },
+                  ? { color: Colors[colorScheme].textSecondary }
+                  : { color: primaryColor },
               ]}
             >
               {pin?.author?.is_following ? '已关注' : '关注'}
@@ -211,11 +214,11 @@ export default function PinDetailScreen() {
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => router.push(`/comments/${id}?type=pin`)}
               >
-                <Ionicons name="chatbubble-outline" size={24} color="#888" />
+                <ThemedIcon name="chatbubble-outline" size={24} colorType="secondary" />
                 {pin?.comment_count > 0 && (
                   <Text
                     type="secondary"
-                    className="ml-1 text-[13px] font-medium text-[#888]"
+                    className="ml-1 text-[13px] font-medium"
                   >
                     {pin?.comment_count}
                   </Text>
@@ -225,7 +228,7 @@ export default function PinDetailScreen() {
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => setIsSharing(true)}
               >
-                <Ionicons name="share-social-outline" size={24} color="#888" />
+                <ThemedIcon name="share-social-outline" size={24} colorType="secondary" />
               </Pressable>
             </View>
           </View>

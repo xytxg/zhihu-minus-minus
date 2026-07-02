@@ -5,7 +5,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { useCollectionStore } from '@/store/useCollectionStore';
 import { BouncyButton } from './BouncyButton';
-import { Text, View } from './Themed';
+import { Text, View, useThemeColor } from './Themed';
 
 export function CollectionToastOverlay() {
   const {
@@ -64,7 +64,7 @@ export function CollectionToastOverlay() {
   // We enforce a solid dark pill regardless of theme because dark cards on a bright screen have extreme contrast and premium feel
   const backgroundColor = isDark ? '#2c2c30' : '#1e1e24';
   const textColor = '#ffffff';
-  const actionColor = Colors[colorScheme].primary;
+  const actionColor = useThemeColor({}, 'primary');
 
   return (
     <Animated.View

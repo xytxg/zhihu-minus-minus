@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View } from '@/components/Themed';
+import { Text, View, ThemedIcon, useThemeColor } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 
@@ -13,36 +12,43 @@ const PUBLISH_OPTIONS = [
     title: '写回答',
     subtitle: '分享你的见解',
     icon: 'create-outline',
-    color: '#0084ff',
+    colorType: 'primary',
   },
   {
     id: 'article',
     title: '写文章(WIP)',
     subtitle: '记录生活点滴',
     icon: 'document-text-outline',
-    color: '#ff9607',
+    colorType: 'warning',
   },
   {
     id: 'pin',
     title: '发想法',
     subtitle: '随时捕捉灵感',
     icon: 'bulb-outline',
-    color: '#2ecc71',
+    colorType: 'success',
   },
   {
     id: 'question',
     title: '提问题(WIP)',
     subtitle: '向世界发问',
     icon: 'help-circle-outline',
-    color: '#e74c3c',
+    colorType: 'danger',
   },
-];
+] as const;
 
 export default function PublishView() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const secondaryColor = Colors[colorScheme].textSecondary;
+
+  const colors = {
+    primary: useThemeColor({}, 'primary'),
+    warning: useThemeColor({}, 'warning'),
+    success: useThemeColor({}, 'success'),
+    danger: useThemeColor({}, 'danger'),
+  };
 
   const handlePublish = (id: string) => {
     router.push(`/publish/${id}` as any);
@@ -68,15 +74,15 @@ export default function PublishView() {
             key={item.id}
             className="flex-row items-center p-5 rounded-[20px] mb-4 border bg-surface dark:bg-surface-dark"
             style={[
-              { borderColor: colorScheme === 'dark' ? '#333' : '#f0f0f0' },
+              { borderColor: Colors[colorScheme].border },
             ]}
             onPress={() => handlePublish(item.id)}
           >
             <View
               className="w-14 h-14 rounded-2xl justify-center items-center mr-4"
-              style={{ backgroundColor: item.color + '15' }}
+              style={{ backgroundColor: colors[item.colorType] + '15' }}
             >
-              <Ionicons name={item.icon as any} size={32} color={item.color} />
+              <ThemedIcon name={item.icon} size={32} colorType={item.colorType} />
             </View>
             <View className="flex-1 bg-transparent">
               <Text className="text-lg font-bold mb-1 text-foreground dark:text-foreground-dark">
@@ -87,10 +93,10 @@ export default function PublishView() {
               </Text>
             </View>
             <View className="ml-2 bg-transparent">
-              <Ionicons
+              <ThemedIcon
                 name="chevron-forward"
                 size={18}
-                color={secondaryColor}
+                colorType="secondary"
               />
             </View>
           </BouncyButton>

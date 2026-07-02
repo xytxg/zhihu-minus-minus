@@ -4,12 +4,13 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { getMemberMutual } from '@/api/zhihu';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor } from '@/components/Themed';
 import { UserCard } from '@/components/UserCard';
 
 export default function MutualFollowersScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const primaryColor = useThemeColor({}, 'primary');
 
   const {
     data,
@@ -47,7 +48,7 @@ export default function MutualFollowersScreen() {
         ListEmptyComponent={() => (
           <View className="p-[50px] items-center">
             {isLoading ? (
-              <ActivityIndicator color="#0084ff" />
+              <ActivityIndicator color={primaryColor} />
             ) : (
               <Text type="secondary">没有共同关注喵</Text>
             )}
@@ -55,7 +56,7 @@ export default function MutualFollowersScreen() {
         )}
         ListFooterComponent={() =>
           isFetchingNextPage ? (
-            <ActivityIndicator style={{ margin: 20 }} color="#0084ff" />
+            <ActivityIndicator style={{ margin: 20 }} color={primaryColor} />
           ) : null
         }
       />

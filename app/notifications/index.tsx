@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { getNotifications, markAllNotificationsRead } from '@/api/zhihu';
 import { BouncyButton } from '@/components/BouncyButton';
-import { Text, View } from '@/components/Themed';
+import { Text, View, useThemeColor, ThemedIcon } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { refreshInfiniteQuery } from '@/utils/query';
@@ -34,7 +34,8 @@ export default function NotificationScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-  const primaryColor = '#0084ff';
+  const primaryColor = useThemeColor({}, 'primary');
+  const isDark = colorScheme === 'dark';
   const borderColor = Colors[colorScheme].border;
   const [selectedType, setSelectedType] = useState('all');
 
@@ -93,22 +94,45 @@ export default function NotificationScreen() {
       type === 'MOMENT_VOTE_UP_ANSWER' ||
       type === 'VOTE_UP_ANSWER'
     ) {
-      return { name: 'heart', color: '#f44336', bg: '#fef2f2' };
+      const dangerColor = Colors[colorScheme].danger;
+      return {
+        name: 'heart',
+        color: dangerColor,
+        bg: isDark ? 'rgba(255, 77, 79, 0.15)' : 'rgba(255, 77, 79, 0.1)',
+      };
     }
     if (
       verb.includes('评论') ||
       verb.includes('回复') ||
       type.includes('COMMENT')
     ) {
-      return { name: 'chatbubble-ellipses', color: '#0084ff', bg: '#eff6ff' };
+      return {
+        name: 'chatbubble-ellipses',
+        color: primaryColor,
+        bg: `${primaryColor}1a`,
+      };
     }
     if (verb.includes('关注') || type === 'FOLLOW_USER') {
-      return { name: 'person-add', color: '#4caf50', bg: '#f0fdf4' };
+      const successColor = Colors[colorScheme].success;
+      return {
+        name: 'person-add',
+        color: successColor,
+        bg: isDark ? 'rgba(46, 204, 113, 0.15)' : 'rgba(46, 204, 113, 0.1)',
+      };
     }
     if (verb.includes('邀请') || type.includes('INVITE')) {
-      return { name: 'mail-open', color: '#ff9800', bg: '#fffbeb' };
+      const warningColor = Colors[colorScheme].warning;
+      return {
+        name: 'mail-open',
+        color: warningColor,
+        bg: isDark ? 'rgba(255, 152, 0, 0.15)' : 'rgba(255, 152, 0, 0.1)',
+      };
     }
-    return { name: 'notifications', color: '#888', bg: '#f9fafb' };
+    return {
+      name: 'notifications',
+      color: Colors[colorScheme].textSecondary,
+      bg: Colors[colorScheme].backgroundTertiary,
+    };
   };
 
   const renderItem = ({ item }: { item: any }) => {

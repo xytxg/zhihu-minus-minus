@@ -27,7 +27,7 @@ import { DownvoteButton } from '@/components/DownvoteButton';
 import { LikeButton } from '@/components/LikeButton';
 import { MenuOption } from '@/components/MenuOption';
 import { ShareMenu } from '@/components/ShareMenu';
-import { Text, useThemeColor, View } from '@/components/Themed';
+import { Text, useThemeColor, View, ThemedIcon } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
@@ -326,7 +326,7 @@ export const AnswerDetailView = ({
                 : {
                     backgroundColor: 'transparent',
                     borderWidth: 1,
-                    borderColor: '#eee',
+                    borderColor: Colors[colorScheme].border,
                   },
             ]}
             onPress={() => followMutation.mutate()}
@@ -336,7 +336,7 @@ export const AnswerDetailView = ({
               className="text-sm font-bold"
               style={[
                 answer?.author?.is_following
-                  ? { color: '#999' }
+                  ? { color: Colors[colorScheme].textSecondary }
                   : { color: primaryColor },
               ]}
             >
@@ -431,11 +431,11 @@ export const AnswerDetailView = ({
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => router.push(`/comments/${id}?type=answer`)}
               >
-                <Ionicons name="chatbubble-outline" size={24} color="#888" />
+                <ThemedIcon name="chatbubble-outline" size={24} colorType="secondary" />
                 {answer?.comment_count > 0 && (
                   <Text
                     type="secondary"
-                    className="ml-1 text-[13px] font-medium text-[#888]"
+                    className="ml-1 text-[13px] font-medium"
                   >
                     {answer?.comment_count}
                   </Text>
@@ -445,7 +445,7 @@ export const AnswerDetailView = ({
                 className="items-center ml-5 flex-row bg-transparent"
                 onPress={() => setMenuVisible(true)}
               >
-                <Ionicons name="ellipsis-horizontal" size={24} color="#888" />
+                <ThemedIcon name="ellipsis-horizontal" size={24} colorType="secondary" />
               </Pressable>
             </View>
           </View>
@@ -496,7 +496,7 @@ export const AnswerDetailView = ({
                 <MenuOption
                   icon={isLiked ? 'heart' : 'heart-outline'}
                   label={isLiked ? '取消喜欢' : '加入喜欢'}
-                  color={isLiked ? '#ff4d4f' : undefined}
+                  color={isLiked ? Colors[colorScheme].danger : undefined}
                   onPress={() => {
                     setIsLiked(!isLiked);
                     setMenuVisible(false);
@@ -523,7 +523,7 @@ export const AnswerDetailView = ({
                   <MenuOption
                     icon="trash-outline"
                     label="删除回答"
-                    color="#ff4d4f"
+                    color={Colors[colorScheme].danger}
                     onPress={() => {
                       handleDelete();
                       setMenuVisible(false);
