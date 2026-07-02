@@ -88,48 +88,52 @@ const LinkCard: React.FC<{
   };
 
   return (
-    <BouncyButton
-      onPress={() => onPress(url)}
-      className="p-3 rounded-xl my-2.5"
-      style={[
-        {
-          backgroundColor: surfaceColor,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: 'rgba(150,150,150,0.15)',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.05,
-          shadowRadius: 4,
-          elevation: 2,
-        },
-      ]}
-    >
-      <View className="bg-transparent" pointerEvents="none">
-        <Text
-          className="text-[15px] font-bold leading-5 mb-1.5"
-          numberOfLines={2}
-        >
-          {title || url}
-        </Text>
-        <View className="flex-row items-center bg-transparent">
-          <Ionicons
-            name={getLinkTypeIcon() as any}
-            size={14}
-            color={primaryColor}
-          />
-          <Text type="secondary" className="text-xs ml-1">
-            {isInternal ? '知乎内部链接' : '外部链接'}
+    <View className="w-full" style={{ overflow: 'visible' }}>
+      <BouncyButton
+        onPress={() => onPress(url)}
+        className="w-full p-3 rounded-xl my-3"
+        style={[
+          {
+            backgroundColor: surfaceColor,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: 'rgba(150,150,150,0.15)',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+            elevation: 2,
+          },
+        ]}
+      >
+        <View className="bg-transparent" pointerEvents="none">
+          <Text
+            className="text-[15px] font-bold leading-5 mb-1.5"
+            numberOfLines={2}
+          >
+            {title || url}
           </Text>
+          <View className="flex-row items-center bg-transparent">
+            <Ionicons
+              name={getLinkTypeIcon() as any}
+              size={14}
+              color={primaryColor}
+            />
+            <Text type="secondary" className="text-xs ml-1">
+              {isInternal ? '知乎内部链接' : '外部链接'}
+            </Text>
+          </View>
         </View>
-      </View>
-      {image && (
-        <Image
-          source={{ uri: image }}
-          className="w-full h-[120px] rounded-lg mt-2.5"
-          style={[{ backgroundColor: Colors[colorScheme].backgroundSecondary }]}
-        />
-      )}
-    </BouncyButton>
+        {image && (
+          <Image
+            source={{ uri: image }}
+            className="w-full h-[120px] rounded-lg mt-2.5"
+            style={[
+              { backgroundColor: Colors[colorScheme].backgroundSecondary },
+            ]}
+          />
+        )}
+      </BouncyButton>
+    </View>
   );
 });
 
@@ -177,7 +181,7 @@ const P_Renderer: CustomBlockRenderer = ({ TDefaultRenderer, ...props }) => {
   return (
     <Pressable
       onPress={handlePress}
-      className="flex-row items-start bg-transparent overflow-visible rounded-xl py-1.5 px-2 -mx-2 my-1"
+      className="bg-transparent overflow-visible rounded-xl py-1.5 px-2 -mx-2 my-1"
       style={[
         isActive && {
           backgroundColor: primaryTransparent,
@@ -313,57 +317,30 @@ const IMG_Renderer: CustomBlockRenderer = ({ tnode }) => {
   );
 };
 
-const A_Renderer: CustomBlockRenderer = ({
+const LinkCardRenderer: CustomBlockRenderer = ({
   tnode,
   TDefaultRenderer,
   ...props
 }) => {
-  const isLinkCard =
-    tnode.attributes.class?.includes('LinkCard') ||
-    tnode.attributes['data-draft-type'] === 'link-card';
   const rawUrl = tnode.attributes.href;
-  const rendererProps = useRendererProps('a');
+  const rendererProps = useRendererProps('linkcard');
 
   if (!rendererProps) return <TDefaultRenderer tnode={tnode} {...props} />;
-  const { onPress, onLinkCardPress, surfaceColor, colorScheme } =
-    rendererProps as any;
+  const { onLinkCardPress, surfaceColor, colorScheme } = rendererProps as any;
 
-  // 解码 link.zhihu.com 跳转链接，拿到真实 URL
   const url = rawUrl ? extractZhihuRedirectTarget(rawUrl) : rawUrl;
 
-  if (isLinkCard && url) {
-    return (
-      <LinkCard
-        url={url}
-        title={tnode.attributes['data-draft-title']}
-        onPress={onLinkCardPress}
-        surfaceColor={surfaceColor}
-        colorScheme={colorScheme}
-      />
-    );
-  }
-
-  // 普通链接：统一渲染为卡片样式，与 link-card 保持一致
   if (url) {
-    // 递归提取 domNode 的纯文本作为链接标题
-    const extractText = (node: any): string => {
-      if (!node) return '';
-      if (node.type === 'text') return node.data || '';
-      if (node.children) return node.children.map(extractText).join('');
-      return '';
-    };
-    const linkTitle =
-      tnode.attributes['data-draft-title'] ||
-      extractText((tnode as any).domNode) ||
-      undefined;
     return (
-      <LinkCard
-        url={url}
-        title={linkTitle}
-        onPress={onLinkCardPress}
-        surfaceColor={surfaceColor}
-        colorScheme={colorScheme}
-      />
+      <View style={{ width: '100%' }}>
+        <LinkCard
+          url={url}
+          title={tnode.attributes['data-draft-title']}
+          onPress={onLinkCardPress}
+          surfaceColor={surfaceColor}
+          colorScheme={colorScheme}
+        />
+      </View>
     );
   }
 
@@ -373,7 +350,7 @@ const A_Renderer: CustomBlockRenderer = ({
 const renderers = {
   p: P_Renderer,
   img: IMG_Renderer,
-  a: A_Renderer,
+  linkcard: LinkCardRenderer,
 };
 
 const ignoredDomTags = ['noscript'];
@@ -560,6 +537,14 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
             if (attribs['data-rawheight'])
               attribs.height = attribs['data-rawheight'];
           }
+          if (element.name === 'a') {
+            const isLinkCard =
+              element.attribs?.class?.includes('LinkCard') ||
+              element.attribs?.['data-draft-type'] === 'link-card';
+            if (isLinkCard) {
+              element.name = 'linkcard';
+            }
+          }
           if (element.name === 'p') {
             const pid = element.attribs['data-pid'];
             const segment = pid ? segmentMap.get(pid) : null;
@@ -593,6 +578,8 @@ export const ZhihuContent: React.FC<ZhihuContentProps> = React.memo(
         },
         a: {
           onPress: (_event: any, href: string) => handleInternalLink(href),
+        },
+        linkcard: {
           onLinkCardPress: handleInternalLink,
           surfaceColor,
           colorScheme,

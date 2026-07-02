@@ -100,6 +100,9 @@ export interface ZhihuCommentResponse {
   common_counts?: number;
   collapsed_counts?: number;
   reviewing_counts?: number;
+  counts?: {
+    total_counts: number;
+  };
   comment_status?: CommentStatus;
   paging: CommentPaging;
   data: CommentItem[];
@@ -229,10 +232,11 @@ export const createQuestionComment = async (
 export const getAnswerCommentsV5 = async (
   id: string | number,
   limit = 20,
-  offset: string | number = 0,
+  offset: string | number = '',
+  orderBy: 'score' | 'ts' = 'score',
 ): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
-    `/comment_v5/answers/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
+    `/comment_v5/answers/${id}/root_comment?order_by=${orderBy}&limit=${limit}&offset=${offset}`,
   );
   res.data.data = (res.data.data || []).map(normalizeComment);
   return res.data;
@@ -241,10 +245,11 @@ export const getAnswerCommentsV5 = async (
 export const getQuestionCommentsV5 = async (
   id: string | number,
   limit = 20,
-  offset: string | number = 0,
+  offset: string | number = '',
+  orderBy: 'score' | 'ts' = 'score',
 ): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
-    `/comment_v5/questions/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
+    `/comment_v5/questions/${id}/root_comment?order_by=${orderBy}&limit=${limit}&offset=${offset}`,
   );
   res.data.data = (res.data.data || []).map(normalizeComment);
   return res.data;
@@ -253,10 +258,11 @@ export const getQuestionCommentsV5 = async (
 export const getArticleCommentsV5 = async (
   id: string | number,
   limit = 20,
-  offset: string | number = 0,
+  offset: string | number = '',
+  orderBy: 'score' | 'ts' = 'score',
 ): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
-    `/comment_v5/articles/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
+    `/comment_v5/articles/${id}/root_comment?order_by=${orderBy}&limit=${limit}&offset=${offset}`,
   );
   res.data.data = (res.data.data || []).map(normalizeComment);
   return res.data;
@@ -265,10 +271,11 @@ export const getArticleCommentsV5 = async (
 export const getPinCommentsV5 = async (
   id: string | number,
   limit = 20,
-  offset: string | number = 0,
+  offset: string | number = '',
+  orderBy: 'score' | 'ts' = 'score',
 ): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
-    `/comment_v5/pins/${id}/root_comment?order_by=score&limit=${limit}&offset=${offset}`,
+    `/comment_v5/pins/${id}/root_comment?order_by=${orderBy}&limit=${limit}&offset=${offset}`,
   );
   res.data.data = (res.data.data || []).map(normalizeComment);
   return res.data;
@@ -299,10 +306,10 @@ export const createArticleComment = async (
 export const getChildCommentsV5 = async (
   id: string | number,
   limit = 20,
-  offset: string | number = 0,
+  offset: string | number = '',
 ): Promise<ZhihuCommentResponse> => {
   const res = await apiClient.get(
-    `/comment_v5/comments/${id}/child_comment?limit=${limit}&offset=${offset}`,
+    `/comment_v5/comment/${id}/child_comment?order_by=ts&limit=${limit}&offset=${offset}`,
   );
   res.data.data = (res.data.data || []).map(normalizeComment);
   return res.data;

@@ -1,6 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useRef, useState } from 'react';
@@ -18,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   type CommentItem,
   createCommentReply,
-  getChildComments,
+  getChildCommentsV5 as getChildComments,
   getComment,
 } from '@/api/zhihu';
 import { CommentContent } from '@/components/CommentContent';
@@ -65,17 +70,34 @@ export default function ReplyDetailScreen() {
   const parentComment = initialParentComment || parentCommentFromApi;
 
   const {
-    data: replies,
+    data: repliesData,
     isLoading,
     refetch,
     isFetching,
-  } = useQuery({
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ['replies', id],
-    queryFn: async () => {
-      const data = await getChildComments(id as string);
-      return data.data;
+    queryFn: async ({ pageParam = '' }) => {
+      return getChildComments(id as string, 20, pageParam);
     },
+    getNextPageParam: (lastPage: any) => {
+      if (!lastPage?.paging?.is_end && lastPage?.paging?.next) {
+        const match = lastPage.paging.next.match(/offset=([^&]*)/);
+        return match ? match[1] : undefined;
+      }
+      return undefined;
+    },
+    initialPageParam: '',
   });
+
+  const replies =
+    repliesData?.pages.flatMap((page: any) => page.data || []) || [];
+  const totalCount =
+    repliesData?.pages?.[0]?.counts?.total_counts ??
+    parentComment?.child_comment_count ??
+    0;
 
   const mutation = useMutation({
     mutationFn: (content: string) =>
@@ -266,8 +288,7 @@ export default function ReplyDetailScreen() {
           }}
         >
           <Text className="text-xs font-bold" style={{ color: tintColor }}>
-            共 {replies?.length || parentComment.child_comment_count || 0}{' '}
-            条回复
+            共 {totalCount} 条回复
           </Text>
         </View>
       </View>
@@ -287,7 +308,18 @@ export default function ReplyDetailScreen() {
           contentContainerStyle={{ paddingBottom: 160 }}
           onRefresh={refetch}
           refreshing={isFetching && !isLoading}
+          onEndReached={() =>
+            hasNextPage && !isFetchingNextPage && fetchNextPage()
+          }
+          onEndReachedThreshold={0.3}
           keyboardDismissMode="on-drag"
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View className="py-4 items-center bg-transparent">
+                <ActivityIndicator size="small" color={tintColor} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             isLoading ? (
               <View className="flex-1 items-center justify-center mt-[50px] bg-transparent">

@@ -7,12 +7,12 @@ export const voteContent = async (
 ) => {
   if (type === 'pins') {
     if (voteType === 'like' || voteType === 'up') {
-      const res = await apiClient.post(`/pins/${id}/reactions`, {
-        type: 'like',
+      const res = await apiClient.post(`/pins/${id}/voters/up`, {
+        not_sync_moments: true,
       });
       return res.data;
     } else {
-      const res = await apiClient.delete(`/pins/${id}/reactions`);
+      const res = await apiClient.delete(`/pins/${id}/voters/up`);
       return res.data;
     }
   } else if (type === 'comments') {

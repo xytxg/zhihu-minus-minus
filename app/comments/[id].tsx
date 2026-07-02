@@ -1,6 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { BlurView } from 'expo-blur';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -55,21 +59,42 @@ export default function CommentScreen() {
   const textColor = Colors[colorScheme].text;
   const tintColor = useThemeColor({}, 'primary');
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['comments', id, type, segmentId],
-    queryFn: async () => {
+  const [orderBy, setOrderBy] = useState<'score' | 'ts'>('score');
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    isFetching,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ['comments', id, type, segmentId, orderBy],
+    queryFn: async ({ pageParam = '' }) => {
       if (segmentId) {
         const { getSegmentComments } = await import('@/api/zhihu/answer');
         return getSegmentComments(id as string, segmentId as string);
       }
-      if (type === 'question') return getQuestionComments(id as string);
-      if (type === 'article') return getArticleComments(id as string);
-      if (type === 'pin') return getPinComments(id as string);
+      if (type === 'question')
+        return getQuestionComments(id as string, 20, pageParam, orderBy);
+      if (type === 'article')
+        return getArticleComments(id as string, 20, pageParam, orderBy);
+      if (type === 'pin')
+        return getPinComments(id as string, 20, pageParam, orderBy);
       return getAnswerComments(id as string);
     },
+    getNextPageParam: (lastPage: any) => {
+      if (!lastPage?.paging?.is_end && lastPage?.paging?.next) {
+        const match = lastPage.paging.next.match(/offset=([^&]*)/);
+        return match ? match[1] : undefined;
+      }
+      return undefined;
+    },
+    initialPageParam: '',
   });
 
-  const comments = data?.data || [];
+  const comments = data?.pages.flatMap((page: any) => page.data || []) || [];
 
   const mutation = useMutation({
     mutationFn: (content: string) => {
@@ -209,7 +234,25 @@ export default function CommentScreen() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: surfaceColor }}>
-      <Stack.Screen options={{ title: `评论${count ? ` (${count})` : ''}` }} />
+      <Stack.Screen
+        options={{
+          title: `评论${count ? ` (${count})` : ''}`,
+          headerRight: () => (
+            <Pressable
+              onPress={() =>
+                setOrderBy((prev) => (prev === 'score' ? 'ts' : 'score'))
+              }
+              style={{ marginRight: 4 }}
+            >
+              <Text
+                style={{ color: tintColor, fontSize: 14, fontWeight: '500' }}
+              >
+                {orderBy === 'score' ? '默认' : '最新'}
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
 
       <View style={StyleSheet.absoluteFill}>
         <FlashList
@@ -219,8 +262,19 @@ export default function CommentScreen() {
           {...({ estimatedItemSize: 120 } as any)}
           onRefresh={refetch}
           refreshing={isFetching && !isLoading}
+          onEndReached={() =>
+            hasNextPage && !isFetchingNextPage && fetchNextPage()
+          }
+          onEndReachedThreshold={0.3}
           keyboardDismissMode="on-drag"
           contentContainerStyle={{ paddingBottom: 160, paddingTop: 10 }}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View className="py-4 items-center bg-transparent">
+                <ActivityIndicator size="small" color={tintColor} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             isLoading ? (
               <View className="flex-1 items-center justify-center mt-[100px] bg-transparent">
