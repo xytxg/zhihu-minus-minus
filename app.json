@@ -143,13 +143,21 @@
       ],
       "expo-web-browser",
       "expo-sharing",
-      "expo-file-system"
+      "expo-file-system",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "huamumu",
+          "project": "zhihuminusminus"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
       "router": {},
+      "sentryDsn": "https://93a6099dd49b040d9c516485eb3c72f6@o4511051860672512.ingest.de.sentry.io/4511051866112080",
       "releaseNotes": {
         "v0.1.1": [
           "全新主题自由定制配色系统: 新增以计算及主题钩子形式渲染的主题配色方案，允许在暗黑模式与明亮模式下跟随用户选择进行实时自适应变色。",

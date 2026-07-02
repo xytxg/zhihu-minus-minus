@@ -3,6 +3,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { Stack, useRootNavigationState, useRouter } from 'expo-router';
@@ -29,6 +30,22 @@ import { Alert, AppState, type AppStateStatus, Linking } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { useSettingsStore } from '@/store/useSettingsStore';
+
+Sentry.init({
+  dsn: 'https://93a6099dd49b040d9c516485eb3c72f6@o4511051860672512.ingest.de.sentry.io/4511051866112080',
+  debug: __DEV__,
+  enableAutoSessionTracking: true,
+});
+
+const deviceContext = {
+  appVersion: Constants.expoConfig?.version,
+  deviceName: Constants.deviceName,
+  osVersion: Constants.systemVersion,
+  platform: Constants.platform,
+};
+Sentry.setContext('device', deviceContext);
+Sentry.setTag('app_version', deviceContext.appVersion || 'unknown');
+Sentry.setTag('platform', deviceContext.platform?.ios ? 'ios' : deviceContext.platform?.android ? 'android' : 'other');
 
 // 保持启动页显示，直到资源加载完成
 SplashScreen.preventAutoHideAsync();
@@ -193,7 +210,7 @@ function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
-
+  // throw new Error('test')
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
@@ -334,4 +351,4 @@ function RootLayout() {
     </QueryClientProvider>
   );
 }
-export default RootLayout;
+export default Sentry.wrap(RootLayout);
