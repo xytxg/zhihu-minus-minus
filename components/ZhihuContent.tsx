@@ -90,7 +90,7 @@ const LinkCard: React.FC<{
   return (
     <BouncyButton
       onPress={() => onPress(url)}
-      className="flex-row items-center p-3 rounded-xl my-2.5"
+      className="p-3 rounded-xl my-2.5"
       style={[
         {
           backgroundColor: surfaceColor,
@@ -104,7 +104,7 @@ const LinkCard: React.FC<{
         },
       ]}
     >
-      <View className="flex-1 mr-2.5 bg-transparent" pointerEvents="none">
+      <View className="bg-transparent" pointerEvents="none">
         <Text
           className="text-[15px] font-bold leading-5 mb-1.5"
           numberOfLines={2}
@@ -125,7 +125,7 @@ const LinkCard: React.FC<{
       {image && (
         <Image
           source={{ uri: image }}
-          className="w-[60px] h-[60px] rounded-lg"
+          className="w-full h-[120px] rounded-lg mt-2.5"
           style={[{ backgroundColor: Colors[colorScheme].backgroundSecondary }]}
         />
       )}

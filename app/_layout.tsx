@@ -14,6 +14,7 @@ import { RootSiblingParent } from 'react-native-root-siblings';
 import { ClipboardLinkModal } from '@/components/ClipboardLinkModal';
 import { CollectionSelectorModal } from '@/components/CollectionSelectorModal';
 import { CollectionToastOverlay } from '@/components/CollectionToastOverlay';
+import { GradientMaskOverlay } from '@/components/GradientMaskOverlay';
 import { UpdateChecker } from '@/components/UpdateChecker';
 import { useColorScheme } from '@/components/useColorScheme';
 import { VerificationModal } from '@/components/VerificationModal';
@@ -314,6 +315,9 @@ function RootLayout() {
                 options={{ presentation: 'modal', title: '提示' }}
               />
             </Stack>
+
+            {/* 全局状态栏和底部安全区渐变模糊遮罩 */}
+            <GradientMaskOverlay isDark={isDark} />
 
             {/* 全局状态栏控制 */}
             <StatusBar style={isDark ? 'light' : 'dark'} />

@@ -219,7 +219,7 @@ export const FeedCard = ({ item, tab }: { item: FeedItem; tab?: string }) => {
           >
             <Ionicons name="chatbubble-outline" size={16} color={secondaryColor} />
             <Text type="secondary" className="ml-1 text-xs font-semibold">
-              {item.commentCount > 0 ? item.commentCount : '评论'}
+              {item.commentCount > 0 ? item.commentCount : '0'}
             </Text>
           </BouncyButton>
 

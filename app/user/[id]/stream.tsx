@@ -40,6 +40,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { ZhihuContent } from '@/components/ZhihuContent';
 import Colors from '@/constants/Colors';
 import { ZhihuMemberRelation } from '@/types/zhihu';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const StreamItem = forwardRef(
   (
@@ -172,7 +173,6 @@ const StreamItem = forwardRef(
 
     return (
       <BouncyButton
-        activeOpacity={0.82}
         onPress={handlePress}
         style={[
           {
@@ -291,45 +291,17 @@ const StreamItem = forwardRef(
                 onPress={() => item?.id && onToggle(item.id.toString(), true)}
                 className="absolute inset-x-0 bottom-0 h-24 z-[100]"
               >
-                {/* 4 layers of progressive opacity to emulate gradient */}
-                <View
+                <LinearGradient
+                  colors={[
+                    colorScheme === 'dark' ? 'rgba(30, 30, 34, 0)' : 'rgba(255, 255, 255, 0)',
+                    colorScheme === 'dark' ? 'rgba(30, 30, 34, 1)' : 'rgba(255, 255, 255, 1)',
+                  ]}
                   style={{
                     position: 'absolute',
                     left: 0,
                     right: 0,
                     top: 0,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
-                  }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 16,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
-                  }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 32,
-                    height: 16,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
-                  }}
-                />
-                <View
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: 48,
                     bottom: 0,
-                    backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
                     justifyContent: 'flex-end',
                     alignItems: 'center',
                     paddingBottom: 6,
@@ -342,7 +314,7 @@ const StreamItem = forwardRef(
                   >
                     展开全文
                   </Text>
-                </View>
+                </LinearGradient>
               </Pressable>
             </Pressable>
           )}
@@ -441,7 +413,6 @@ const StreamItem = forwardRef(
                 : ''}
             </Text>
             <BouncyButton
-              activeOpacity={0.6}
               onPress={() => onShare(item)}
               className="p-1 -mr-1 bg-transparent"
             >

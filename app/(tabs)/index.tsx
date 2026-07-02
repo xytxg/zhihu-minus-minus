@@ -35,11 +35,11 @@ import {
   getFeed,
   type RawFeedItem,
 } from '@/api/zhihu';
+import { BouncyButton } from '@/components/BouncyButton';
 import { DailyList } from '@/components/DailyList';
 import { FeedCard } from '@/components/FeedCard';
 import { HotCard, type HotItem } from '@/components/HotCard';
 import { RecentMoments } from '@/components/RecentMoments';
-import { BouncyButton } from '@/components/BouncyButton';
 import { Text, useThemeColor, View } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
@@ -76,20 +76,18 @@ export default function HomeScreen() {
 
   // 动态过滤 Tabs
   const currentTabs = useMemo(() => {
-    return (
-      [
-        'following',
-        'recommend',
-        'local',
-        'hot',
-        'daily',
-        'publish',
-        'profile',
-      ].filter((tab) => {
-        if (tab === 'publish' || tab === 'profile') return true;
-        return visibleTabs.includes(tab as any);
-      }) as TabType[]
-    );
+    return [
+      'following',
+      'recommend',
+      'local',
+      'hot',
+      'daily',
+      'publish',
+      'profile',
+    ].filter((tab) => {
+      if (tab === 'publish' || tab === 'profile') return true;
+      return visibleTabs.includes(tab as any);
+    }) as TabType[];
   }, [visibleTabs]);
 
   const bottomCapsuleWidth = useMemo(() => {
@@ -98,7 +96,8 @@ export default function HomeScreen() {
     ).length;
     const hasPublish = currentTabs.includes('publish');
     const hasProfile = currentTabs.includes('profile');
-    const totalBottomIcons = (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
+    const totalBottomIcons =
+      (homeTabsCount > 0 ? 1 : 0) + (hasPublish ? 1 : 0) + (hasProfile ? 1 : 0);
     return containerWidth / (totalBottomIcons || 1) - 20;
   }, [currentTabs, containerWidth]);
 
@@ -323,7 +322,10 @@ export default function HomeScreen() {
                     <BouncyButton
                       key={tab}
                       onPress={() => handleTabPress(index)}
-                      style={[styles.navItem, { width: 54, paddingHorizontal: 0 }]}
+                      style={[
+                        styles.navItem,
+                        { width: 54, paddingHorizontal: 0 },
+                      ]}
                     >
                       <Text
                         style={[
@@ -444,13 +446,13 @@ export default function HomeScreen() {
                   backgroundColor: useThemeColor({}, 'primary_26'),
                   width:
                     containerWidth /
-                    ((currentTabs.filter(
-                      (t) => !['publish', 'profile'].includes(t),
-                    ).length > 0
-                      ? 1
-                      : 0) +
-                      (currentTabs.includes('publish') ? 1 : 0) +
-                      (currentTabs.includes('profile') ? 1 : 0)) -
+                      ((currentTabs.filter(
+                        (t) => !['publish', 'profile'].includes(t),
+                      ).length > 0
+                        ? 1
+                        : 0) +
+                        (currentTabs.includes('publish') ? 1 : 0) +
+                        (currentTabs.includes('profile') ? 1 : 0)) -
                     20,
                 },
                 bottomIndicatorStyle,
@@ -462,14 +464,14 @@ export default function HomeScreen() {
                 // 判断逻辑：当前在首页区域且当前子 Tab 有滚动
                 isScrollTop={
                   currentPage <
-                  currentTabs.filter(
-                    (t) => !['publish', 'profile'].includes(t),
-                  ).length && scrolledTabs[currentPage]
+                    currentTabs.filter(
+                      (t) => !['publish', 'profile'].includes(t),
+                    ).length && scrolledTabs[currentPage]
                 }
                 icon={
                   currentPage <
-                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                      .length
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
                     ? 'home'
                     : 'home-outline'
                 }
@@ -481,8 +483,8 @@ export default function HomeScreen() {
                 onPress={handleHomeTabPress}
                 color={
                   currentPage <
-                    currentTabs.filter((t) => !['publish', 'profile'].includes(t))
-                      .length
+                  currentTabs.filter((t) => !['publish', 'profile'].includes(t))
+                    .length
                     ? tintColor
                     : Colors[colorScheme].textSecondary
                 }

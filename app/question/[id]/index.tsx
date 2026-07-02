@@ -65,6 +65,7 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { copyToClipboard } from '@/utils/clipboard';
 import { refreshInfiniteQuery } from '@/utils/query';
 import { showToast } from '@/utils/toast';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const AnswerItem = forwardRef(
   (
@@ -265,7 +266,7 @@ const AnswerItem = forwardRef(
           borderRadius: 12,
           position: 'relative',
         }}
-        className="p-4 mb-2.5 shadow-sm"
+        className="p-4 mb-2.5 mx-1.5 shadow-sm"
       >
         {/* Glowing border hint overlay */}
         <Reanimated.View
@@ -336,7 +337,7 @@ const AnswerItem = forwardRef(
           )}
         </View>
 
-        <View className="my-1 bg-transparent">
+        <View className="mt-1 bg-transparent">
           {!isLongContent ? (
             <View className="flex-1 bg-transparent">
               <ZhihuContent
@@ -379,8 +380,8 @@ const AnswerItem = forwardRef(
                       发布于{' '}
                       {item.created_time
                         ? new Date(
-                            item.created_time * 1000,
-                          ).toLocaleDateString()
+                          item.created_time * 1000,
+                        ).toLocaleDateString()
                         : ''}{' '}
                       {item.ip_info ? `· ${item.ip_info} ` : ''}
                     </Text>
@@ -400,7 +401,7 @@ const AnswerItem = forwardRef(
                     onPress={() =>
                       item?.id && onToggle(item.id.toString(), false)
                     }
-                    className="flex-row items-center justify-center py-2.5 mt-[20px] bg-transparent"
+                    className="flex-row items-center justify-center py-1 mt-[4px] bg-transparent"
                   >
                     <Text
                       type="primary"
@@ -435,45 +436,17 @@ const AnswerItem = forwardRef(
                   onPress={() => onToggle(item.id.toString(), true)}
                   className="absolute inset-0"
                 >
-                  {/* 4 layers of progressive opacity to emulate gradient */}
-                  <View
+                  <LinearGradient
+                    colors={[
+                      colorScheme === 'dark' ? 'rgba(30, 30, 34, 0)' : 'rgba(255, 255, 255, 0)',
+                      colorScheme === 'dark' ? 'rgba(30, 30, 34, 1)' : 'rgba(255, 255, 255, 1)',
+                    ]}
                     style={{
                       position: 'absolute',
                       left: 0,
                       right: 0,
                       top: 0,
-                      height: 16,
-                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.2)`,
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 16,
-                      height: 16,
-                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.5)`,
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 32,
-                      height: 16,
-                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 0.8)`,
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      right: 0,
-                      top: 48,
                       bottom: 0,
-                      backgroundColor: `rgba(${colorScheme === 'dark' ? '30, 30, 34' : '255, 255, 255'}, 1.0)`,
                       justifyContent: 'flex-end',
                       alignItems: 'center',
                       paddingBottom: 6,
@@ -486,7 +459,7 @@ const AnswerItem = forwardRef(
                     >
                       展开全文
                     </Text>
-                  </View>
+                  </LinearGradient>
                 </Pressable>
               </Reanimated.View>
             </View>
@@ -495,11 +468,7 @@ const AnswerItem = forwardRef(
 
         <NativeView
           ref={footerRef}
-          className="flex-row items-center mt-3 pt-2.5 px-1 bg-transparent"
-          style={{
-            borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: Colors[colorScheme].border,
-          }}
+          className="flex-row items-center pt-1 px-1 bg-transparent"
         >
           <View className="flex-row items-center bg-transparent">
             <LikeButton
@@ -524,8 +493,8 @@ const AnswerItem = forwardRef(
             }
           >
             <Ionicons name="chatbubble-outline" size={16} color="#888" />
-            <Text className="text-[#888] ml-1 text-xs font-semibold">
-              {item.comment_count > 0 ? item.comment_count : '评论'}
+            <Text type="secondary" className="ml-1 text-xs font-semibold">
+              {item.comment_count > 0 ? item.comment_count : '0'}
             </Text>
           </BouncyButton>
           <BouncyButton
@@ -847,7 +816,7 @@ export default function QuestionDetail() {
     () => (
       <View
         type="surface"
-        className="p-5 mb-2"
+        className="p-5 mb-4 rounded-b-[24px]"
         style={{ paddingTop: insets.top + 50 }}
       >
         <Reanimated.View
@@ -1023,12 +992,12 @@ export default function QuestionDetail() {
         data={
           selectedAnswer
             ? {
-                id: selectedAnswer.id,
-                title: question?.title,
-                author: selectedAnswer.author?.name,
-                authorHeadline: selectedAnswer.author?.headline,
-                url: getShareLink(selectedAnswer),
-              }
+              id: selectedAnswer.id,
+              title: question?.title,
+              author: selectedAnswer.author?.name,
+              authorHeadline: selectedAnswer.author?.headline,
+              url: getShareLink(selectedAnswer),
+            }
             : null
         }
       />

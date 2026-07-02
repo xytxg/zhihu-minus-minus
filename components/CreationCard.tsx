@@ -13,6 +13,7 @@ import { BouncyButton } from './BouncyButton';
 import { LikeButton } from './LikeButton';
 import { type ShareContentType, ShareMenu } from './ShareMenu';
 import { ZhihuContent } from './ZhihuContent';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export const CreationCard = React.forwardRef(
   (
@@ -210,7 +211,7 @@ export const CreationCard = React.forwardRef(
 
         <View className="bg-transparent mt-1">
           {expanded &&
-          (type === 'answer' || type === 'article' || type === 'pin') ? (
+            (type === 'answer' || type === 'article' || type === 'pin') ? (
             <View className="flex-1 bg-transparent mt-1">
               <ZhihuContent
                 objectId={item.id?.toString()}
@@ -268,73 +269,37 @@ export const CreationCard = React.forwardRef(
                   onPress={() => setExpanded(true)}
                   className="absolute inset-x-0 bottom-0 h-24 z-[100]"
                 >
-                  {/* 4 layers of progressive opacity to emulate gradient */}
-                  <View
+                  <LinearGradient
+                    colors={[
+                      colorScheme === 'dark' ? 'rgba(26, 26, 26, 0)' : 'rgba(255, 255, 255, 0)',
+                      colorScheme === 'dark' ? 'rgba(26, 26, 26, 1)' : 'rgba(255, 255, 255, 1)',
+                    ]}
                     style={{
                       position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: 0,
                       bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 24,
-                      backgroundColor:
-                        colorScheme === 'dark'
-                          ? 'rgba(26,26,26,0.95)'
-                          : 'rgba(255,255,255,0.95)',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center',
+                      paddingBottom: 10,
                     }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      bottom: 24,
-                      left: 0,
-                      right: 0,
-                      height: 24,
-                      backgroundColor:
-                        colorScheme === 'dark'
-                          ? 'rgba(26,26,26,0.7)'
-                          : 'rgba(255,255,255,0.7)',
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      bottom: 48,
-                      left: 0,
-                      right: 0,
-                      height: 24,
-                      backgroundColor:
-                        colorScheme === 'dark'
-                          ? 'rgba(26,26,26,0.45)'
-                          : 'rgba(255,255,255,0.45)',
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      bottom: 72,
-                      left: 0,
-                      right: 0,
-                      height: 24,
-                      backgroundColor:
-                        colorScheme === 'dark'
-                          ? 'rgba(26,26,26,0.15)'
-                          : 'rgba(255,255,255,0.15)',
-                    }}
-                  />
-                  <View className="absolute inset-x-0 bottom-0 py-2.5 flex-row items-center justify-center">
-                    <Text
-                      type="primary"
-                      className="text-[13px] font-bold mr-1"
-                      style={{ color: primaryColor }}
-                    >
-                      展开全文
-                    </Text>
-                    <Ionicons
-                      name="chevron-down"
-                      size={14}
-                      color={primaryColor}
-                    />
-                  </View>
+                  >
+                    <View className="flex-row items-center justify-center bg-transparent">
+                      <Text
+                        type="primary"
+                        className="text-[13px] font-bold mr-1"
+                        style={{ color: primaryColor }}
+                      >
+                        展开全文
+                      </Text>
+                      <Ionicons
+                        name="chevron-down"
+                        size={14}
+                        color={primaryColor}
+                      />
+                    </View>
+                  </LinearGradient>
                 </Pressable>
               </Pressable>
             ) : (
@@ -407,8 +372,8 @@ export const CreationCard = React.forwardRef(
                 className="flex-row items-center ml-5 bg-transparent py-1"
               >
                 <Ionicons name="chatbubble-outline" size={16} color="#888" />
-                <Text className="text-[#888] ml-1 text-xs font-semibold">
-                  {item.comment_count > 0 ? item.comment_count : '评论'}
+                <Text className="ml-1 text-xs font-semibold">
+                  {item.comment_count > 0 ? item.comment_count : '0'}
                 </Text>
               </Pressable>
               {isCollectable && (
@@ -453,15 +418,15 @@ export const CreationCard = React.forwardRef(
               className="text-xs text-tertiary dark:text-tertiary-dark mr-3"
             >
               {item.updated_time ||
-              item.updated ||
-              item.created_time ||
-              item.created
+                item.updated ||
+                item.created_time ||
+                item.created
                 ? new Date(
-                    (item.updated_time ||
-                      item.updated ||
-                      item.created_time ||
-                      item.created) * 1000,
-                  ).toLocaleDateString()
+                  (item.updated_time ||
+                    item.updated ||
+                    item.created_time ||
+                    item.created) * 1000,
+                ).toLocaleDateString()
                 : ''}
             </Text>
             <BouncyButton
