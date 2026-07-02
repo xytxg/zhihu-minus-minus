@@ -695,6 +695,7 @@ const FeedList = React.forwardRef<
   return (
     <FlashList
       ref={flashListRef}
+      showsVerticalScrollIndicator={false}
       data={flattenedData}
       keyExtractor={(item, index) =>
         `feed-${item.id?.toString() || index}-${index}`

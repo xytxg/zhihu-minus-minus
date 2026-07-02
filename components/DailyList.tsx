@@ -174,9 +174,10 @@ export const DailyList = React.forwardRef<
 
   return (
     <View className="flex-1">
-      <FlashList
-        ref={flashListRef}
-        data={flattenedData}
+        <FlashList
+          ref={flashListRef}
+          showsVerticalScrollIndicator={false}
+          data={flattenedData}
         keyExtractor={(item: any, index: number) =>
           item.type === 'date' ? item.date : item.data.id.toString() + index
         }
